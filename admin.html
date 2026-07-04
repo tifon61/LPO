@@ -916,6 +916,10 @@
         }, 150);
     };
 
+    // parseFloat(x) || null trata al 0 como "sin valor" (0 es falsy en JS).
+    // Este helper solo devuelve null cuando el valor no es un número real.
+    const numOrNull = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+
     async function saveToWeb() {
         const city = document.getElementById('city-selector').value;
         const outHora = document.getElementById('in-hora-emision').value.trim();
@@ -948,9 +952,9 @@
 
             const dailyForecast = {
                 date: getLocalDateString(dateObj), day_name: dayNames[dateObj.getDay()],
-                temp_min: parseFloat(document.getElementById(`in-${conf.id}-min-urb`)?.value) || null, temp_max: parseFloat(document.getElementById(`in-${conf.id}-max-urb`)?.value) || null,
-                temp_min_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-min-sub`)?.value) || null) : null,
-                temp_max_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-max-sub`)?.value) || null) : null,
+                temp_min: numOrNull(document.getElementById(`in-${conf.id}-min-urb`)?.value), temp_max: numOrNull(document.getElementById(`in-${conf.id}-max-urb`)?.value),
+                temp_min_suburban: city === 'La Plata' ? numOrNull(document.getElementById(`in-${conf.id}-min-sub`)?.value) : null,
+                temp_max_suburban: city === 'La Plata' ? numOrNull(document.getElementById(`in-${conf.id}-max-sub`)?.value) : null,
                 custom_description: customDescEl ? (customDescEl.value.trim() || null) : null,
                 period_forecasts: []
             };
@@ -977,7 +981,7 @@
                     precipitation_description: isRain ? skyCond : null, probability_of_precipitation: pop,
                     sky_condition: isRain ? null : (skyCond || null), temperature: temp,
                     weather_icon_code: iconCode, wind_direction: windDir, wind_intensity: windInt,
-                    wind_gusts: rafagasStr ? parseInt(rafagasStr.replace(/\D/g, '')) || null : null
+                    wind_gusts: rafagasStr ? numOrNull(rafagasStr.replace(/\D/g, '')) : null
                 });
             });
             forecastPayload.daily_forecasts.push(dailyForecast);
