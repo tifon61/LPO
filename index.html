@@ -865,7 +865,7 @@ function fetchForecastDataJSONP(url) {
         };
 
         const script = document.createElement('script');
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName + '&_t=' + Date.now();
         
         script.onerror = function() {
             delete window[callbackName];
