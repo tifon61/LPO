@@ -944,11 +944,14 @@
             const conf = dayConfigs[i];
             const dateObj = new Date(baseDate); dateObj.setDate(baseDate.getDate() + i);
 
+            const customDescEl = document.getElementById(`${conf.id}-custom-desc`);
+
             const dailyForecast = {
                 date: getLocalDateString(dateObj), day_name: dayNames[dateObj.getDay()],
                 temp_min: parseFloat(document.getElementById(`in-${conf.id}-min-urb`)?.value) || null, temp_max: parseFloat(document.getElementById(`in-${conf.id}-max-urb`)?.value) || null,
                 temp_min_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-min-sub`)?.value) || null) : null,
                 temp_max_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-max-sub`)?.value) || null) : null,
+                custom_description: customDescEl ? (customDescEl.value.trim() || null) : null,
                 period_forecasts: []
             };
 
