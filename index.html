@@ -43,10 +43,10 @@
         .app-container { display: flex; flex: 1; overflow: hidden; }
         .view-section { display: none; width: 100%; height: 100%; overflow-y: auto; padding: 28px; }
         .view-section.active { display: block; }
-        #view-dashboard.active { display: flex; padding: 0; overflow: hidden; }
-        .map-section { flex: 0 0 400px; position: relative; z-index: 1; }
+        #view-dashboard.active { display: block; padding: 24px; overflow-y: auto; }
+        .map-card { max-width: 900px; margin: 0 auto 16px; height: 240px; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border: 1px solid var(--border); position: relative; }
         #map { width: 100%; height: 100%; }
-        .data-panel { flex: 1; min-width: 500px; max-width: 900px; background: var(--bg-body); overflow-y: auto; border-left: 1px solid var(--border); z-index: 10; padding: 18px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        .data-panel { max-width: 900px; margin: 0 auto; background: transparent; padding: 0; display: flex; flex-direction: column; gap: 14px; }
         .card { background: white; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 
         /* CIUDAD HEADER */
@@ -55,6 +55,17 @@
         .city-bar .sub { font-size: 0.7rem; opacity: 0.7; font-weight: 600; margin-top: 2px; }
         .emission-pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 14px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
         .emission-pill span { display: block; font-size: 1.1rem; font-weight: 900; margin-top: 1px; }
+
+        /* ANIMACIONES */
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes iconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .view-section.active { animation: fadeSlideIn 0.35s ease both; }
+        .fcast-block, .ext-card { animation: fadeSlideIn 0.45s ease both; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .fcast-block:hover, .ext-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.16); }
+        .pc-icon, .ext-icon-img { animation: iconFloat 3.2s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+            .view-section.active, .fcast-block, .ext-card, .pc-icon, .ext-icon-img { animation: none !important; transition: none !important; }
+        }
 
         /* PRONÓSTICO */
         .fcast-block { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
@@ -248,9 +259,8 @@
             header { padding: 0 1rem; height: auto; flex-direction: column; padding-bottom: 10px; }
             .header-left { width: 100%; justify-content: center; padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
             .header-nav { width: 100%; }
-            #view-dashboard.active { flex-direction: column; }
-            .map-section { flex: none; height: 30vh; min-height: 220px; }
-            .data-panel { flex: none; width: 100%; max-width: 100%; min-width: 0; border-left: none; border-top: 1px solid var(--border); }
+            #view-dashboard.active { padding: 14px; }
+            .map-card { height: 180px; }
             .fcast-ext-grid { grid-template-columns: 1fr; }
             .metrics-grid { grid-template-columns: repeat(2, 1fr); }
             .view-section { padding: 14px; }
@@ -277,7 +287,7 @@
 
     <!-- PRONÓSTICOS -->
     <div id="view-dashboard" class="view-section active">
-        <div class="map-section"><div id="map"></div></div>
+        <div class="map-card"><div id="map"></div></div>
         <div class="data-panel" id="data-panel">
             <div id="welcome-panel">
                 <svg width="52" height="52" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#cbd5e1; margin-bottom:14px;">
@@ -488,7 +498,7 @@
                 <h2 class="section-heading">📹 Divulgación en Redes</h2>
                 <p class="section-desc">Hacé clic en un video para reproducirlo — carga solo cuando lo pedís.</p>
                 <div class="grid-3">
-                    <div class="ig-facade" data-url="https://www.instagram.com/p/DZc4GzkxZQu/embed/" onclick="loadIgEmbed(this)">
+                    <div class="ig-facade" data-url="https://www.instagram.com/p/DZc4GzkxZQu/" onclick="loadIgEmbed(this)">
                         <div class="ig-thumb" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);">
                             <div class="ig-thumb-icon">🌪️</div>
                             <div class="ig-thumb-title">Tornados en la pampa húmeda</div>
@@ -499,7 +509,7 @@
                         </div>
                         <div class="ig-facade-overlay"><div class="ig-play-big">▶</div></div>
                     </div>
-                    <div class="ig-facade" data-url="https://www.instagram.com/p/DZDXXOVx72_/embed/" onclick="loadIgEmbed(this)">
+                    <div class="ig-facade" data-url="https://www.instagram.com/p/DZDXXOVx72_/" onclick="loadIgEmbed(this)">
                         <div class="ig-thumb" style="background:linear-gradient(135deg,#0052d4,#4364f7,#6fb1fc);">
                             <div class="ig-thumb-icon">🌧️</div>
                             <div class="ig-thumb-title">Frentes fríos y lluvias intensas</div>
@@ -510,7 +520,7 @@
                         </div>
                         <div class="ig-facade-overlay"><div class="ig-play-big">▶</div></div>
                     </div>
-                    <div class="ig-facade" data-url="https://www.instagram.com/p/DY2emTqxtUj/embed/" onclick="loadIgEmbed(this)">
+                    <div class="ig-facade" data-url="https://www.instagram.com/p/DY2emTqxtUj/" onclick="loadIgEmbed(this)">
                         <div class="ig-thumb" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
                             <div class="ig-thumb-icon">☀️</div>
                             <div class="ig-thumb-title">El Niño y las anomalías de temperatura</div>
@@ -635,7 +645,7 @@ function initMap() {
                 window._map.flyTo(c.coords, 10, { animate:true, duration:1.5 });
                 loadCity(c.name);
                 switchView('dashboard', document.querySelector('.nav-btn'));
-                if (window.innerWidth <= 900) setTimeout(() => document.getElementById('data-panel').scrollIntoView({ behavior:'smooth' }), 800);
+                setTimeout(() => document.getElementById('data-panel').scrollIntoView({ behavior:'smooth', block:'start' }), 700);
             });
     });
 }
@@ -773,13 +783,29 @@ function loadIgEmbed(facade) {
     loader.className = 'ig-loading';
     loader.innerHTML = '<div class="spin">⏳</div><div>Cargando video...</div>';
     parent.replaceChild(loader, facade);
+
     const wrap = document.createElement('div');
     wrap.className = 'ig-iframe-wrap';
-    const iframe = document.createElement('iframe');
-    iframe.src = url; iframe.width = '100%'; iframe.height = '480'; iframe.frameBorder = '0'; iframe.scrolling = 'no'; iframe.allowFullscreen = true; iframe.style.display = 'block';
-    iframe.onload = () => { wrap.appendChild(iframe); parent.replaceChild(wrap, loader); };
-    iframe.onerror = () => { loader.innerHTML = '❌ No se pudo cargar.'; };
-    document.body.appendChild(iframe);
+    const blockquote = document.createElement('blockquote');
+    blockquote.className = 'instagram-media';
+    blockquote.setAttribute('data-instgrm-permalink', url);
+    blockquote.setAttribute('data-instgrm-version', '14');
+    blockquote.style.margin = '0';
+    wrap.appendChild(blockquote);
+    parent.replaceChild(wrap, loader);
+
+    // El embed oficial de Instagram (embed.js) es el único método soportado por
+    // Meta para reproducir el post in-page; un <iframe src="…/embed/"> a mano
+    // suele mostrar un cartel de error en vez del video.
+    if (window.instgrm) {
+        window.instgrm.Embeds.process();
+    } else {
+        const script = document.createElement('script');
+        script.src = 'https://www.instagram.com/embed.js';
+        script.async = true;
+        script.onload = () => { if (window.instgrm) window.instgrm.Embeds.process(); };
+        document.body.appendChild(script);
+    }
 }
 
 // ─── FUNCIONES UI DE PRONÓSTICO ─────────────────────────────────────────────
@@ -835,7 +861,7 @@ function buildPeriodCol(p) {
     </div>`;
 }
 
-function buildExtCard(day, cardClass) {
+function buildExtCard(day, cardClass, idx=0) {
     const p1=day.period_forecasts?.[0], p2=day.period_forecasts?.[1];
     const mU=day.temp_min!=null?day.temp_min+'°':'--', xU=day.temp_max!=null?day.temp_max+'°':'--';
     const mS=day.temp_min_suburban!=null?`${day.temp_min_suburban}°*`:'--*', xS=day.temp_max_suburban!=null?`${day.temp_max_suburban}°*`:'--*';
@@ -866,7 +892,7 @@ function buildExtCard(day, cardClass) {
     const wd1=p1?.wind_direction, wd2=p2?.wind_direction;
     const windHtml=wt?`<div class="ext-wind-box"><div class="ext-wind-arrows">${wd1?windArrowDark(wd1,30):''} ${wd2&&wd2!==wd1?windArrowDark(wd2,30):''}</div><div class="ext-wind-txt">${wt}</div></div>`:'';
     
-    return `<div class="ext-card ${cardClass}">
+    return `<div class="ext-card ${cardClass}" style="animation-delay:${0.2 + idx*0.1}s">
         <div class="ext-card-hdr"><div class="ext-card-name">${day.day_name?.toUpperCase()||'--'}</div><div class="ext-card-date">${dateStr}</div></div>
         <div class="ext-card-body">
             <div class="ext-temps-row"><div class="ext-temp-item">${thermoSVG('blue')}<div class="ext-temp-vals"><div class="ext-temp-lbl">MÍN</div><div class="ext-temp-urb">${mU}</div><div class="ext-temp-sub">${mS}</div></div></div>
@@ -957,7 +983,7 @@ async function fetchForecast(city) {
             const dateStr = day.date ? day.date.split('-').slice(1).reverse().join('/') : '';
             const periods = day.period_forecasts || [];
             
-            html += `<div class="fcast-block">
+            html += `<div class="fcast-block" style="animation-delay:${idx*0.1}s">
                         <div class="fcast-day-hdr d${idx}">
                             <div>
                                 <div class="fcast-day-name">${label} — ${day.day_name?.toUpperCase()||''}</div>
@@ -973,7 +999,7 @@ async function fetchForecast(city) {
         const ext = f.slice(2,4);
         if(ext.length > 0){
             html += `<div class="fcast-ext-grid">`;
-            ext.forEach((day,i)=>{ html+=buildExtCard(day, i===0?'celeste':'oscuro'); });
+            ext.forEach((day,i)=>{ html+=buildExtCard(day, i===0?'celeste':'oscuro', i); });
             html += `</div>`;
         }
         
