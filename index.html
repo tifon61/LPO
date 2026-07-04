@@ -44,9 +44,9 @@
         .view-section { display: none; width: 100%; height: 100%; overflow-y: auto; padding: 28px; }
         .view-section.active { display: block; }
         #view-dashboard.active { display: flex; padding: 0; overflow: hidden; }
-        .map-section { flex: 1.3; position: relative; z-index: 1; }
+        .map-section { flex: 0 0 400px; position: relative; z-index: 1; }
         #map { width: 100%; height: 100%; }
-        .data-panel { flex: 1; min-width: 500px; max-width: 640px; background: var(--bg-body); overflow-y: auto; border-left: 1px solid var(--border); z-index: 10; padding: 18px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        .data-panel { flex: 1; min-width: 500px; max-width: 900px; background: var(--bg-body); overflow-y: auto; border-left: 1px solid var(--border); z-index: 10; padding: 18px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
         .card { background: white; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 
         /* CIUDAD HEADER */
@@ -90,14 +90,14 @@
         .pc-gust { font-size: 0.58rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; background: #fce7f3; color: #9d174d; white-space: nowrap; margin-top: 4px; }
         .pc-sky { font-size: 0.6rem; font-weight: 600; color: var(--text-muted); text-align: center; line-height: 1.3; max-width: 80px; margin-top: 4px; }
         
-        .fcast-ext-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .ext-card { border-radius: 22px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .fcast-ext-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch; }
+        .ext-card { border-radius: 22px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.1); height: 100%; display: flex; flex-direction: column; }
         .ext-card-hdr { padding: 18px 20px 14px; color: white; }
         .ext-card.celeste .ext-card-hdr { background: var(--secondary); }
         .ext-card.oscuro  .ext-card-hdr { background: var(--primary); }
         .ext-card-name { font-family: 'Montserrat', sans-serif; font-size: 1.6rem; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
         .ext-card-date { font-size: 0.75rem; font-weight: 600; opacity: 0.75; margin-top: 2px; }
-        .ext-card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+        .ext-card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
         .ext-card.celeste .ext-card-body { background: #deeef9; }
         .ext-card.oscuro  .ext-card-body { background: #d0dfe8; }
         .ext-temps-row { display: flex; justify-content: center; gap: 20px; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 12px 10px; }
@@ -169,6 +169,16 @@
         .media-card h3 { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
         .media-card img { width: 100%; border-radius: 10px; border: 1px solid var(--border); }
 
+        /* GLOSARIO / DIVULGACIÓN */
+        .glossary-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 12px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--primary); cursor: pointer; transition: background 0.15s; }
+        .glossary-toggle:hover { background: var(--bg-body); }
+        #glossary-arrow { transition: transform 0.2s; }
+        .glossary-toggle.open #glossary-arrow { transform: rotate(180deg); }
+        .glossary-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; display: flex; flex-direction: column; gap: 10px; }
+        .glossary-panel.open { max-height: 600px; margin-top: 10px; }
+        .glossary-item { display: flex; gap: 10px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 0.8rem; line-height: 1.5; color: var(--text-main); }
+        .glossary-icon { font-size: 1.1rem; flex-shrink: 0; }
+
         /* ALERTAS y ESTADOS */
         .alert-card { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); border-radius: 12px; padding: 14px 16px; }
         .alert-card h3 { font-size: 0.8rem; color: var(--danger); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
@@ -239,7 +249,7 @@
             .header-left { width: 100%; justify-content: center; padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
             .header-nav { width: 100%; }
             #view-dashboard.active { flex-direction: column; }
-            .map-section { flex: none; height: 38vh; min-height: 280px; }
+            .map-section { flex: none; height: 30vh; min-height: 220px; }
             .data-panel { flex: none; width: 100%; max-width: 100%; min-width: 0; border-left: none; border-top: 1px solid var(--border); }
             .fcast-ext-grid { grid-template-columns: 1fr; }
             .metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -287,6 +297,16 @@
                         <div>EMISIÓN</div>
                         <span id="cd-emission-time">--:--</span>
                     </div>
+                </div>
+                <button class="glossary-toggle" id="glossary-btn" onclick="toggleGlossary()">
+                    <span>💡 ¿Qué significan estos datos?</span>
+                    <span id="glossary-arrow">▾</span>
+                </button>
+                <div class="glossary-panel" id="glossary-panel">
+                    <div class="glossary-item"><div class="glossary-icon">🌡️</div><div><strong>Temperatura urbana vs. suburbana:</strong> la "urbana" es la del centro de la ciudad, más cálida por el efecto de isla de calor (asfalto, edificios, tránsito). La "suburbana" es la de zonas periféricas, sin ese efecto — suele ser más fría, sobre todo de noche y madrugada.</div></div>
+                    <div class="glossary-item"><div class="glossary-icon">💧</div><div><strong>Probabilidad de precipitación:</strong> es la chance de que llueva de forma medible en esa franja horaria y esa zona. No indica cuánta lluvia va a caer, solo qué tan probable es que ocurra.</div></div>
+                    <div class="glossary-item"><div class="glossary-icon">🌬️</div><div><strong>Intensidad del viento:</strong> leves (hasta ~20 km/h), moderados (20 a 40 km/h), regulares (40 a 60 km/h), fuertes o muy fuertes (más de 60 km/h aprox.).</div></div>
+                    <div class="glossary-item"><div class="glossary-icon">💨</div><div><strong>Ráfagas:</strong> son picos breves de viento, más intensos que el viento sostenido predominante — pueden durar solo unos segundos, pero son las que más se sienten.</div></div>
                 </div>
                 <div id="alert-section" class="alert-card hidden" style="margin-top:14px;">
                     <h3>⚠ Alertas SMN</h3>
@@ -618,6 +638,11 @@ function initMap() {
                 if (window.innerWidth <= 900) setTimeout(() => document.getElementById('data-panel').scrollIntoView({ behavior:'smooth' }), 800);
             });
     });
+}
+
+function toggleGlossary() {
+    document.getElementById('glossary-panel').classList.toggle('open');
+    document.getElementById('glossary-btn').classList.toggle('open');
 }
 
 // ─── CIUDAD ──────────────────────────────────────────────────────────────────
