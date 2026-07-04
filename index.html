@@ -800,14 +800,14 @@ function popBadge(pop) {
 }
 function gustBadge(g) { return g ? `<div class="pc-gust">💨 Ráf. ${g} km/h</div>` : ''; }
 
-function tempBlock(day) {
+function tempBlock(day, showSub=true) {
     const mU = day.temp_min!=null ? day.temp_min+'°' : '--';
     const xU = day.temp_max!=null ? day.temp_max+'°' : '--';
     const mS = day.temp_min_suburban!=null ? day.temp_min_suburban+'°*' : '--*';
     const xS = day.temp_max_suburban!=null ? day.temp_max_suburban+'°*' : '--*';
     return `<div class="fcast-temps">
-        <div class="fcast-temp-col">${thermoSVG('blue')}<div class="fcast-temp-vals"><div class="fcast-temp-lbl">MÍN</div><div class="fcast-temp-urb">${mU}</div><div class="fcast-temp-sub">${mS}</div></div></div>
-        <div class="fcast-temp-col">${thermoSVG('red')}<div class="fcast-temp-vals"><div class="fcast-temp-lbl">MÁX</div><div class="fcast-temp-urb">${xU}</div><div class="fcast-temp-sub">${xS}</div></div></div>
+        <div class="fcast-temp-col">${thermoSVG('blue')}<div class="fcast-temp-vals"><div class="fcast-temp-lbl">MÍN</div><div class="fcast-temp-urb">${mU}</div>${showSub?`<div class="fcast-temp-sub">${mS}</div>`:''}</div></div>
+        <div class="fcast-temp-col">${thermoSVG('red')}<div class="fcast-temp-vals"><div class="fcast-temp-lbl">MÁX</div><div class="fcast-temp-urb">${xU}</div>${showSub?`<div class="fcast-temp-sub">${xS}</div>`:''}</div></div>
     </div>`;
 }
 
@@ -834,7 +834,7 @@ function buildPeriodCol(p) {
     </div>`;
 }
 
-function buildExtCard(day, cardClass, idx=0) {
+function buildExtCard(day, cardClass, idx=0, showSub=true) {
     const p1=day.period_forecasts?.[0], p2=day.period_forecasts?.[1];
     const mU=day.temp_min!=null?day.temp_min+'°':'--', xU=day.temp_max!=null?day.temp_max+'°':'--';
     const mS=day.temp_min_suburban!=null?`${day.temp_min_suburban}°*`:'--*', xS=day.temp_max_suburban!=null?`${day.temp_max_suburban}°*`:'--*';
@@ -868,8 +868,8 @@ function buildExtCard(day, cardClass, idx=0) {
     return `<div class="ext-card ${cardClass}" style="animation-delay:${0.2 + idx*0.1}s">
         <div class="ext-card-hdr"><div class="ext-card-name">${day.day_name?.toUpperCase()||'--'}</div><div class="ext-card-date">${dateStr}</div></div>
         <div class="ext-card-body">
-            <div class="ext-temps-row"><div class="ext-temp-item">${thermoSVG('blue')}<div class="ext-temp-vals"><div class="ext-temp-lbl">MÍN</div><div class="ext-temp-urb">${mU}</div><div class="ext-temp-sub">${mS}</div></div></div>
-            <div class="ext-temp-item">${thermoSVG('red')}<div class="ext-temp-vals"><div class="ext-temp-lbl">MÁX</div><div class="ext-temp-urb">${xU}</div><div class="ext-temp-sub">${xS}</div></div></div></div>
+            <div class="ext-temps-row"><div class="ext-temp-item">${thermoSVG('blue')}<div class="ext-temp-vals"><div class="ext-temp-lbl">MÍN</div><div class="ext-temp-urb">${mU}</div>${showSub?`<div class="ext-temp-sub">${mS}</div>`:''}</div></div>
+            <div class="ext-temp-item">${thermoSVG('red')}<div class="ext-temp-vals"><div class="ext-temp-lbl">MÁX</div><div class="ext-temp-urb">${xU}</div>${showSub?`<div class="ext-temp-sub">${xS}</div>`:''}</div></div></div>
             <div class="ext-icons-row">${half(p1,'MADRUGADA / MAÑANA')}${half(p2,'TARDE / NOCHE')}</div>
             ${desc!=='--'?`<div class="ext-desc-box">${desc}</div>`:''}
             ${windHtml}
@@ -949,7 +949,8 @@ async function fetchForecast(city) {
         }
 
         let html = '';
-        
+        const hasSuburban = city === 'La Plata';
+
         // Días 1 y 2
         f.slice(0,2).forEach((day,idx)=>{
             const label = idx === 0 ? 'HOY' : 'MAÑANA';
@@ -962,21 +963,21 @@ async function fetchForecast(city) {
                                 <div class="fcast-day-name">${label} — ${day.day_name?.toUpperCase()||''}</div>
                                 <div class="fcast-day-date">${dateStr}</div>
                             </div>
-                            ${tempBlock(day)}
+                            ${tempBlock(day, hasSuburban)}
                         </div>
                         ${periods.length > 0 ? `<div class="fcast-periods-wrap cols${periods.length===4?4:3}">${periods.map(p=>buildPeriodCol(p)).join('')}</div>` : '<div class="fcast-empty" style="border-radius:0 0 16px 16px;">Sin datos horarios.</div>'}
                      </div>`;
         });
-        
+
         // Extendido (Días 3 y 4)
         const ext = f.slice(2,4);
         if(ext.length > 0){
             html += `<div class="fcast-ext-grid">`;
-            ext.forEach((day,i)=>{ html+=buildExtCard(day, i===0?'celeste':'oscuro', i); });
+            ext.forEach((day,i)=>{ html+=buildExtCard(day, i===0?'celeste':'oscuro', i, hasSuburban); });
             html += `</div>`;
         }
-        
-        html += `<div style="text-align:center;font-size:0.72rem;font-weight:700;color:var(--text-muted);padding:6px 0 2px;">* TEMPERATURA EN ZONA SUBURBANA</div>`;
+
+        if (hasSuburban) html += `<div style="text-align:center;font-size:0.72rem;font-weight:700;color:var(--text-muted);padding:6px 0 2px;">* TEMPERATURA EN ZONA SUBURBANA</div>`;
         
         container.innerHTML = html;
 
