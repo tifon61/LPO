@@ -18,6 +18,8 @@
         #sidebar { width: 450px; background: white; height: 100vh; padding: 20px; overflow-y: auto; border-right: 5px solid var(--unlp-blue); }
         .section-title { background: var(--unlp-blue); color: white; padding: 10px; margin: 15px 0 10px; font-weight: 900; font-size: 0.8em; border-radius: 4px; text-transform: uppercase; }
         .field-group { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 15px; }
+        /* La distinción urbana/suburbana solo aplica a La Plata (única ciudad con doble estación) */
+        body.single-station .sub-field, body.single-station .temp-v-sub, body.single-station .card-temp-sub, body.single-station .footer-note { display: none; }
         h4 { margin: 10px 2px 5px; color: var(--unlp-blue); text-transform: uppercase; font-size: 0.65em; border-bottom: 1px solid #ddd; }
         .row { display: flex; gap: 10px; margin-bottom: 8px; }
         input, select, textarea { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
@@ -468,12 +470,12 @@
         configs.forEach(conf => {
             html += `<div class="section-title">${conf.title}</div>`;
             html += `<div class="field-group">
-                <h4>Temperaturas Mín / Máx (Urbana / Suburbana)</h4>
+                <h4>Temperaturas Mín / Máx <span class="sub-field">(Urbana / Suburbana)</span></h4>
                 <div class="row">
-                    <div class="column"><label>Mín Urbana</label><input type="number" id="in-${conf.id}-min-urb" placeholder="Min Urbana" oninput="updateTempField('${conf.id}', 'min', 'urb')"></div>
-                    <div class="column"><label>Mín Suburbana</label><input type="number" id="in-${conf.id}-min-sub" placeholder="Min Suburbana" oninput="updateTempField('${conf.id}', 'min', 'sub')"></div>
-                    <div class="column"><label>Máx Urbana</label><input type="number" id="in-${conf.id}-max-urb" placeholder="Máx Urbana" oninput="updateTempField('${conf.id}', 'max', 'urb')"></div>
-                    <div class="column"><label>Máx Suburbana</label><input type="number" id="in-${conf.id}-max-sub" placeholder="Máx Suburbana" oninput="updateTempField('${conf.id}', 'max', 'sub')"></div>
+                    <div class="column"><label class="urb-label" data-full="Mín Urbana" data-short="Mín">Mín Urbana</label><input type="number" id="in-${conf.id}-min-urb" placeholder="Min" oninput="updateTempField('${conf.id}', 'min', 'urb')"></div>
+                    <div class="column sub-field"><label>Mín Suburbana</label><input type="number" id="in-${conf.id}-min-sub" placeholder="Min Suburbana" oninput="updateTempField('${conf.id}', 'min', 'sub')"></div>
+                    <div class="column"><label class="urb-label" data-full="Máx Urbana" data-short="Máx">Máx Urbana</label><input type="number" id="in-${conf.id}-max-urb" placeholder="Máx" oninput="updateTempField('${conf.id}', 'max', 'urb')"></div>
+                    <div class="column sub-field"><label>Máx Suburbana</label><input type="number" id="in-${conf.id}-max-sub" placeholder="Máx Suburbana" oninput="updateTempField('${conf.id}', 'max', 'sub')"></div>
                 </div>
             </div>`;
 
@@ -759,6 +761,10 @@
     }
 
     function updateCity(v) {
+        const isLaPlata = v === 'La Plata';
+        document.body.classList.toggle('single-station', !isLaPlata);
+        document.querySelectorAll('.urb-label').forEach(el => { el.textContent = isLaPlata ? el.dataset.full : el.dataset.short; });
+
         document.querySelectorAll('.city-label').forEach(el => {
             el.innerText = v.toUpperCase();
             
@@ -941,7 +947,8 @@
             const dailyForecast = {
                 date: getLocalDateString(dateObj), day_name: dayNames[dateObj.getDay()],
                 temp_min: parseFloat(document.getElementById(`in-${conf.id}-min-urb`)?.value) || null, temp_max: parseFloat(document.getElementById(`in-${conf.id}-max-urb`)?.value) || null,
-                temp_min_suburban: parseFloat(document.getElementById(`in-${conf.id}-min-sub`)?.value) || null, temp_max_suburban: parseFloat(document.getElementById(`in-${conf.id}-max-sub`)?.value) || null,
+                temp_min_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-min-sub`)?.value) || null) : null,
+                temp_max_suburban: city === 'La Plata' ? (parseFloat(document.getElementById(`in-${conf.id}-max-sub`)?.value) || null) : null,
                 period_forecasts: []
             };
 
