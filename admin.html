@@ -912,7 +912,7 @@
 
     async function saveToWeb() {
         const city = document.getElementById('city-selector').value;
-        const outHora = document.getElementById('out-hora').innerText.replace('hs', '').trim();
+        const outHora = document.getElementById('in-hora-emision').value.trim();
         const baseDate = new Date();
         if (document.getElementById('chk-tomorrow').checked) baseDate.setDate(baseDate.getDate() + 1);
         const getLocalDateString = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
