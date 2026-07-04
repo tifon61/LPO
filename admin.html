@@ -763,20 +763,20 @@
             el.innerText = v.toUpperCase();
             
             // MODIFICADO: Agregada la condición para "Bahía Blanca" con los ajustes de espacio correctos.
-            if (v.toUpperCase() === 'MAR DEL PLATA' || v.toUpperCase() === 'BAHÍA BLANCA') { 
-                el.style.fontSize = '54px'; 
-                el.style.letterSpacing = '-1.5px'; 
-                el.style.marginLeft = '0px'; 
+            if (v.toUpperCase() === 'MAR DEL PLATA' || v.toUpperCase() === 'BAHÍA BLANCA') {
+                el.style.fontSize = '54px';
+                el.style.letterSpacing = '-1.5px';
+                el.style.marginLeft = '-20px';
             }
-            else if (v.toUpperCase() === 'JUNÍN') { 
-                el.style.fontSize = '72px'; 
-                el.style.letterSpacing = '-2px'; 
-                el.style.marginLeft = '70px'; 
+            else if (v.toUpperCase() === 'JUNÍN') {
+                el.style.fontSize = '72px';
+                el.style.letterSpacing = '-2px';
+                el.style.marginLeft = '50px';
             }
-            else { 
-                el.style.fontSize = '72px'; 
-                el.style.letterSpacing = '-2px'; 
-                el.style.marginLeft = '10px'; 
+            else {
+                el.style.fontSize = '72px';
+                el.style.letterSpacing = '-2px';
+                el.style.marginLeft = '-10px';
             }
         });
         fetchLastPublication(v);
