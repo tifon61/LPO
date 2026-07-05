@@ -69,9 +69,9 @@
         .day-1 { background: var(--unlp-blue); padding-top: 35px; height: 630px; }
         .day-2 { background: var(--unlp-accent-blue); padding-top: 35px; margin-bottom: 0; height: 630px; }
         .day-header { display: flex; align-items: flex-start; padding: 0px 25px 0px; color: white; gap: 15px; margin-bottom: -5px; }
-        .day-header h2 { font-size: 34px; font-weight: 900; margin: -5px 0 0 0; text-transform: uppercase; width: 230px; letter-spacing: -2px; flex-shrink: 0; line-height: 1; }
-        .periods-pill { background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; flex-grow: 1; justify-content: space-around; padding: 4px 0; font-weight: 800; font-size: 24px; margin-right: 15px; }
-        .periods-pill-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align: center; gap: 0; padding: 4px 10px; margin-right: 0; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 22px; }
+        .day-header h2 { font-size: 37px; font-weight: 900; margin: -5px 0 0 0; text-transform: uppercase; width: 230px; letter-spacing: -2px; flex-shrink: 0; line-height: 1; }
+        .periods-pill { background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; flex-grow: 1; justify-content: space-around; padding: 4px 0; font-weight: 800; font-size: 26px; margin-right: 15px; }
+        .periods-pill-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align: center; gap: 0; padding: 4px 10px; margin-right: 0; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 24px; }
         .exporting .periods-pill { padding: 0px 0 8px; }
         .exporting .periods-pill-4 { padding: 0px 10px 8px; }
         .periods-pill span, .periods-pill-4 span { display: inline-block; margin-top: 0; }
@@ -83,10 +83,10 @@
         .temp-v-box { border-radius: 0 40px 0 0; padding: 22px 10px 20px 20px; margin-left: -15px; width: calc(100% + 15px); height: 175px; min-height: 175px; display: flex; flex-direction: column; justify-content: center; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .day-1 .temp-v-box { background: var(--unlp-accent-blue); }
         .day-2 .temp-v-box { background: var(--unlp-blue); }
-        .temp-v-box h4 { font-size: 26px; margin: 0 0 10px; letter-spacing: 0; text-transform: uppercase; color: rgba(255,255,255,0.9); border: none; font-weight: 900; text-align: center; }
+        .temp-v-box h4 { font-size: 28px; margin: 0 0 10px; letter-spacing: 0; text-transform: uppercase; color: rgba(255,255,255,0.9); border: none; font-weight: 900; text-align: center; }
         .temp-v-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 5px; width: 100%; }
         .temp-v-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .temp-v-col .label { font-size: 24px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 5px; }
+        .temp-v-col .label { font-size: 26px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 5px; }
         .temp-v-item { display: flex; align-items: center; justify-content: center; gap: 8px; }
         .temp-v-item svg { transform: translateY(5px); }
         .temp-v-vals { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
@@ -94,20 +94,20 @@
         .exporting .temp-v-item svg { transform: translateY(1px); }
         .exporting .temp-v-vals { transform: translateY(-6px); }
         .exporting .card-temps-row svg { transform: translateY(6px); }
-        .temp-v-urb { font-size: 28px; font-weight: 500; line-height: 1.2; color: white; }
-        .temp-v-sub { font-size: 28px; font-weight: 500; line-height: 1.2; color: rgba(255,255,255,0.9); }
+        .temp-v-urb { font-size: 31px; font-weight: 500; line-height: 1.2; color: white; }
+        .temp-v-sub { font-size: 31px; font-weight: 500; line-height: 1.2; color: rgba(255,255,255,0.9); }
         
         .forecast-item { text-align: center; padding: 0 0 5px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-height: 0; flex-shrink: 0; padding-top: 10px; }
         .forecast-item img { width: 156px; height: 195px; object-fit: contain; flex-shrink: 0; image-rendering: -webkit-optimize-contrast; }
-        .forecast-temp { font-size: 46px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-top: -5px; line-height: 1; }
+        .forecast-temp { font-size: 50px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-top: -5px; line-height: 1; }
         
         .stripe { display: grid; align-items: stretch; width: 100%; height: 108px; position: relative; }
         .stripe-wind { background: var(--unlp-row-wind); color: var(--unlp-blue); grid-template-columns: 250px 1fr 1fr 1fr; }
         .stripe-wind-4 { grid-template-columns: 250px 1fr 1fr 1fr 1fr; }
         .stripe-time { background: var(--unlp-row-time); color: white; grid-template-columns: 250px 1fr 1fr 1fr; }
         .stripe-time-4 { grid-template-columns: 250px 1fr 1fr 1fr 1fr; }
-        .stripe-label { font-size: 32px; font-weight: 900; padding-left: 25px; letter-spacing: 0; text-transform: none; display: flex; align-items: center; }
-        .stripe-data { font-size: 26px; font-weight: 800; text-align: center; display: flex; align-items: center; justify-content: center; padding: 10px 15px; line-height: 1.1; min-width: 0; min-height: 0; overflow: hidden; }
+        .stripe-label { font-size: 35px; font-weight: 900; padding-left: 25px; letter-spacing: 0; text-transform: none; display: flex; align-items: center; }
+        .stripe-data { font-size: 29px; font-weight: 800; text-align: center; display: flex; align-items: center; justify-content: center; padding: 10px 15px; line-height: 1.1; min-width: 0; min-height: 0; overflow: hidden; }
         
         .cards-container { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-top: 20px; padding: 0 40px; box-sizing: border-box; }
         .v-card { height: 1010px; border-radius: 80px; padding: 25px 35px; color: white; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; position: relative; overflow: hidden; box-sizing: border-box; }
