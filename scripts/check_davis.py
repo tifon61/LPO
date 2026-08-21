@@ -149,6 +149,7 @@ def main():
         state["monitoring_since"] = now_iso
 
     incidents = state.setdefault("incidents", [])
+    just_down = status == "down" and prev_status != "down"
 
     if status == "down" and prev_status != "down":
         state["down_since"] = now_iso
@@ -179,6 +180,12 @@ def main():
         json.dump(state, f, ensure_ascii=False, indent=2)
 
     print(f"Estado: {status} ({reason or 'sin novedad'}) — escrito {STATE_PATH}")
+
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a", encoding="utf-8") as f:
+            f.write(f"just_down={'true' if just_down else 'false'}\n")
+            f.write(f"reason<<GITHUB_OUTPUT_EOF\n{reason or ''}\nGITHUB_OUTPUT_EOF\n")
 
 
 if __name__ == "__main__":
