@@ -21,6 +21,12 @@ import certifi
 
 DAVIS_URL = "https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
 STALE_MINUTES = 60
+# El servidor no manda el certificado intermedio (ZeroSSL ECC DV SSL CA 2) ni
+# encadena a una raíz que certifi ya incluya (Sectigo Public Server
+# Authentication Root E46, todavía no está en el bundle de Mozilla/certifi).
+# Sin este archivo, la verificación TLS falla con CERTIFICATE_VERIFY_FAILED
+# aunque el sitio ande bien. Ver: openssl s_client -connect meteo.fcaglp.unlp.edu.ar:443 -showcerts
+EXTRA_CA_CERTS = os.path.join(os.path.dirname(__file__), "extra_ca_certs.pem")
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 MAX_INCIDENTS_KEPT = 200
 
@@ -87,6 +93,7 @@ def check_davis():
     try:
         req = urllib.request.Request(DAVIS_URL, headers={"User-Agent": "pronostico-unlp-monitor"})
         ctx = ssl.create_default_context(cafile=certifi.where())
+        ctx.load_verify_locations(cafile=EXTRA_CA_CERTS)
         with urllib.request.urlopen(req, timeout=20, context=ctx) as resp:
             if resp.status != 200:
                 return "down", f"HTTP {resp.status}", None
