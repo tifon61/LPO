@@ -110,6 +110,28 @@
             </div>
         </div>
 
+        <div class="chart-card">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-window-restore mr-2 text-slate-500"></i> Página pública en vivo
+                </h3>
+                <a href="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt" target="_blank" class="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir en otra pestaña
+                </a>
+            </div>
+            <iframe
+                src="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
+                class="w-full rounded-lg border border-slate-200"
+                style="height: 320px;"
+                title="Página pública de la Davis (campo)"
+                loading="lazy"
+            ></iframe>
+            <p class="text-xs text-slate-400 mt-2">
+                Es la misma página que ve el público, embebida tal cual. Si el navegador la bloquea por política del
+                servidor de origen, usá el link de arriba para abrirla directo.
+            </p>
+        </div>
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="metric-card border-t-[#0f766e]">
                 <div class="metric-title mb-3"><i class="fa-solid fa-chart-line mr-1"></i> Disponibilidad</div>
