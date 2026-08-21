@@ -17,12 +17,17 @@ jobs:
       - name: Instalar dependencias
         run: pip install --quiet -r scripts/requirements.txt
 
-      - name: DEBUG - bajar y mostrar el certificado intermedio faltante
+      - name: DEBUG - bajar intermedio + raíz faltantes
         run: |
           curl -s http://crt.sectigo.com/ZeroSSLECCDVSSLCA2.crt -o /tmp/inter.der
           openssl x509 -inform der -in /tmp/inter.der -out /tmp/inter.pem
-          cat /tmp/inter.pem
-          openssl x509 -in /tmp/inter.pem -noout -subject -issuer -fingerprint -sha256
+          curl -s http://crt.sectigo.com/SectigoPublicServerAuthenticationRootE46.crt -o /tmp/root.der
+          openssl x509 -inform der -in /tmp/root.der -out /tmp/root.pem
+          echo "=== INTERMEDIO ==="; cat /tmp/inter.pem
+          echo "=== RAIZ ==="; cat /tmp/root.pem
+          echo "=== VERIFY ==="
+          cat /tmp/inter.pem /tmp/root.pem > /tmp/extra.pem
+          openssl verify -CAfile /tmp/extra.pem /tmp/inter.pem
         continue-on-error: true
 
       - name: Chequear la Davis y actualizar data/davis-monitor.json
