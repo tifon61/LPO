@@ -3,7 +3,12 @@ name: Chequear disponibilidad de la Davis
 on:
   schedule:
     - cron: '*/15 * * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      test_whatsapp:
+        description: "Mandar un WhatsApp de prueba (no toca el chequeo real)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -13,6 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: TEST - mandar WhatsApp de prueba
+        if: github.event.inputs.test_whatsapp == 'true'
+        run: |
+          curl -s -G "https://api.callmebot.com/whatsapp.php" \
+            --data-urlencode "phone=${{ secrets.CALLMEBOT_PHONE }}" \
+            --data-urlencode "apikey=${{ secrets.CALLMEBOT_APIKEY }}" \
+            --data-urlencode "text=✅ Prueba: así se va a ver el aviso cuando se caiga la Davis."
 
       - name: Instalar dependencias
         run: pip install --quiet -r scripts/requirements.txt
