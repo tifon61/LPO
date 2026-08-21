@@ -17,6 +17,10 @@ jobs:
       - name: Instalar dependencias
         run: pip install --quiet -r scripts/requirements.txt
 
+      - name: DEBUG - inspeccionar cadena de certificados
+        run: openssl s_client -connect meteo.fcaglp.unlp.edu.ar:443 -servername meteo.fcaglp.unlp.edu.ar -showcerts </dev/null 2>&1 | head -100
+        continue-on-error: true
+
       - name: Chequear la Davis y actualizar data/davis-monitor.json
         run: python3 scripts/check_davis.py
 
