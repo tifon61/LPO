@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Instalar dependencias
+        run: pip install --quiet -r scripts/requirements.txt
+
       - name: Chequear la Davis y actualizar data/davis-monitor.json
         run: python3 scripts/check_davis.py
 

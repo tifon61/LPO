@@ -13,8 +13,11 @@ Se considera "caída" cuando:
 import json
 import os
 import re
+import ssl
 import urllib.request
 from datetime import datetime, timedelta, timezone
+
+import certifi
 
 DAVIS_URL = "https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
 STALE_MINUTES = 60
@@ -83,7 +86,8 @@ def check_davis():
     """Devuelve (status, reason, last_data_timestamp_iso_or_None)."""
     try:
         req = urllib.request.Request(DAVIS_URL, headers={"User-Agent": "pronostico-unlp-monitor"})
-        with urllib.request.urlopen(req, timeout=20) as resp:
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as resp:
             if resp.status != 200:
                 return "down", f"HTTP {resp.status}", None
             body = resp.read().decode("utf-8", errors="replace")
