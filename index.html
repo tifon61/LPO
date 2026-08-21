@@ -93,11 +93,11 @@
                     <h1 class="text-2xl font-black text-slate-800 tracking-tight">Relevamiento de disponibilidad</h1>
                     <p class="text-slate-500 font-semibold text-sm mt-1">
                         <i class="fa-solid fa-link mr-1"></i>
-                        meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt
+                        fcaglp.unlp.edu.ar/index.php/informacion-meteorologica (dato: meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt)
                     </p>
                 </div>
             </div>
-            <a href="https://meteo.fcaglp.unlp.edu.ar/" target="_blank" class="text-sm font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 shrink-0">
+            <a href="https://www.fcaglp.unlp.edu.ar/index.php/informacion-meteorologica/" target="_blank" class="text-sm font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 shrink-0">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver estación
             </a>
         </header>
@@ -113,7 +113,29 @@
         <div class="chart-card">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
-                    <i class="fa-solid fa-window-restore mr-2 text-slate-500"></i> Página pública en vivo
+                    <i class="fa-solid fa-window-restore mr-2 text-slate-500"></i> Página pública en vivo (portal FCAG)
+                </h3>
+                <a href="https://www.fcaglp.unlp.edu.ar/index.php/informacion-meteorologica/" target="_blank" class="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir en otra pestaña
+                </a>
+            </div>
+            <iframe
+                src="https://www.fcaglp.unlp.edu.ar/index.php/informacion-meteorologica/"
+                class="w-full rounded-lg border border-slate-200"
+                style="height: 480px;"
+                title="Página de información meteorológica del portal FCAG (público general)"
+                loading="lazy"
+            ></iframe>
+            <p class="text-xs text-slate-400 mt-2">
+                Es la página que ve el público general, embebida tal cual. Si el navegador la bloquea por política del
+                servidor de origen, usá el link de arriba para abrirla directo.
+            </p>
+        </div>
+
+        <div class="chart-card">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
+                    <i class="fa-solid fa-database mr-2 text-slate-500"></i> Dato crudo (lo que chequea el monitoreo)
                 </h3>
                 <a href="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt" target="_blank" class="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir en otra pestaña
@@ -123,12 +145,12 @@
                 src="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
                 class="w-full rounded-lg border border-slate-200"
                 style="height: 320px;"
-                title="Página pública de la Davis (campo)"
+                title="Dato crudo de la Davis (campo)"
                 loading="lazy"
             ></iframe>
             <p class="text-xs text-slate-400 mt-2">
-                Es la misma página que ve el público, embebida tal cual. Si el navegador la bloquea por política del
-                servidor de origen, usá el link de arriba para abrirla directo.
+                Archivo de texto plano que descarga <code>scripts/check_davis.py</code> cada 15 minutos para
+                detectar caídas y datos desactualizados.
             </p>
         </div>
 
