@@ -17,10 +17,12 @@ jobs:
       - name: Instalar dependencias
         run: pip install --quiet -r scripts/requirements.txt
 
-      - name: DEBUG - inspeccionar cadena de certificados
+      - name: DEBUG - bajar y mostrar el certificado intermedio faltante
         run: |
-          openssl s_client -connect meteo.fcaglp.unlp.edu.ar:443 -servername meteo.fcaglp.unlp.edu.ar </dev/null 2>/dev/null \
-            | openssl x509 -noout -text | grep -i -A2 "CA Issuers\|Authority Information"
+          curl -s http://crt.sectigo.com/ZeroSSLECCDVSSLCA2.crt -o /tmp/inter.der
+          openssl x509 -inform der -in /tmp/inter.der -out /tmp/inter.pem
+          cat /tmp/inter.pem
+          openssl x509 -in /tmp/inter.pem -noout -subject -issuer -fingerprint -sha256
         continue-on-error: true
 
       - name: Chequear la Davis y actualizar data/davis-monitor.json
