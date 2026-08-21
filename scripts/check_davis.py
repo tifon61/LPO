@@ -34,16 +34,22 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 STATE_PATH = os.path.join(DATA_DIR, "davis-monitor.json")
 
 DATE_RE = re.compile(r"(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})")
-TIME_RE = re.compile(r"(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([APap][Mm])?")
+TIME_RE = re.compile(r"(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([APap][Mm]?)?")
 
 
 def parse_data_timestamp(text):
-    """Busca una fecha y hora en el archivo de la Davis y las devuelve como
-    datetime tz-aware en hora Argentina. La exportación de WeatherLink suele
-    usar MM/DD/YY; si el primer número no puede ser un mes válido, se prueba
-    invertido (DD/MM/YY)."""
-    date_m = DATE_RE.search(text)
-    time_m = TIME_RE.search(text)
+    """Busca la fecha y hora del registro más reciente del archivo de la Davis
+    y la devuelve como datetime tz-aware en hora Argentina. El archivo lista
+    las mediciones de más vieja a más nueva (una por línea), así que hay que
+    tomar la última línea con fecha/hora, no la primera. La exportación de
+    WeatherLink suele usar MM/DD/YY; si el primer número no puede ser un mes
+    válido, se prueba invertido (DD/MM/YY)."""
+    date_m = time_m = None
+    for line in reversed(text.splitlines()):
+        date_m = DATE_RE.search(line)
+        time_m = TIME_RE.search(line)
+        if date_m and time_m:
+            break
     if not date_m or not time_m:
         return None
 
@@ -68,10 +74,10 @@ def parse_data_timestamp(text):
     second = int(time_m.group(3) or 0)
     ampm = time_m.group(4)
     if ampm:
-        ampm = ampm.upper()
-        if ampm == "PM" and hour != 12:
+        ampm = ampm[0].upper()
+        if ampm == "P" and hour != 12:
             hour += 12
-        if ampm == "AM" and hour == 12:
+        if ampm == "A" and hour == 12:
             hour = 0
     if hour > 23:
         return None
