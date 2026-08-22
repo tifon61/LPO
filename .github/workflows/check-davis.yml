@@ -1,4 +1,4 @@
-name: Chequear disponibilidad de la Davis
+name: Chequear disponibilidad de estaciones
 
 on:
   schedule:
@@ -42,10 +42,16 @@ jobs:
             --data-urlencode "apikey=${{ secrets.CALLMEBOT_APIKEY }}" \
             --data-urlencode "text=⚠️ Se cayó la Davis (campo): ${{ steps.check.outputs.reason }}"
 
+      - name: Chequear la red de estaciones (ThingSpeak/Wunderground)
+        env:
+          CALLMEBOT_PHONE: ${{ secrets.CALLMEBOT_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+        run: python3 scripts/check_stations.py
+
       - name: Commitear si hubo cambios
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/davis-monitor.json
-          git diff --staged --quiet || git commit -m "Actualizar relevamiento de disponibilidad de la Davis"
+          git add data/davis-monitor.json data/stations-monitor.json
+          git diff --staged --quiet || git commit -m "Actualizar relevamiento de disponibilidad"
           git push

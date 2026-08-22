@@ -218,6 +218,19 @@
             tienen más de 60 minutos de antigüedad.
         </p>
 
+        <div class="chart-card">
+            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center">
+                <i class="fa-solid fa-network-wired mr-2 text-slate-500"></i> Red de estaciones (escuelas)
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">
+                ThingSpeak / Wunderground · umbral de caída: más de 120 minutos sin datos nuevos.
+                No incluye Monte Veloz ni EP N°34 (apagadas a propósito).
+            </p>
+            <div id="stationsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                <div class="text-slate-400 text-sm py-6 text-center col-span-full">Cargando...</div>
+            </div>
+        </div>
+
     </div>
 
 <script>
@@ -351,7 +364,72 @@
         });
     }
 
+    // Se lee del caché estático (data/stations-monitor.json), que actualiza
+    // GitHub Actions cada 15 minutos corriendo scripts/check_stations.py.
+    async function loadStations() {
+        const grid = document.getElementById('stationsGrid');
+        try {
+            const resp = await fetch(`data/stations-monitor.json?_t=${Date.now()}`);
+            const data = await resp.json();
+            renderStations(data.stations || {});
+        } catch (err) {
+            grid.innerHTML = `<div class="text-red-400 text-sm py-6 text-center col-span-full">Error al cargar: ${err.message}</div>`;
+        }
+    }
+
+    function renderStations(stations) {
+        const grid = document.getElementById('stationsGrid');
+        const keys = Object.keys(stations);
+        if (keys.length === 0) {
+            grid.innerHTML = '<div class="text-slate-400 text-sm py-6 text-center col-span-full">Todavía no corrió el primer chequeo.</div>';
+            return;
+        }
+
+        const now = new Date();
+        grid.innerHTML = keys.map(key => {
+            const s = stations[key];
+            const isPending = s.current_status === 'pending' || !s.monitoring_since;
+            const isDown = s.current_status === 'down';
+
+            let badgeClass = 'bg-slate-100 text-slate-500 border-slate-200';
+            let badgeText = 'Esperando...';
+            if (!isPending) {
+                badgeClass = isDown ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                badgeText = isDown ? 'Caída' : 'En línea';
+            }
+
+            const incidents = s.incidents || [];
+            const closed = incidents.filter(i => i.duration_minutes !== null);
+            let totalDown = closed.reduce((sum, i) => sum + i.duration_minutes, 0);
+            if (isDown && s.down_since) totalDown += (now - new Date(s.down_since)) / 60000;
+            const monitoringSince = s.monitoring_since ? new Date(s.monitoring_since) : now;
+            const totalMonitoredMin = Math.max((now - monitoringSince) / 60000, 1);
+            const uptimePct = isPending ? null : Math.max(0, 100 * (1 - totalDown / totalMonitoredMin));
+
+            const subtitle = isPending
+                ? (s.current_reason || '')
+                : (isDown
+                    ? (s.current_reason || '')
+                    : (s.last_data_timestamp ? `Último dato: ${fmtDate(s.last_data_timestamp)}` : ''));
+
+            return `
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <span class="font-bold text-sm text-slate-700">${s.display_name || key}</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-2 min-h-[2.2em]">${subtitle}</p>
+                    <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
+                        <span>Disp: <b class="text-slate-700">${uptimePct === null ? '--' : uptimePct.toFixed(1) + '%'}</b></span>
+                        <span>Caídas: <b class="text-slate-700">${s.current_issue_number ?? incidents.length}</b></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
     loadMonitor();
+    loadStations();
 </script>
 </body>
 </html>
