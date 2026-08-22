@@ -229,6 +229,28 @@
             <div id="stationsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 <div class="text-slate-400 text-sm py-6 text-center col-span-full">Cargando...</div>
             </div>
+
+            <div class="mt-5 pt-5 border-t border-slate-100">
+                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center">
+                    <i class="fa-solid fa-list mr-2 text-slate-500"></i>
+                    Historial de: <span id="stationIncidentsTitle" class="text-teal-700 ml-1">--</span>
+                </h4>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Duración</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stationIncidentsBody">
+                            <tr><td colspan="4" class="text-slate-400 text-center py-6">Elegí una estación arriba.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -366,15 +388,51 @@
 
     // Se lee del caché estático (data/stations-monitor.json), que actualiza
     // GitHub Actions cada 15 minutos corriendo scripts/check_stations.py.
+    let stationsCache = {};
+    let selectedStationKey = null;
+
     async function loadStations() {
         const grid = document.getElementById('stationsGrid');
         try {
             const resp = await fetch(`data/stations-monitor.json?_t=${Date.now()}`);
             const data = await resp.json();
-            renderStations(data.stations || {});
+            stationsCache = data.stations || {};
+            renderStations(stationsCache);
         } catch (err) {
             grid.innerHTML = `<div class="text-red-400 text-sm py-6 text-center col-span-full">Error al cargar: ${err.message}</div>`;
         }
+    }
+
+    function selectStation(key) {
+        selectedStationKey = key;
+        renderStations(stationsCache);
+        renderStationIncidents(key);
+    }
+
+    function renderStationIncidents(key) {
+        const s = stationsCache[key];
+        const title = document.getElementById('stationIncidentsTitle');
+        const tbody = document.getElementById('stationIncidentsBody');
+        if (!s) {
+            title.textContent = '--';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-400 text-center py-6">Elegí una estación arriba.</td></tr>';
+            return;
+        }
+        title.textContent = s.display_name || key;
+        const incidents = s.incidents || [];
+        if (incidents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-400 text-center py-6">Sin incidentes registrados todavía.</td></tr>';
+            return;
+        }
+        const now = new Date();
+        tbody.innerHTML = [...incidents].reverse().map(i => `
+            <tr>
+                <td class="font-semibold text-slate-700">${fmtDate(i.start)}</td>
+                <td>${i.end ? fmtDate(i.end) : '<span class="badge-ongoing">En curso</span>'}</td>
+                <td>${i.duration_minutes !== null ? fmtDuration(i.duration_minutes) : fmtDuration((now - new Date(i.start)) / 60000)}</td>
+                <td class="text-slate-500">${i.reason || '--'}</td>
+            </tr>
+        `).join('');
     }
 
     function renderStations(stations) {
@@ -384,6 +442,7 @@
             grid.innerHTML = '<div class="text-slate-400 text-sm py-6 text-center col-span-full">Todavía no corrió el primer chequeo.</div>';
             return;
         }
+        if (selectedStationKey === null) selectedStationKey = keys[0];
 
         const now = new Date();
         grid.innerHTML = keys.map(key => {
@@ -412,8 +471,10 @@
                     ? (s.current_reason || '')
                     : (s.last_data_timestamp ? `Último dato: ${fmtDate(s.last_data_timestamp)}` : ''));
 
+            const isSelected = key === selectedStationKey;
             return `
-                <div class="rounded-xl border border-slate-200 p-4">
+                <div class="rounded-xl border p-4 cursor-pointer transition hover:border-teal-300 ${isSelected ? 'border-teal-500 ring-1 ring-teal-500' : 'border-slate-200'}"
+                     onclick="selectStation('${key}')">
                     <div class="flex items-start justify-between gap-2 mb-2">
                         <span class="font-bold text-sm text-slate-700">${s.display_name || key}</span>
                         <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}">${badgeText}</span>
@@ -426,6 +487,8 @@
                 </div>
             `;
         }).join('');
+
+        renderStationIncidents(selectedStationKey);
     }
 
     loadMonitor();
