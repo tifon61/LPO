@@ -22,14 +22,14 @@ jobs:
       - name: DEBUG - buscar otras estaciones
         run: |
           echo "=== Homepage: links a /davis/ ==="
-          curl -s https://meteo.fcaglp.unlp.edu.ar/ | grep -oE '(href|src)="[^"]*davis[^"]*"' | sort -u || true
+          curl -sk https://meteo.fcaglp.unlp.edu.ar/ | grep -oE '(href|src)="[^"]*davis[^"]*"' | sort -u || true
           echo "=== Homepage: cualquier link relativo ==="
-          curl -s https://meteo.fcaglp.unlp.edu.ar/ | grep -oE 'href="[^"]*"' | sort -u | head -60 || true
+          curl -sk https://meteo.fcaglp.unlp.edu.ar/ | grep -oE 'href="[^"]*"' | sort -u | head -60 || true
           echo "=== Directorio /davis/ (a ver si lista) ==="
-          curl -s https://meteo.fcaglp.unlp.edu.ar/davis/ | head -100 || true
+          curl -sk https://meteo.fcaglp.unlp.edu.ar/davis/ | head -100 || true
           echo "=== Probar nombres comunes de estación ==="
           for n in campo ciudad facultad observatorio sede estacion2 obs meteo unlp fcaglp la_plata laplata; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "https://meteo.fcaglp.unlp.edu.ar/davis/$n/downld08.txt")
+            code=$(curl -sk -o /dev/null -w "%{http_code}" "https://meteo.fcaglp.unlp.edu.ar/davis/$n/downld08.txt" || echo "curl_err_$?")
             echo "$n -> $code"
           done
         continue-on-error: true
