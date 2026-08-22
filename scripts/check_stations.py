@@ -48,6 +48,12 @@ STATIONS = [
         "channels": [{"id": "2218687", "key": "TH3V4TJLRFZD3JSG"}],
     },
     {
+        "key": "ema_blanca",
+        "name": "EMA Blanca",
+        "type": "thingspeak",
+        "channels": [{"id": "2218689", "key": "ZLNOSLZJPQM3H7SD"}],
+    },
+    {
         "key": "observatorio",
         "name": "Observatorio (Facultad · Campbell)",
         "type": "thingspeak",
