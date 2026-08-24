@@ -5,8 +5,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:15:42+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:50:43+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Bavío / EMA Violeta)"
@@ -16,8 +16,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:08:34+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:39:17+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -40,8 +40,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:14:11+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:49:11+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -51,8 +51,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:15:46+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:47:58+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EMA Verde (Facultad, en prueba)"
@@ -62,8 +62,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:01:58+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:50:32+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Daza (Facultad · Wunderground)"
@@ -73,8 +73,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:17:53+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:50:55+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "ES7 / EP20"
@@ -84,8 +84,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:18:08+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:50:44+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Los Talas, Berisso)"
@@ -95,8 +95,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-08-24T11:17:52+00:00",
-      "last_check": "2026-08-24T11:18:50.020931+00:00",
+      "last_data_timestamp": "2026-08-24T11:49:26+00:00",
+      "last_check": "2026-08-24T11:51:01.364050+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EMA Blanca"
