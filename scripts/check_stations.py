@@ -40,6 +40,14 @@ STATIONS = [
             {"id": "2626952", "key": "4XYH56YSV64HE17H"},
             {"id": "1778165", "key": "OJ1JHKAPCCIQB4CB"},
         ],
+        # El pluviómetro y el sensor de temp/humedad pueden fallar por separado
+        # (son piezas de hardware distintas en la ESP32), así que se chequean
+        # como dos señales independientes en vez de mirar solo la fila más
+        # reciente del canal.
+        "signals": [
+            {"suffix": "temp_hum", "field": "field1", "label": "Temp/Humedad"},
+            {"suffix": "pluvio", "field": "field5", "label": "Pluviómetro"},
+        ],
     },
     {
         "key": "san_vicente",
@@ -127,6 +135,51 @@ def check_thingspeak(station):
     return _status_from_timestamp(latest_dt)
 
 
+def check_thingspeak_signals(station):
+    """Como check_thingspeak, pero devuelve el estado de cada señal (campo)
+    por separado en vez de uno solo para todo el canal: busca, para cada
+    campo pedido, la lectura no vacía más reciente entre las últimas filas."""
+    last_valid = {s["suffix"]: None for s in station["signals"]}
+    try:
+        for ch in station["channels"]:
+            url = (
+                f"https://api.thingspeak.com/channels/{ch['id']}/feeds.json"
+                f"?results=100&api_key={ch['key']}"
+            )
+            data = http_get_json(url)
+            feeds = data.get("feeds") or []
+            for signal in station["signals"]:
+                field = signal["field"]
+                for f in reversed(feeds):
+                    val = f.get(field)
+                    if val is None or val == "":
+                        continue
+                    try:
+                        float(val)
+                    except (TypeError, ValueError):
+                        continue
+                    created_at = f.get("created_at")
+                    if not created_at:
+                        continue
+                    dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                    suf = signal["suffix"]
+                    if last_valid[suf] is None or dt > last_valid[suf]:
+                        last_valid[suf] = dt
+                    break
+    except Exception as e:
+        return {s["suffix"]: ("down", f"No se pudo conectar: {e}", None) for s in station["signals"]}
+
+    results = {}
+    for signal in station["signals"]:
+        suf = signal["suffix"]
+        dt = last_valid[suf]
+        if dt is None:
+            results[suf] = ("down", f"Sin lecturas de {signal['label']}", None)
+        else:
+            results[suf] = _status_from_timestamp(dt)
+    return results
+
+
 def check_wunderground(station):
     url = (
         "https://api.weather.com/v2/pws/observations/current"
@@ -205,59 +258,88 @@ def new_station_state():
     }
 
 
+def process_check(stations_state, key, display_name, status, reason, data_ts_iso, now, now_iso):
+    """Actualiza el estado/historial de una estación (o señal de una estación)
+    con el resultado de un chequeo, y manda el WhatsApp correspondiente si
+    justo pasó de arriba a caída o de caída a arriba."""
+    state = stations_state.setdefault(key, new_station_state())
+    state["display_name"] = display_name
+    prev_status = state.get("current_status")
+
+    if state.get("monitoring_since") is None:
+        state["monitoring_since"] = now_iso
+
+    incidents = state.setdefault("incidents", [])
+    just_down = status == "down" and prev_status != "down"
+    just_recovered = status == "up" and prev_status == "down"
+    recovered_duration = None
+
+    if status == "down" and prev_status != "down":
+        state["down_since"] = now_iso
+        state["current_issue_number"] = state.get("current_issue_number", 0) + 1
+        incidents.append({"start": now_iso, "end": None, "duration_minutes": None, "reason": reason})
+    elif status == "down" and prev_status == "down":
+        if incidents and incidents[-1]["end"] is None:
+            incidents[-1]["reason"] = reason
+    elif status == "up" and prev_status == "down":
+        if incidents and incidents[-1]["end"] is None:
+            start = datetime.fromisoformat(incidents[-1]["start"])
+            duration = (now - start).total_seconds() / 60
+            incidents[-1]["end"] = now_iso
+            incidents[-1]["duration_minutes"] = round(duration, 1)
+            recovered_duration = _fmt_age(duration)
+        state["down_since"] = None
+
+    if len(incidents) > MAX_INCIDENTS_KEPT:
+        del incidents[: len(incidents) - MAX_INCIDENTS_KEPT]
+
+    state["current_status"] = status
+    state["current_reason"] = reason
+    state["last_check"] = now_iso
+    if data_ts_iso is not None:
+        state["last_data_timestamp"] = data_ts_iso
+
+    print(f"{key}: {status} ({reason or 'sin novedad'})")
+
+    if just_down:
+        send_whatsapp(f"⚠️ Se cayó la estación {display_name}: {reason}")
+    elif just_recovered:
+        send_whatsapp(f"✅ Volvió la estación {display_name}, había estado caída {recovered_duration}")
+
+
 def main():
     full_state = load_state()
     stations_state = full_state.setdefault("stations", {})
     now = datetime.now(timezone.utc)
     now_iso = now.isoformat()
 
+    valid_keys = set()
     for station in STATIONS:
         key = station["key"]
-        state = stations_state.setdefault(key, new_station_state())
-        state["display_name"] = station["name"]
 
-        status, reason, data_ts_iso = check_station(station)
-        prev_status = state.get("current_status")
+        if station.get("signals"):
+            results = check_thingspeak_signals(station)
+            for signal in station["signals"]:
+                suf = signal["suffix"]
+                signal_key = f"{key}_{suf}"
+                valid_keys.add(signal_key)
+                status, reason, data_ts_iso = results[suf]
+                process_check(
+                    stations_state,
+                    signal_key,
+                    f"{station['name']} — {signal['label']}",
+                    status, reason, data_ts_iso, now, now_iso,
+                )
+        else:
+            valid_keys.add(key)
+            status, reason, data_ts_iso = check_station(station)
+            process_check(stations_state, key, station["name"], status, reason, data_ts_iso, now, now_iso)
 
-        if state.get("monitoring_since") is None:
-            state["monitoring_since"] = now_iso
-
-        incidents = state.setdefault("incidents", [])
-        just_down = status == "down" and prev_status != "down"
-        just_recovered = status == "up" and prev_status == "down"
-        recovered_duration = None
-
-        if status == "down" and prev_status != "down":
-            state["down_since"] = now_iso
-            state["current_issue_number"] = state.get("current_issue_number", 0) + 1
-            incidents.append({"start": now_iso, "end": None, "duration_minutes": None, "reason": reason})
-        elif status == "down" and prev_status == "down":
-            if incidents and incidents[-1]["end"] is None:
-                incidents[-1]["reason"] = reason
-        elif status == "up" and prev_status == "down":
-            if incidents and incidents[-1]["end"] is None:
-                start = datetime.fromisoformat(incidents[-1]["start"])
-                duration = (now - start).total_seconds() / 60
-                incidents[-1]["end"] = now_iso
-                incidents[-1]["duration_minutes"] = round(duration, 1)
-                recovered_duration = _fmt_age(duration)
-            state["down_since"] = None
-
-        if len(incidents) > MAX_INCIDENTS_KEPT:
-            del incidents[: len(incidents) - MAX_INCIDENTS_KEPT]
-
-        state["current_status"] = status
-        state["current_reason"] = reason
-        state["last_check"] = now_iso
-        if data_ts_iso is not None:
-            state["last_data_timestamp"] = data_ts_iso
-
-        print(f"{key}: {status} ({reason or 'sin novedad'})")
-
-        if just_down:
-            send_whatsapp(f"⚠️ Se cayó la estación {station['name']}: {reason}")
-        elif just_recovered:
-            send_whatsapp(f"✅ Volvió la estación {station['name']}, había estado caída {recovered_duration}")
+    # Saca del JSON las estaciones/señales que ya no están en STATIONS (ej. la
+    # "bavio" de una versión anterior, reemplazada por "bavio_temp_hum" y
+    # "bavio_pluvio"), para que no quede un estado congelado dando vueltas.
+    for stale_key in set(stations_state) - valid_keys:
+        del stations_state[stale_key]
 
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(STATE_PATH, "w", encoding="utf-8") as f:
