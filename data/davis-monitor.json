@@ -1,10 +1,10 @@
 {
   "monitoring_since": "2026-08-21T20:43:17.283376+00:00",
   "current_status": "down",
-  "current_reason": "Datos desactualizados: último registro hace 2.4h",
+  "current_reason": "Datos desactualizados: último registro hace 3.2h",
   "down_since": "2026-08-26T08:22:42.039058+00:00",
   "last_data_timestamp": "2026-08-26T06:45:00+00:00",
-  "last_check": "2026-08-26T09:08:50.178399+00:00",
+  "last_check": "2026-08-26T09:55:14.713557+00:00",
   "current_issue_number": 2,
   "incidents": [
     {
@@ -17,7 +17,7 @@
       "start": "2026-08-26T08:22:42.039058+00:00",
       "end": null,
       "duration_minutes": null,
-      "reason": "Datos desactualizados: último registro hace 2.4h"
+      "reason": "Datos desactualizados: último registro hace 3.2h"
     }
   ]
 }
