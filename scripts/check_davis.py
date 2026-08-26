@@ -150,6 +150,8 @@ def main():
 
     incidents = state.setdefault("incidents", [])
     just_down = status == "down" and prev_status != "down"
+    just_recovered = status == "up" and prev_status == "down"
+    recovered_duration = None
 
     if status == "down" and prev_status != "down":
         state["down_since"] = now_iso
@@ -164,6 +166,7 @@ def main():
             duration = (now - start).total_seconds() / 60
             incidents[-1]["end"] = now_iso
             incidents[-1]["duration_minutes"] = round(duration, 1)
+            recovered_duration = fmt_age(duration)
         state["down_since"] = None
 
     if len(incidents) > MAX_INCIDENTS_KEPT:
@@ -186,6 +189,8 @@ def main():
         with open(github_output, "a", encoding="utf-8") as f:
             f.write(f"just_down={'true' if just_down else 'false'}\n")
             f.write(f"reason<<GITHUB_OUTPUT_EOF\n{reason or ''}\nGITHUB_OUTPUT_EOF\n")
+            f.write(f"just_recovered={'true' if just_recovered else 'false'}\n")
+            f.write(f"recovered_duration<<GITHUB_OUTPUT_EOF\n{recovered_duration or ''}\nGITHUB_OUTPUT_EOF\n")
 
 
 if __name__ == "__main__":

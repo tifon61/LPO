@@ -224,6 +224,8 @@ def main():
 
         incidents = state.setdefault("incidents", [])
         just_down = status == "down" and prev_status != "down"
+        just_recovered = status == "up" and prev_status == "down"
+        recovered_duration = None
 
         if status == "down" and prev_status != "down":
             state["down_since"] = now_iso
@@ -238,6 +240,7 @@ def main():
                 duration = (now - start).total_seconds() / 60
                 incidents[-1]["end"] = now_iso
                 incidents[-1]["duration_minutes"] = round(duration, 1)
+                recovered_duration = _fmt_age(duration)
             state["down_since"] = None
 
         if len(incidents) > MAX_INCIDENTS_KEPT:
@@ -253,6 +256,8 @@ def main():
 
         if just_down:
             send_whatsapp(f"⚠️ Se cayó la estación {station['name']}: {reason}")
+        elif just_recovered:
+            send_whatsapp(f"✅ Volvió la estación {station['name']}, había estado caída {recovered_duration}")
 
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(STATE_PATH, "w", encoding="utf-8") as f:

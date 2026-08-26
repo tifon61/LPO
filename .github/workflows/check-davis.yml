@@ -42,6 +42,14 @@ jobs:
             --data-urlencode "apikey=${{ secrets.CALLMEBOT_APIKEY }}" \
             --data-urlencode "text=⚠️ Se cayó la Davis (campo): ${{ steps.check.outputs.reason }}"
 
+      - name: Avisar por WhatsApp si se acaba de recuperar
+        if: steps.check.outputs.just_recovered == 'true'
+        run: |
+          curl -s -G "https://api.callmebot.com/whatsapp.php" \
+            --data-urlencode "phone=${{ secrets.CALLMEBOT_PHONE }}" \
+            --data-urlencode "apikey=${{ secrets.CALLMEBOT_APIKEY }}" \
+            --data-urlencode "text=✅ Volvió la Davis (campo), había estado caída ${{ steps.check.outputs.recovered_duration }}"
+
       - name: Chequear la red de estaciones (ThingSpeak/Wunderground)
         env:
           CALLMEBOT_PHONE: ${{ secrets.CALLMEBOT_PHONE }}
