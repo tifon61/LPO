@@ -1,11 +1,11 @@
 {
   "monitoring_since": "2026-08-21T20:43:17.283376+00:00",
-  "current_status": "up",
-  "current_reason": null,
-  "down_since": null,
-  "last_data_timestamp": "2026-08-31T13:30:00+00:00",
-  "last_check": "2026-08-31T13:41:49.357661+00:00",
-  "current_issue_number": 2,
+  "current_status": "down",
+  "current_reason": "Datos desactualizados: último registro hace 71 min",
+  "down_since": "2026-08-31T19:41:02.869297+00:00",
+  "last_data_timestamp": "2026-08-31T18:30:00+00:00",
+  "last_check": "2026-08-31T19:41:02.869297+00:00",
+  "current_issue_number": 3,
   "incidents": [
     {
       "start": "2026-08-25T15:13:16.783215+00:00",
@@ -18,6 +18,12 @@
       "end": "2026-08-26T13:14:04.518497+00:00",
       "duration_minutes": 291.4,
       "reason": "Datos desactualizados: último registro hace 5.3h"
+    },
+    {
+      "start": "2026-08-31T19:41:02.869297+00:00",
+      "end": null,
+      "duration_minutes": null,
+      "reason": "Datos desactualizados: último registro hace 71 min"
     }
   ]
 }
