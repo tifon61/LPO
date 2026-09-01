@@ -15,6 +15,9 @@
         nav a.active, nav a:hover { color: #0f766e; }
         h3 { font-weight: 800; color: #0f172a; }
         .var { font-family: 'Courier New', monospace; background: #eef2f7; border-radius: 4px; padding: 0 0.3rem; }
+        figure { margin: 0; }
+        figure img { border: 1px solid #e2e8f0; border-radius: 10px; width: 100%; height: 220px; object-fit: cover; object-position: top; cursor: zoom-in; }
+        figcaption { font-size: 0.7rem; color: #94a3b8; margin-top: 0.35rem; text-align: center; }
     </style>
 </head>
 <body class="p-4 md:p-6 lg:p-8">
@@ -53,6 +56,19 @@
                 la corrección por gravedad multiplicativa que ya usa la fórmula equivale a esa constante -0,72 mmHg,
                 y la fórmula da resultado exacto para cualquier lectura, no solo para los pasos de 0,5°C / 10 mmHg de la tabla.
             </p>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">Procedimiento en papel</h3>
+            <p class="text-sm text-slate-600">
+                Notas del observador con el procedimiento manual completo (el que sigue este sistema, adaptado a fórmulas y a la Tabla D-4).
+            </p>
+            <figure>
+                <a href="img/procedimiento-manuscrito.jpg" target="_blank">
+                    <img src="img/procedimiento-manuscrito.jpg" alt="Notas manuscritas del procedimiento de cálculo" style="height: auto; object-fit: contain;">
+                </a>
+                <figcaption>Click para ampliar</figcaption>
+            </figure>
         </div>
 
         <div class="card space-y-3">
@@ -99,6 +115,32 @@
         </div>
 
         <div class="card space-y-3">
+            <h3 class="text-base">Tablas SMN de referencia (tensión de vapor, punto de rocío, humedad relativa)</h3>
+            <p class="text-sm text-slate-600">
+                Las tablas 2-4 se calculan con las fórmulas de arriba, no con lectura de tabla — quedan acá como
+                referencia del procedimiento en papel que usaban los observadores antes de este sistema.
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <figure>
+                    <a href="img/tabla-i.jpg" target="_blank"><img src="img/tabla-i.jpg" alt="Tabla I del SMN"></a>
+                    <figcaption>Tabla I</figcaption>
+                </figure>
+                <figure>
+                    <a href="img/tabla-ii-bulbo-congelado.jpg" target="_blank"><img src="img/tabla-ii-bulbo-congelado.jpg" alt="Tabla II del SMN, bulbo congelado"></a>
+                    <figcaption>Tabla II — Bulbo Congelado</figcaption>
+                </figure>
+                <figure>
+                    <a href="img/tabla-iii-bulbo-sin-congelar.jpg" target="_blank"><img src="img/tabla-iii-bulbo-sin-congelar.jpg" alt="Tabla III del SMN, bulbo sin congelar"></a>
+                    <figcaption>Tabla III — Bulbo sin Congelar</figcaption>
+                </figure>
+                <figure>
+                    <a href="img/tabla-iv.jpg" target="_blank"><img src="img/tabla-iv.jpg" alt="Tabla IV del SMN, tensión de vapor y punto de rocío"></a>
+                    <figcaption>Tabla IV</figcaption>
+                </figure>
+            </div>
+        </div>
+
+        <div class="card space-y-3">
             <h3 class="text-base">5. Presión reducida al nivel del mar (Tabla D-4 del SMN)</h3>
             <p class="text-sm text-slate-600">
                 A diferencia de las demás variables (que se calculan con fórmula), esta usa la
@@ -128,6 +170,12 @@
                 Si la T. Seca de 12hs antes no se cargó, se aproxima con la T. Seca actual.
                 Fuera de estos rangos de temperatura/presión, se usa la fila o columna más cercana.
             </p>
+            <figure class="max-w-xs">
+                <a href="img/tabla-d4.jpg" target="_blank">
+                    <img src="img/tabla-d4.jpg" alt="Tabla D-4 del SMN, estación La Plata" style="height: auto; object-fit: contain;">
+                </a>
+                <figcaption>Tabla D-4 original (SMN, Estación La Plata) — click para ampliar</figcaption>
+            </figure>
         </div>
 
         <div class="card space-y-3">
