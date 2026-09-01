@@ -41,9 +41,13 @@ def parse_data_timestamp(text):
     """Busca la fecha y hora del registro más reciente del archivo de la Davis
     y la devuelve como datetime tz-aware en hora Argentina. El archivo lista
     las mediciones de más vieja a más nueva (una por línea), así que hay que
-    tomar la última línea con fecha/hora, no la primera. La exportación de
-    WeatherLink suele usar MM/DD/YY; si el primer número no puede ser un mes
-    válido, se prueba invertido (DD/MM/YY)."""
+    tomar la última línea con fecha/hora, no la primera. Este archivo en
+    particular usa DD/MM/YY (confirmado: los incidentes con día > 12 solo
+    resuelven bien con esa interpretación). Se prueba DD/MM primero y,
+    si no da una fecha válida, se prueba invertido (MM/DD/YY) como
+    respaldo — probar MM/DD primero rompía todos los días 1 a 12 de cada
+    mes, porque esos días también son meses válidos (ver día 1/9 leído
+    como 9 de enero)."""
     date_m = time_m = None
     for line in reversed(text.splitlines()):
         date_m = DATE_RE.search(line)
@@ -58,7 +62,7 @@ def parse_data_timestamp(text):
         year += 2000
 
     day = None
-    for month_guess, day_guess in ((a, b), (b, a)):
+    for month_guess, day_guess in ((b, a), (a, b)):
         if 1 <= month_guess <= 12 and 1 <= day_guess <= 31:
             try:
                 base_date = datetime(year, month_guess, day_guess)
