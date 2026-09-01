@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fórmulas — LPO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; }
+        .card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .formula { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #0f172a; overflow-x: auto; }
+        nav a { font-size: 0.8rem; font-weight: 700; color: #475569; }
+        nav a.active, nav a:hover { color: #0f766e; }
+        h3 { font-weight: 800; color: #0f172a; }
+        .var { font-family: 'Courier New', monospace; background: #eef2f7; border-radius: 4px; padding: 0 0.3rem; }
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+
+        <header class="bg-white p-6 rounded-2xl border border-slate-200 border-t-4 border-t-teal-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-5 w-full md:w-auto">
+                <div class="w-16 h-16 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100 shrink-0">
+                    <i class="fa-solid fa-square-root-variable text-2xl text-teal-700"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">Fórmulas de referencia</h1>
+                    <p class="text-slate-500 font-semibold text-sm mt-1">Cómo se calcula cada variable derivada</p>
+                </div>
+            </div>
+            <nav class="flex items-center gap-4 shrink-0">
+                <a href="index.html"><i class="fa-solid fa-pen-to-square mr-1"></i>Cargar</a>
+                <a href="historico.html"><i class="fa-solid fa-table-list mr-1"></i>Histórico</a>
+                <a href="formulas.html" class="active"><i class="fa-solid fa-square-root-variable mr-1"></i>Fórmulas</a>
+            </nav>
+        </header>
+
+        <div class="card space-y-2">
+            <h3 class="text-base">Constantes de la estación</h3>
+            <p class="text-sm text-slate-600">
+                Latitud <span class="var">-34.9°</span>, elevación <span class="var">15 m</span>.
+                Gravedad local <span class="var">g = 9.797207 m/s²</span> (fórmula internacional de gravedad para esa latitud)
+                vs. gravedad estándar <span class="var">g₀ = 9.80665 m/s²</span>.
+                Definidas en <code>observaciones/calculos.js</code>.
+            </p>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">1. Presión de estación (reducción del barómetro)</h3>
+            <p class="text-sm text-slate-600">Corrige el barómetro de mercurio por dilatación térmica y por gravedad local.</p>
+            <div class="formula">
+                C_t = -B × 0.000163 × T_adj<br>
+                B₀ = B + C_t<br>
+                P_estación (mmHg) = B₀ × (g_local / g_estándar)
+            </div>
+            <p class="text-xs text-slate-400">
+                <span class="var">B</span>: lectura del barómetro (mmHg) · <span class="var">T_adj</span>: temperatura adjunta del barómetro (°C)
+            </p>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">2. Tensión de vapor</h3>
+            <p class="text-sm text-slate-600">Fórmula psicrométrica (Magnus-Tetens para la tensión de saturación + corrección psicrométrica de garita sin ventilación forzada).</p>
+            <div class="formula">
+                es_húmeda = 6.112 × exp( (17.67 × T_h) / (T_h + 243.5) )<br>
+                e (hPa) = es_húmeda − 0.0008 × P_estación(hPa) × (T_s − T_h)
+            </div>
+            <p class="text-xs text-slate-400">
+                <span class="var">T_s</span>: temperatura seca (°C) · <span class="var">T_h</span>: temperatura húmeda (°C)
+            </p>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">3. Punto de rocío</h3>
+            <div class="formula">
+                T_d = ( ln(e / 6.112) × 243.5 ) / ( 17.67 − ln(e / 6.112) )
+            </div>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">4. Humedad relativa</h3>
+            <div class="formula">
+                es_seca = 6.112 × exp( (17.67 × T_s) / (T_s + 243.5) )<br>
+                HR (%) = (e / es_seca) × 100
+            </div>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">5. Presión reducida al nivel del mar (fórmula hipsométrica)</h3>
+            <div class="formula">
+                T_v (K) = (T_s + 273.15) / (1 − 0.378 × (e_mmHg / P_estación))<br>
+                P_mar (mmHg) = P_estación × (1 − (0.0065 × elevación) / T_v) ^ (−g_local / (287.05 × 0.0065))
+            </div>
+            <p class="text-xs text-slate-400">
+                <span class="var">e_mmHg</span> = e(hPa) × 0.750062 · <span class="var">elevación</span>: altura de la estación sobre el nivel del mar (m)
+            </p>
+        </div>
+
+        <div class="card space-y-3">
+            <h3 class="text-base">6. Conversión mmHg ↔ hPa</h3>
+            <div class="formula">
+                P (hPa) = P (mmHg) × 4/3
+            </div>
+        </div>
+    </div>
+</body>
+</html>
