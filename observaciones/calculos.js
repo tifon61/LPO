@@ -1,11 +1,15 @@
 /**
  * Motor de cálculo de variables meteorológicas derivadas (tipo SYNOP).
- * Port directo del script Python/Tkinter original: mismas fórmulas y constantes,
- * para que los resultados coincidan con el histórico ya cargado a mano.
+ * Presión de estación, tensión de vapor, punto de rocío y humedad relativa:
+ * port directo del script Python/Tkinter original (fórmulas Magnus-Tetens).
+ * Presión a nivel del mar: tabla oficial D-4 del SMN, específica de esta
+ * estación (ver TABLA_D4 más abajo) — reemplaza la fórmula hipsométrica
+ * genérica que usaba el script Python, para coincidir con el procedimiento
+ * en papel que siguen los observadores.
  *
  * Se usa tanto acá (preview en el navegador) como en apps-script/Code.gs
- * (cálculo autoritativo antes de guardar en la Sheet) — si cambiás una
- * fórmula, replicá el cambio en los dos lugares.
+ * (cálculo autoritativo antes de guardar en la Sheet) — si cambiás algo acá,
+ * replicá el cambio en los dos lugares.
  */
 
 const ESTACION = {
@@ -49,24 +53,38 @@ function humedadRelativa(eHpa, tSeca) {
   return Math.max(0, Math.min(hr, 100));
 }
 
-function prmslMmhg(pEstMmhg, tSeca, eHpa) {
-  const eMmhg = eHpa * 0.750062;
-  const tk = tSeca + 273.15;
-  const tvK = pEstMmhg > 0 ? tk / (1 - 0.378 * (eMmhg / pEstMmhg)) : tk;
-  const R = 287.05;
-  const gradienteTemp = 0.0065;
-  return (
-    pEstMmhg *
-    Math.pow(
-      1 - (gradienteTemp * ESTACION.elevacion) / tvK,
-      -ESTACION.gravedadLocal / (R * gradienteTemp)
-    )
-  );
+/**
+ * Tabla D-4 del SMN (Oficina de Cálculos Generales), específica de esta
+ * estación (La Plata — latitud 34°55', altura 14.97 m): valores a SUMAR a
+ * la presión de estación (ya corregida por Tabla D-2) para obtener la
+ * presión a nivel del mar. Reemplaza la fórmula hipsométrica genérica por
+ * la tabla oficial que usan los observadores en papel.
+ */
+const TABLA_D4 = [
+  // tMin, tMax: rango de la temperatura PROMEDIO del termómetro seco (°C).
+  // c730: columna "730.00 a 759.99 mmHg" · c760: columna "760.00 a 789.99 mmHg"
+  { tMin: -10.0, tMax: -0.1, c730: 1.4, c760: 1.5 },
+  { tMin: 0.0, tMax: 9.9, c730: 1.4, c760: 1.4 },
+  { tMin: 10.0, tMax: 19.9, c730: 1.3, c760: 1.4 },
+  { tMin: 20.0, tMax: 29.9, c730: 1.3, c760: 1.3 },
+  { tMin: 30.0, tMax: 39.9, c730: 1.2, c760: 1.3 },
+  { tMin: 40.0, tMax: 49.9, c730: 1.2, c760: 1.2 },
+];
+
+function correccionD4(tPromedio, pEstMmhg) {
+  let fila = TABLA_D4.find((f) => tPromedio >= f.tMin && tPromedio <= f.tMax);
+  if (!fila) {
+    fila = tPromedio < TABLA_D4[0].tMin ? TABLA_D4[0] : TABLA_D4[TABLA_D4.length - 1];
+  }
+  return pEstMmhg < 760.0 ? fila.c730 : fila.c760;
 }
 
 /**
- * input: { tSeca, tHumeda, tMax, tMin, tAdjunto, barometro, lluvia } (números; opcionales pueden ser null)
- * devuelve todas las variables derivadas.
+ * input: { tSeca, tHumeda, tMax, tMin, tAdjunto, barometro, lluvia, tSeca12hAntes }
+ * (números; opcionales pueden ser null). tSeca12hAntes es la T. Seca de la
+ * observación de 12hs antes, para promediarla con la actual (Tabla D-4);
+ * si no se manda, se usa la T. Seca actual como aproximación.
+ * Devuelve todas las variables derivadas.
  */
 function calcularObservacion(input) {
   const pEstMmhg = presionEstacionMmhg(input.barometro, input.tAdjunto);
@@ -74,7 +92,11 @@ function calcularObservacion(input) {
   const tv = tensionVaporHpa(input.tSeca, input.tHumeda, pEstHpa);
   const pr = puntoRocio(tv);
   const hr = humedadRelativa(tv, input.tSeca);
-  const pnmMmhg = prmslMmhg(pEstMmhg, input.tSeca, tv);
+
+  const tSeca12hAntes = input.tSeca12hAntes != null ? input.tSeca12hAntes : input.tSeca;
+  const tPromedio = (input.tSeca + tSeca12hAntes) / 2;
+  const corrD4 = correccionD4(tPromedio, pEstMmhg);
+  const pnmMmhg = pEstMmhg + corrD4;
   const pnmHpa = mmhgAHpa(pnmMmhg);
 
   return {
@@ -89,5 +111,5 @@ function calcularObservacion(input) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ESTACION, calcularObservacion, presionEstacionMmhg, mmhgAHpa, tensionVaporHpa, puntoRocio, humedadRelativa, prmslMmhg };
+  module.exports = { ESTACION, calcularObservacion, presionEstacionMmhg, mmhgAHpa, tensionVaporHpa, puntoRocio, humedadRelativa, TABLA_D4, correccionD4 };
 }

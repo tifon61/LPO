@@ -36,6 +36,7 @@ var COLUMNAS = [
   { key: "tMin", header: "T. Mín" },
   { key: "tAdjunto", header: "T. Adjunto" },
   { key: "barometro", header: "Barómetro" },
+  { key: "tSeca12hAntes", header: "T. Seca (12hs antes)" },
   { key: "pEstMmhg", header: "P. Estación (mmHg)" },
   { key: "pEstHpa", header: "P. Estación (hPa)" },
   { key: "pnmMmhg", header: "P. Nivel Mar (mmHg)" },
@@ -79,19 +80,33 @@ function humedadRelativa_(eHpa, tSeca) {
   return Math.max(0, Math.min(hr, 100));
 }
 
-function prmslMmhg_(pEstMmhg, tSeca, eHpa) {
-  var eMmhg = eHpa * 0.750062;
-  var tk = tSeca + 273.15;
-  var tvK = pEstMmhg > 0 ? tk / (1 - 0.378 * (eMmhg / pEstMmhg)) : tk;
-  var R = 287.05;
-  var gradienteTemp = 0.0065;
-  return (
-    pEstMmhg *
-    Math.pow(
-      1 - (gradienteTemp * ESTACION.elevacion) / tvK,
-      -ESTACION.gravedadLocal / (R * gradienteTemp)
-    )
-  );
+// Tabla D-4 del SMN (Oficina de Cálculos Generales), específica de esta
+// estación (La Plata — latitud 34°55', altura 14.97 m): valores a SUMAR a
+// la presión de estación (ya corregida) para obtener la presión a nivel
+// del mar. Reemplaza la fórmula hipsométrica genérica.
+var TABLA_D4 = [
+  // tMin, tMax: rango de la temperatura PROMEDIO del termómetro seco (°C).
+  // c730: columna "730.00 a 759.99 mmHg" · c760: columna "760.00 a 789.99 mmHg"
+  { tMin: -10.0, tMax: -0.1, c730: 1.4, c760: 1.5 },
+  { tMin: 0.0, tMax: 9.9, c730: 1.4, c760: 1.4 },
+  { tMin: 10.0, tMax: 19.9, c730: 1.3, c760: 1.4 },
+  { tMin: 20.0, tMax: 29.9, c730: 1.3, c760: 1.3 },
+  { tMin: 30.0, tMax: 39.9, c730: 1.2, c760: 1.3 },
+  { tMin: 40.0, tMax: 49.9, c730: 1.2, c760: 1.2 },
+];
+
+function correccionD4_(tPromedio, pEstMmhg) {
+  var fila = null;
+  for (var i = 0; i < TABLA_D4.length; i++) {
+    if (tPromedio >= TABLA_D4[i].tMin && tPromedio <= TABLA_D4[i].tMax) {
+      fila = TABLA_D4[i];
+      break;
+    }
+  }
+  if (!fila) {
+    fila = tPromedio < TABLA_D4[0].tMin ? TABLA_D4[0] : TABLA_D4[TABLA_D4.length - 1];
+  }
+  return pEstMmhg < 760.0 ? fila.c730 : fila.c760;
 }
 
 function calcularObservacion_(input) {
@@ -100,8 +115,13 @@ function calcularObservacion_(input) {
   var tv = tensionVaporHpa_(input.tSeca, input.tHumeda, pEstHpa);
   var pr = puntoRocio_(tv);
   var hr = humedadRelativa_(tv, input.tSeca);
-  var pnmMmhg = prmslMmhg_(pEstMmhg, input.tSeca, tv);
+
+  var tSeca12hAntes = input.tSeca12hAntes != null ? input.tSeca12hAntes : input.tSeca;
+  var tPromedio = (input.tSeca + tSeca12hAntes) / 2;
+  var corrD4 = correccionD4_(tPromedio, pEstMmhg);
+  var pnmMmhg = pEstMmhg + corrD4;
   var pnmHpa = mmhgAHpa_(pnmMmhg);
+
   return {
     pEstMmhg: pEstMmhg,
     pEstHpa: pEstHpa,
@@ -157,6 +177,8 @@ function doPost(e) {
       tHumeda: Number(body.tHumeda),
       tAdjunto: Number(body.tAdjunto),
       barometro: Number(body.barometro),
+      tSeca12hAntes:
+        body.tSeca12hAntes === "" || body.tSeca12hAntes == null ? null : Number(body.tSeca12hAntes),
     };
     if ([input.tSeca, input.tHumeda, input.tAdjunto, input.barometro].some(isNaN)) {
       return jsonOut_({ ok: false, error: "Faltan datos obligatorios (T. Seca, T. Húmeda, T. Adjunto, Barómetro)." });
@@ -173,6 +195,7 @@ function doPost(e) {
       tMin: body.tMin === "" || body.tMin == null ? "" : Number(body.tMin),
       tAdjunto: input.tAdjunto,
       barometro: input.barometro,
+      tSeca12hAntes: input.tSeca12hAntes == null ? "" : input.tSeca12hAntes,
       pEstMmhg: calculado.pEstMmhg,
       pEstHpa: calculado.pEstHpa,
       pnmMmhg: calculado.pnmMmhg,

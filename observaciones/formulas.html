@@ -45,6 +45,11 @@
                 vs. gravedad estándar <span class="var">g₀ = 9.80665 m/s²</span>.
                 Definidas en <code>observaciones/calculos.js</code>.
             </p>
+            <p class="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                La presión de estación (punto 1) todavía usa la fórmula de corrección por gravedad/temperatura,
+                pendiente de reemplazar por la Tabla D-2 oficial del SMN cuando haya una foto más clara para digitalizarla.
+            </p>
         </div>
 
         <div class="card space-y-3">
@@ -88,13 +93,34 @@
         </div>
 
         <div class="card space-y-3">
-            <h3 class="text-base">5. Presión reducida al nivel del mar (fórmula hipsométrica)</h3>
+            <h3 class="text-base">5. Presión reducida al nivel del mar (Tabla D-4 del SMN)</h3>
+            <p class="text-sm text-slate-600">
+                A diferencia de las demás variables (que se calculan con fórmula), esta usa la
+                <strong>tabla oficial D-4</strong> que ya usan los observadores en papel — específica de esta
+                estación (SMN, Oficina de Cálculos Generales · Estación: La Plata · Latitud 34°55' · Altura 14.97 m).
+                Da un valor chico y casi constante para sumar a la presión de estación, según la temperatura
+                promedio y el rango de presión.
+            </p>
             <div class="formula">
-                T_v (K) = (T_s + 273.15) / (1 − 0.378 × (e_mmHg / P_estación))<br>
-                P_mar (mmHg) = P_estación × (1 − (0.0065 × elevación) / T_v) ^ (−g_local / (287.05 × 0.0065))
+                T_prom = (T_seca actual + T_seca de 12hs antes) / 2<br>
+                corrección = TABLA_D4[fila de T_prom][columna de P_estación]<br>
+                P_mar (mmHg) = P_estación + corrección
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-center border-collapse">
+                    <thead>
+                        <tr class="text-slate-500">
+                            <th class="p-1 text-left">T. Seca promedio (°C)</th>
+                            <th class="p-1">730,00 a 759,99 mmHg</th>
+                            <th class="p-1">760,00 a 789,99 mmHg</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaD4Body" class="text-slate-700"></tbody>
+                </table>
             </div>
             <p class="text-xs text-slate-400">
-                <span class="var">e_mmHg</span> = e(hPa) × 0.750062 · <span class="var">elevación</span>: altura de la estación sobre el nivel del mar (m)
+                Si la T. Seca de 12hs antes no se cargó, se aproxima con la T. Seca actual.
+                Fuera de estos rangos de temperatura/presión, se usa la fila o columna más cercana.
             </p>
         </div>
 
@@ -105,5 +131,16 @@
             </div>
         </div>
     </div>
+
+    <script src="calculos.js"></script>
+    <script>
+        document.getElementById("tablaD4Body").innerHTML = TABLA_D4.map(
+            (f) => `<tr class="border-t border-slate-100">
+                <td class="p-1 text-left">${f.tMin.toFixed(1)} a ${f.tMax.toFixed(1)}</td>
+                <td class="p-1">${f.c730.toFixed(1)}</td>
+                <td class="p-1">${f.c760.toFixed(1)}</td>
+            </tr>`
+        ).join("");
+    </script>
 </body>
 </html>

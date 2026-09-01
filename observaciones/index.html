@@ -96,10 +96,20 @@
                     </div>
                 </div>
 
-                <div>
-                    <label for="lluvia">Lluvia (mm) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                    <input type="number" step="0.1" id="lluvia" name="lluvia">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="tSeca12hAntes">T. Seca 12hs antes (°C)
+                            <span class="normal-case font-medium text-slate-400">opcional</span></label>
+                        <input type="number" step="0.1" id="tSeca12hAntes" name="tSeca12hAntes">
+                    </div>
+                    <div>
+                        <label for="lluvia">Lluvia (mm) <span class="normal-case font-medium text-slate-400">opcional</span></label>
+                        <input type="number" step="0.1" id="lluvia" name="lluvia">
+                    </div>
                 </div>
+                <p class="text-xs text-slate-400 -mt-2">
+                    Si no la cargás, se usa la T. Seca actual como aproximación para la Tabla D-4 (presión a nivel del mar).
+                </p>
 
                 <button type="submit" id="btnGuardar"
                         class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
@@ -143,7 +153,8 @@
                     </div>
                 </div>
                 <p class="text-xs text-slate-400">
-                    Estación configurada en <code>calculos.js</code>: latitud -34.9°, elevación 15 m.
+                    Presión de estación, tensión de vapor, punto de rocío y humedad relativa: fórmulas.
+                    Presión a nivel del mar: Tabla D-4 oficial del SMN para esta estación (ver <a href="formulas.html" class="text-teal-700 hover:underline">Fórmulas</a>).
                 </p>
             </div>
         </form>
@@ -171,6 +182,7 @@
                 tMin: num("tMin"),
                 tAdjunto: num("tAdjunto"),
                 barometro: num("barometro"),
+                tSeca12hAntes: num("tSeca12hAntes"),
                 lluvia: num("lluvia"),
             };
         }
