@@ -45,16 +45,22 @@
                 vs. gravedad estándar <span class="var">g₀ = 9.80665 m/s²</span>.
                 Definidas en <code>observaciones/calculos.js</code>.
             </p>
-            <p class="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                <i class="fa-solid fa-circle-info mr-1"></i>
-                La presión de estación (punto 1) todavía usa la fórmula de corrección por gravedad/temperatura,
-                pendiente de reemplazar por la Tabla D-2 oficial del SMN cuando haya una foto más clara para digitalizarla.
+            <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+                <i class="fa-solid fa-circle-check mr-1"></i>
+                La presión de estación (punto 1) se verificó contra la Tabla D-2 oficial del SMN
+                ("corrección por gravedad (-0,72) y temperatura del termómetro adjunto, corrección instrumental (0,00)"):
+                los valores de la tabla coinciden con la fórmula al centésimo. No hace falta digitalizarla —
+                la corrección por gravedad multiplicativa que ya usa la fórmula equivale a esa constante -0,72 mmHg,
+                y la fórmula da resultado exacto para cualquier lectura, no solo para los pasos de 0,5°C / 10 mmHg de la tabla.
             </p>
         </div>
 
         <div class="card space-y-3">
             <h3 class="text-base">1. Presión de estación (reducción del barómetro)</h3>
-            <p class="text-sm text-slate-600">Corrige el barómetro de mercurio por dilatación térmica y por gravedad local.</p>
+            <p class="text-sm text-slate-600">
+                Corrige el barómetro de mercurio por dilatación térmica y por gravedad local
+                (verificado contra la Tabla D-2 del SMN — ver nota arriba).
+            </p>
             <div class="formula">
                 C_t = -B × 0.000163 × T_adj<br>
                 B₀ = B + C_t<br>
