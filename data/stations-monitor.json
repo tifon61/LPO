@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 54.0h",
+      "current_reason": "Sin datos nuevos hace 58.6h",
       "down_since": "2026-09-02T04:27:41.078975+00:00",
       "last_data_timestamp": "2026-09-01T22:23:55+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 8,
       "incidents": [
         {
@@ -55,7 +55,7 @@
           "start": "2026-09-02T04:27:41.078975+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 54.0h"
+          "reason": "Sin datos nuevos hace 58.6h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
@@ -65,8 +65,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:24:07+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:54:07+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -76,8 +76,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:26:26+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:55:01+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EMA Verde (Facultad, en prueba)"
@@ -87,8 +87,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:24:16+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:57:10+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Daza (Facultad · Wunderground)"
@@ -98,8 +98,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:26:06+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:56:43+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -116,8 +116,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:25:45+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:57:02+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Los Talas, Berisso)"
@@ -127,8 +127,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:24:35+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:54:42+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EMA Blanca"
@@ -138,8 +138,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:23:36+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:47:36+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -156,8 +156,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-04T04:25:30+00:00",
-      "last_check": "2026-09-04T04:26:32.573614+00:00",
+      "last_data_timestamp": "2026-09-04T08:54:16+00:00",
+      "last_check": "2026-09-04T08:57:24.523913+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Bavío / EMA Violeta) — Pluviómetro"
