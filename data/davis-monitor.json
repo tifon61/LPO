@@ -1,11 +1,11 @@
 {
   "monitoring_since": "2026-08-21T20:43:17.283376+00:00",
-  "current_status": "up",
-  "current_reason": null,
-  "down_since": null,
+  "current_status": "down",
+  "current_reason": "No se pudo conectar: <urlopen error timed out>",
+  "down_since": "2026-09-04T21:29:36.743019+00:00",
   "last_data_timestamp": "2026-09-04T19:05:00+00:00",
-  "last_check": "2026-09-04T19:13:37.241284+00:00",
-  "current_issue_number": 4,
+  "last_check": "2026-09-04T21:29:36.743019+00:00",
+  "current_issue_number": 5,
   "incidents": [
     {
       "start": "2026-08-25T15:13:16.783215+00:00",
@@ -30,6 +30,12 @@
       "end": "2026-09-04T19:13:37.241284+00:00",
       "duration_minutes": 365.4,
       "reason": "Datos desactualizados: último registro hace 5.1h"
+    },
+    {
+      "start": "2026-09-04T21:29:36.743019+00:00",
+      "end": null,
+      "duration_minutes": null,
+      "reason": "No se pudo conectar: <urlopen error timed out>"
     }
   ]
 }
