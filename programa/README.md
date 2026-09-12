@@ -58,7 +58,7 @@ todas convergen a través de la misma Google Sheet.
 
 ## Estructura
 
-- `main.py` — interfaz (Tkinter): formulario, resultados en vivo, historial, sync.
+- `main.py` — interfaz (Tkinter, tres pestañas: Cargar / Histórico / Fórmulas).
 - `calculos.py` — motor de cálculo (mismo que `observaciones/calculos.js`).
 - `db.py` — almacenamiento local en SQLite.
 - `sync.py` — subir/bajar contra el Web App de Apps Script.
