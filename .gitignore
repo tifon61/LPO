@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+programa/observaciones.db
+programa/config.json
+programa/build/
+programa/dist/
+programa/*.spec
