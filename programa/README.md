@@ -58,7 +58,9 @@ todas convergen a través de la misma Google Sheet.
 
 ## Estructura
 
-- `main.py` — interfaz (Tkinter, tres pestañas: Cargar / Histórico / Fórmulas).
+- `main.py` — interfaz (ttkbootstrap/Tkinter, tres pestañas: Cargar / Histórico / Fórmulas).
+  La pestaña Histórico incluye un gráfico (matplotlib) de la variable elegida a lo largo
+  del tiempo, además de la tabla.
 - `calculos.py` — motor de cálculo (mismo que `observaciones/calculos.js`).
 - `db.py` — almacenamiento local en SQLite.
 - `sync.py` — subir/bajar contra el Web App de Apps Script.

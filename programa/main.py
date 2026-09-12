@@ -7,8 +7,11 @@ import os
 import threading
 import tkinter as tk
 from datetime import datetime
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 
+import ttkbootstrap as ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 from PIL import Image, ImageTk
 
 import calculos
@@ -17,6 +20,8 @@ import sync
 
 DIR_ACTUAL = os.path.dirname(os.path.abspath(__file__))
 DIR_IMAGENES = os.path.join(DIR_ACTUAL, "img")
+TEMA = "flatly"
+COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
 
 CAMPOS = [
     ("fecha", "Fecha (AAAA-MM-DD)", True),
@@ -33,6 +38,17 @@ CAMPOS = [
 
 OBLIGATORIOS = ["t_seca", "t_humeda", "t_adjunto", "barometro"]
 
+VARIABLES_GRAFICO = [
+    ("t_seca", "T. Seca (°C)"),
+    ("t_humeda", "T. Húmeda (°C)"),
+    ("punto_rocio", "Punto de Rocío (°C)"),
+    ("humedad_relativa", "Humedad Relativa (%)"),
+    ("p_est_hpa", "P. Estación (hPa)"),
+    ("pnm_hpa", "P. Nivel del Mar (hPa)"),
+    ("tension_vapor", "Tensión de Vapor (hPa)"),
+    ("lluvia", "Lluvia (mm)"),
+]
+
 FUENTE_FORMULA = ("Consolas", 9)
 
 
@@ -40,9 +56,9 @@ class MarcoDesplazable(ttk.Frame):
     """Un frame con scroll vertical, para meter adentro contenido más
     largo que la ventana (usado en la pestaña Fórmulas)."""
 
-    def __init__(self, contenedor, *args, **kwargs):
+    def __init__(self, contenedor, color_fondo, *args, **kwargs):
         super().__init__(contenedor, *args, **kwargs)
-        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
+        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0, background=color_fondo)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.interior = ttk.Frame(canvas)
 
@@ -61,29 +77,30 @@ class MarcoDesplazable(ttk.Frame):
         canvas.bind_all("<MouseWheel>", _rueda)
 
 
-class App(tk.Tk):
+class App(ttk.Window):
     def __init__(self):
-        super().__init__()
+        super().__init__(themename=TEMA)
         self.title("Observaciones meteorológicas — LPO")
-        self.geometry("900x680")
-        self.minsize(780, 560)
+        self.geometry("960x760")
+        self.minsize(820, 620)
 
         self._imagenes = []  # mantiene referencias vivas para que Tkinter no las libere
         self.entradas = {}
+        self.color_fondo = self.style.colors.bg
 
         notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True, padx=10, pady=(10, 0))
+        notebook.pack(fill="both", expand=True, padx=12, pady=(12, 0))
 
         tab_cargar = ttk.Frame(notebook)
         tab_historico = ttk.Frame(notebook)
         tab_formulas = ttk.Frame(notebook)
-        notebook.add(tab_cargar, text="Cargar")
-        notebook.add(tab_historico, text="Histórico")
-        notebook.add(tab_formulas, text="Fórmulas")
+        notebook.add(tab_cargar, text="  Cargar  ")
+        notebook.add(tab_historico, text="  Histórico  ")
+        notebook.add(tab_formulas, text="  Fórmulas  ")
 
         self._armar_formulario(tab_cargar)
         self._armar_resultados(tab_cargar)
-        self._armar_historial(tab_historico)
+        self._armar_historico(tab_historico)
         self._armar_formulas(tab_formulas)
         self._armar_barra_estado()
 
@@ -95,25 +112,31 @@ class App(tk.Tk):
     # ---------- Pestaña: Cargar ----------
 
     def _armar_formulario(self, contenedor):
-        frame = ttk.LabelFrame(contenedor, text="Datos de entrada")
-        frame.pack(fill="x", padx=5, pady=(10, 5))
+        frame = ttk.Labelframe(contenedor, text=" Datos de entrada ", padding=12, bootstyle="secondary")
+        frame.pack(fill="x", padx=8, pady=(14, 8))
 
         for i, (clave, etiqueta, _obligatorio) in enumerate(CAMPOS):
             fila, col = divmod(i, 2)
-            ttk.Label(frame, text=etiqueta).grid(row=fila, column=col * 2, sticky="w", padx=5, pady=3)
+            ttk.Label(frame, text=etiqueta).grid(row=fila, column=col * 2, sticky="w", padx=6, pady=5)
             entrada = ttk.Entry(frame, width=18)
-            entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=5, pady=3)
+            entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
             entrada.bind("<KeyRelease>", lambda _e: self._recalcular())
             self.entradas[clave] = entrada
 
         botones = ttk.Frame(frame)
-        botones.grid(row=len(CAMPOS) // 2 + 1, column=0, columnspan=4, pady=(8, 4))
-        ttk.Button(botones, text="Guardar observación", command=self._guardar).pack(side="left", padx=5)
-        ttk.Button(botones, text="Limpiar", command=self._limpiar).pack(side="left", padx=5)
+        botones.grid(row=len(CAMPOS) // 2 + 1, column=0, columnspan=4, pady=(10, 2))
+        ttk.Button(botones, text="Guardar observación", command=self._guardar, bootstyle="success").pack(
+            side="left", padx=5
+        )
+        ttk.Button(botones, text="Limpiar", command=self._limpiar, bootstyle="secondary-outline").pack(
+            side="left", padx=5
+        )
 
     def _armar_resultados(self, contenedor):
-        frame = ttk.LabelFrame(contenedor, text="Variables calculadas (en vivo)")
-        frame.pack(fill="x", padx=5, pady=5)
+        frame = ttk.Labelframe(
+            contenedor, text=" Variables calculadas (en vivo) ", padding=12, bootstyle="secondary"
+        )
+        frame.pack(fill="x", padx=8, pady=8)
 
         self.resultado_labels = {}
         etiquetas = [
@@ -127,27 +150,43 @@ class App(tk.Tk):
         ]
         for i, (clave, etiqueta) in enumerate(etiquetas):
             fila, col = divmod(i, 4)
-            ttk.Label(frame, text=etiqueta + ":").grid(row=fila, column=col * 2, sticky="w", padx=5, pady=3)
-            valor = ttk.Label(frame, text="--", font=("TkDefaultFont", 10, "bold"))
-            valor.grid(row=fila, column=col * 2 + 1, sticky="w", padx=5, pady=3)
+            ttk.Label(frame, text=etiqueta + ":").grid(row=fila, column=col * 2, sticky="w", padx=6, pady=5)
+            valor = ttk.Label(frame, text="--", font=("TkDefaultFont", 11, "bold"), bootstyle="success")
+            valor.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
             self.resultado_labels[clave] = valor
 
         ttk.Label(
             contenedor,
             text="Cómo se calcula cada variable: pestaña Fórmulas.",
-            foreground="#64748b",
-        ).pack(anchor="w", padx=8, pady=(0, 5))
+            bootstyle="secondary",
+        ).pack(anchor="w", padx=10, pady=(2, 5))
 
     # ---------- Pestaña: Histórico ----------
 
-    def _armar_historial(self, contenedor):
+    def _armar_historico(self, contenedor):
         barra = ttk.Frame(contenedor)
-        barra.pack(fill="x", padx=5, pady=(10, 0))
-        ttk.Label(barra, text="Últimas observaciones guardadas (locales + de la Sheet)").pack(side="left")
-        ttk.Button(barra, text="Actualizar", command=self._refrescar_historial).pack(side="right")
+        barra.pack(fill="x", padx=8, pady=(14, 4))
+        ttk.Label(barra, text="Variable del gráfico:").pack(side="left", padx=(0, 6))
+        self.variable_grafico = ttk.Combobox(
+            barra, state="readonly", width=24,
+            values=[etiqueta for _clave, etiqueta in VARIABLES_GRAFICO],
+        )
+        self.variable_grafico.current(0)
+        self.variable_grafico.pack(side="left")
+        self.variable_grafico.bind("<<ComboboxSelected>>", lambda _e: self._actualizar_grafico())
+        ttk.Button(barra, text="Actualizar", command=self._refrescar_historial, bootstyle="secondary-outline").pack(
+            side="right"
+        )
 
-        frame = ttk.Frame(contenedor)
-        frame.pack(fill="both", expand=True, padx=5, pady=5)
+        marco_grafico = ttk.Frame(contenedor)
+        marco_grafico.pack(fill="x", padx=8, pady=4)
+        self.figura = Figure(figsize=(7.5, 2.6), dpi=100)
+        self.ejes = self.figura.add_subplot(111)
+        self.lienzo_grafico = FigureCanvasTkAgg(self.figura, master=marco_grafico)
+        self.lienzo_grafico.get_tk_widget().pack(fill="both", expand=True)
+
+        tabla_frame = ttk.Frame(contenedor)
+        tabla_frame.pack(fill="both", expand=True, padx=8, pady=(8, 12))
 
         columnas = (
             "fecha", "hora", "t_seca", "t_humeda", "t_adjunto", "barometro",
@@ -161,15 +200,38 @@ class App(tk.Tk):
             "tension_vapor": "T.Vapor", "punto_rocio": "P.Rocío", "humedad_relativa": "H.R. (%)",
             "lluvia": "Lluvia", "sync_status": "Estado",
         }
-        self.tabla = ttk.Treeview(frame, columns=columnas, show="headings", height=18)
+        self.tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=10, bootstyle="secondary")
         for col in columnas:
             self.tabla.heading(col, text=titulos[col])
-            self.tabla.column(col, width=85, anchor="center")
+            self.tabla.column(col, width=82, anchor="center")
 
-        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=self.tabla.yview)
+        scroll_y = ttk.Scrollbar(tabla_frame, orient="vertical", command=self.tabla.yview, bootstyle="round")
         self.tabla.configure(yscrollcommand=scroll_y.set)
         self.tabla.pack(side="left", fill="both", expand=True)
         scroll_y.pack(side="right", fill="y")
+
+    def _actualizar_grafico(self):
+        clave, etiqueta = VARIABLES_GRAFICO[self.variable_grafico.current()]
+        datos = db.listar_para_grafico()
+
+        self.ejes.clear()
+        puntos = [(f"{f['fecha']} {f['hora']}", f[clave]) for f in datos if f.get(clave) is not None]
+        if puntos:
+            etiquetas_x = [p[0] for p in puntos]
+            valores_y = [p[1] for p in puntos]
+            self.ejes.plot(etiquetas_x, valores_y, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
+            # No saturar el eje X de etiquetas si hay muchas observaciones.
+            paso = max(1, len(etiquetas_x) // 10)
+            self.ejes.set_xticks(etiquetas_x[::paso])
+            self.figura.autofmt_xdate(rotation=30, ha="right")
+        else:
+            self.ejes.text(0.5, 0.5, "Sin datos todavía", ha="center", va="center", color="#94a3b8")
+            self.ejes.set_xticks([])
+        self.ejes.set_title(etiqueta, fontsize=10, color="#334155")
+        self.ejes.tick_params(labelsize=7)
+        self.ejes.grid(True, alpha=0.25)
+        self.figura.tight_layout()
+        self.lienzo_grafico.draw()
 
     # ---------- Pestaña: Fórmulas ----------
 
@@ -185,31 +247,29 @@ class App(tk.Tk):
         return foto
 
     def _seccion_formula(self, contenedor, titulo, descripcion, formula, imagen=None, nota=None):
-        card = ttk.LabelFrame(contenedor, text=titulo)
-        card.pack(fill="x", padx=10, pady=6, ipady=4)
+        card = ttk.Labelframe(contenedor, text=f" {titulo} ", padding=10, bootstyle="secondary")
+        card.pack(fill="x", padx=12, pady=7)
         if descripcion:
-            ttk.Label(card, text=descripcion, wraplength=560, justify="left").pack(
-                anchor="w", padx=8, pady=(6, 4)
-            )
+            ttk.Label(card, text=descripcion, wraplength=580, justify="left").pack(anchor="w", pady=(0, 6))
         if formula:
-            marco_formula = tk.Frame(card, background="#f8fafc", highlightbackground="#e2e8f0", highlightthickness=1)
-            marco_formula.pack(fill="x", padx=8, pady=4)
+            marco_formula = tk.Frame(card, background="#f1f5f9", highlightbackground="#e2e8f0", highlightthickness=1)
+            marco_formula.pack(fill="x", pady=4)
             tk.Label(
                 marco_formula, text=formula, font=FUENTE_FORMULA, justify="left",
-                background="#f8fafc", anchor="w",
-            ).pack(fill="x", padx=8, pady=6)
+                background="#f1f5f9", foreground="#0f172a", anchor="w",
+            ).pack(fill="x", padx=10, pady=8)
         if nota:
-            ttk.Label(card, text=nota, wraplength=560, justify="left", foreground="#64748b").pack(
-                anchor="w", padx=8, pady=(0, 4)
+            ttk.Label(card, text=nota, wraplength=580, justify="left", bootstyle="secondary").pack(
+                anchor="w", pady=(6, 0)
             )
         if imagen:
             foto = self._cargar_imagen(imagen)
             if foto:
-                ttk.Label(card, image=foto).pack(anchor="w", padx=8, pady=(2, 8))
+                ttk.Label(card, image=foto).pack(anchor="w", pady=(6, 0))
 
     def _armar_formulas(self, contenedor):
-        scroll = MarcoDesplazable(contenedor)
-        scroll.pack(fill="both", expand=True, padx=5, pady=5)
+        scroll = MarcoDesplazable(contenedor, color_fondo=self.color_fondo)
+        scroll.pack(fill="both", expand=True, padx=8, pady=8)
         raiz = scroll.interior
 
         ttk.Label(
@@ -219,8 +279,8 @@ class App(tk.Tk):
                 "estándar g₀ = 9.80665 m/s². Presión de estación y Tabla D-4 verificadas "
                 "contra las tablas oficiales del SMN (fotos abajo de cada sección)."
             ),
-            wraplength=560, justify="left",
-        ).pack(anchor="w", padx=15, pady=(10, 5))
+            wraplength=580, justify="left", bootstyle="secondary",
+        ).pack(anchor="w", padx=18, pady=(14, 6))
 
         self._seccion_formula(
             raiz,
@@ -255,15 +315,19 @@ class App(tk.Tk):
             "HR (%) = (e / es_seca) × 100",
         )
 
-        tablas_ref = ttk.LabelFrame(raiz, text="Tablas SMN de referencia (tensión de vapor / punto de rocío / humedad)")
-        tablas_ref.pack(fill="x", padx=10, pady=6, ipady=4)
+        tablas_ref = ttk.Labelframe(
+            raiz,
+            text=" Tablas SMN de referencia (tensión de vapor / punto de rocío / humedad) ",
+            padding=10, bootstyle="secondary",
+        )
+        tablas_ref.pack(fill="x", padx=12, pady=7)
         ttk.Label(
             tablas_ref,
             text="Se calculan con las fórmulas de arriba, no con lectura de tabla. Quedan de referencia visual.",
-            wraplength=560, justify="left",
-        ).pack(anchor="w", padx=8, pady=(6, 4))
+            wraplength=580, justify="left",
+        ).pack(anchor="w", pady=(0, 6))
         galeria = ttk.Frame(tablas_ref)
-        galeria.pack(fill="x", padx=8, pady=(0, 8))
+        galeria.pack(fill="x")
         for i, (archivo, etiqueta) in enumerate([
             ("tabla-i.jpg", "Tabla I"),
             ("tabla-ii-bulbo-congelado.jpg", "Tabla II — Bulbo Congelado"),
@@ -271,11 +335,11 @@ class App(tk.Tk):
             ("tabla-iv.jpg", "Tabla IV"),
         ]):
             columna = ttk.Frame(galeria)
-            columna.grid(row=0, column=i, padx=4)
+            columna.grid(row=0, column=i, padx=5)
             foto = self._cargar_imagen(archivo, ancho=150)
             if foto:
                 ttk.Label(columna, image=foto).pack()
-            ttk.Label(columna, text=etiqueta, wraplength=150, justify="center").pack()
+            ttk.Label(columna, text=etiqueta, wraplength=150, justify="center", bootstyle="secondary").pack()
 
         tabla_d4_txt = "\n".join(
             f"{t_min:>6.1f} a {t_max:>5.1f} °C   →  {c730:.1f} mmHg (730-759,99)  /  {c760:.1f} mmHg (760-789,99)"
@@ -309,12 +373,13 @@ class App(tk.Tk):
 
     def _armar_barra_estado(self):
         frame = ttk.Frame(self)
-        frame.pack(fill="x", padx=10, pady=10)
-        self.estado_label = ttk.Label(frame, text="Iniciando...")
+        frame.pack(fill="x", padx=12, pady=12)
+        self.estado_label = ttk.Label(frame, text="Iniciando...", bootstyle="secondary")
         self.estado_label.pack(side="left")
-        ttk.Button(frame, text="Sincronizar ahora", command=lambda: self._sincronizar(automatico=False)).pack(
-            side="right"
-        )
+        ttk.Button(
+            frame, text="Sincronizar ahora", command=lambda: self._sincronizar(automatico=False),
+            bootstyle="info",
+        ).pack(side="right")
 
     # ---------- Lógica ----------
 
@@ -417,6 +482,7 @@ class App(tk.Tk):
                     "✓ sincronizada" if fila["sync_status"] == "sincronizado" else "pendiente",
                 ),
             )
+        self._actualizar_grafico()
         pendientes = db.contar_pendientes()
         if pendientes:
             self.estado_label.config(text=f"{pendientes} observación(es) pendiente(s) de sincronizar.")

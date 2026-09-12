@@ -95,6 +95,21 @@ def listar_observaciones(limite=200):
         return [dict(r) for r in rows]
 
 
+def listar_para_grafico(limite=500):
+    """Igual que listar_observaciones, pero en orden cronológico ascendente
+    (más vieja a más nueva), como conviene para graficar una serie temporal."""
+    with conectar() as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM (
+                SELECT * FROM observaciones ORDER BY fecha DESC, hora DESC LIMIT ?
+            ) ORDER BY fecha ASC, hora ASC
+            """,
+            (limite,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 def contar_pendientes():
     with conectar() as conn:
         row = conn.execute(
