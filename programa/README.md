@@ -37,6 +37,21 @@ misma Sheet que la web — no hace falta configurar nada) y `observaciones.db`
   contra la Sheet. Si cargás dos veces la misma fecha/hora, la segunda se
   ignora (con un aviso).
 
+Este flujo completo (offline → reconectar → sincronizar sin duplicar) tiene
+un test automático que no toca la Sheet real (levanta un servidor de
+prueba local): `python3 test_offline_sync.py`. Conviene correrlo después de
+tocar `sync.py` o `db.py`.
+
+## Validación de datos
+
+`calculos.py` (y sus equivalentes `observaciones/calculos.js` y
+`apps-script/Code.gs`) valida cada observación antes de calcularla/guardarla:
+rangos razonables por campo (`RANGOS`) y chequeos cruzados (T. Húmeda no
+puede superar a T. Seca, etc.) — pensado para atajar errores de tipeo, no
+para rechazar lecturas reales extremas. Se aplica en los tres lugares
+(formulario web, programa de escritorio, y el propio Apps Script como
+última línea de defensa). Si cambiás los rangos, replicalo en los tres.
+
 ## Empaquetarlo como .exe con ícono (para instalar sin tener Python)
 
 Hay que compilarlo en Windows (un .exe se genera corriendo PyInstaller en
@@ -97,3 +112,4 @@ en "Aplicaciones y características":
   `config.json`/`observaciones.db` entre arranques).
 - `icono.ico` / `icono.png` — ícono del programa.
 - `instalador.iss` — script de Inno Setup para generar un instalador de Windows.
+- `test_offline_sync.py` — test del flujo offline → reconectar → sincronizar sin duplicar.

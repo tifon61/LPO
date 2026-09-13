@@ -80,6 +80,58 @@ function correccionD4(tPromedio, pEstMmhg) {
 }
 
 /**
+ * Rangos físicamente razonables para esta estación (La Plata). No son los
+ * extremos absolutos posibles — son un colchón generoso pensado para
+ * atajar errores de tipeo (ej. "225" en vez de "22.5"), no para rechazar
+ * lecturas reales raras.
+ */
+const RANGOS = {
+  tSeca: { min: -15, max: 45, etiqueta: "T. Seca" },
+  tHumeda: { min: -15, max: 45, etiqueta: "T. Húmeda" },
+  tMax: { min: -15, max: 45, etiqueta: "T. Máx" },
+  tMin: { min: -15, max: 45, etiqueta: "T. Mín" },
+  tAdjunto: { min: -15, max: 45, etiqueta: "T. Adjunto" },
+  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Seca 12hs antes" },
+  barometro: { min: 700, max: 800, etiqueta: "Barómetro" },
+  lluvia: { min: 0, max: 500, etiqueta: "Lluvia" },
+};
+
+/**
+ * Valida una observación antes de calcular/guardar. input: mismas claves
+ * que RANGOS (los campos opcionales pueden venir null/undefined/"" — se
+ * saltean). Devuelve un array de mensajes de error (vacío si está todo bien).
+ */
+function validarObservacion(input) {
+  const errores = [];
+  for (const campo in RANGOS) {
+    const valor = input[campo];
+    if (valor === null || valor === undefined || valor === "") continue;
+    if (typeof valor !== "number" || Number.isNaN(valor)) {
+      errores.push(`${RANGOS[campo].etiqueta}: no es un número válido.`);
+      continue;
+    }
+    const { min, max, etiqueta } = RANGOS[campo];
+    if (valor < min || valor > max) {
+      errores.push(`${etiqueta} fuera de rango razonable (entre ${min} y ${max}). Revisá si hay un error de tipeo.`);
+    }
+  }
+
+  const tSeca = input.tSeca;
+  const tHumeda = input.tHumeda;
+  if (typeof tSeca === "number" && typeof tHumeda === "number" && tHumeda > tSeca + 0.05) {
+    errores.push("La T. Húmeda no puede ser mayor que la T. Seca.");
+  }
+  if (typeof tSeca === "number" && typeof input.tMax === "number" && input.tMax < tSeca - 0.05) {
+    errores.push("La T. Máx no puede ser menor que la T. Seca actual.");
+  }
+  if (typeof tSeca === "number" && typeof input.tMin === "number" && input.tMin > tSeca + 0.05) {
+    errores.push("La T. Mín no puede ser mayor que la T. Seca actual.");
+  }
+
+  return errores;
+}
+
+/**
  * input: { tSeca, tHumeda, tMax, tMin, tAdjunto, barometro, lluvia, tSeca12hAntes }
  * (números; opcionales pueden ser null). tSeca12hAntes es la T. Seca de la
  * observación de 12hs antes, para promediarla con la actual (Tabla D-4);
@@ -111,5 +163,8 @@ function calcularObservacion(input) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ESTACION, calcularObservacion, presionEstacionMmhg, mmhgAHpa, tensionVaporHpa, puntoRocio, humedadRelativa, TABLA_D4, correccionD4 };
+  module.exports = {
+    ESTACION, calcularObservacion, presionEstacionMmhg, mmhgAHpa, tensionVaporHpa,
+    puntoRocio, humedadRelativa, TABLA_D4, correccionD4, RANGOS, validarObservacion,
+  };
 }

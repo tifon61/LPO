@@ -72,6 +72,51 @@ def correccion_d4(t_promedio, p_est_mmhg):
     return c730 if p_est_mmhg < 760.0 else c760
 
 
+# Rangos físicamente razonables para esta estación (La Plata). No son los
+# extremos absolutos posibles — son un colchón generoso pensado para atajar
+# errores de tipeo (ej. "225" en vez de "22.5"), no para rechazar lecturas
+# reales raras.
+RANGOS = {
+    "t_seca": (-15, 45, "T. Seca"),
+    "t_humeda": (-15, 45, "T. Húmeda"),
+    "t_max": (-15, 45, "T. Máx"),
+    "t_min": (-15, 45, "T. Mín"),
+    "t_adjunto": (-15, 45, "T. Adjunto"),
+    "t_seca_12h_antes": (-15, 45, "T. Seca 12hs antes"),
+    "barometro": (700, 800, "Barómetro"),
+    "lluvia": (0, 500, "Lluvia"),
+}
+
+
+def validar_observacion(entrada):
+    """Valida una observación antes de calcular/guardar. entrada: mismas
+    claves que RANGOS (los campos opcionales pueden faltar o venir None).
+    Devuelve una lista de mensajes de error (vacía si está todo bien)."""
+    errores = []
+    for campo, (minimo, maximo, etiqueta) in RANGOS.items():
+        valor = entrada.get(campo)
+        if valor is None:
+            continue
+        if not isinstance(valor, (int, float)):
+            errores.append(f"{etiqueta}: no es un número válido.")
+            continue
+        if valor < minimo or valor > maximo:
+            errores.append(f"{etiqueta} fuera de rango razonable (entre {minimo} y {maximo}). Revisá si hay un error de tipeo.")
+
+    t_seca = entrada.get("t_seca")
+    t_humeda = entrada.get("t_humeda")
+    if isinstance(t_seca, (int, float)) and isinstance(t_humeda, (int, float)) and t_humeda > t_seca + 0.05:
+        errores.append("La T. Húmeda no puede ser mayor que la T. Seca.")
+    t_max = entrada.get("t_max")
+    if isinstance(t_seca, (int, float)) and isinstance(t_max, (int, float)) and t_max < t_seca - 0.05:
+        errores.append("La T. Máx no puede ser menor que la T. Seca actual.")
+    t_min = entrada.get("t_min")
+    if isinstance(t_seca, (int, float)) and isinstance(t_min, (int, float)) and t_min > t_seca + 0.05:
+        errores.append("La T. Mín no puede ser mayor que la T. Seca actual.")
+
+    return errores
+
+
 def calcular_observacion(entrada):
     """
     entrada: dict con t_seca, t_humeda, t_adjunto, barometro (obligatorios,

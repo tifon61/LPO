@@ -275,6 +275,25 @@ class App(ttk.Window):
         scroll.pack(fill="both", expand=True, padx=8, pady=8)
         raiz = scroll.interior
 
+        guia = ttk.Labelframe(raiz, text=" Guía rápida para observadores ", padding=10, bootstyle="success")
+        guia.pack(fill="x", padx=12, pady=(14, 7))
+        ttk.Label(
+            guia,
+            text=(
+                "Podés cargar una observación acá o desde la página web — las dos guardan en la "
+                "misma planilla. Usá este programa cuando no tengas internet en el momento: guarda "
+                "local y sincroniza solo apenas vuelve la conexión (mirá el cartel abajo de la ventana). "
+                "Si al guardar te aparece un error de \"fuera de rango\", revisá si hay un error de "
+                "tipeo antes de insistir."
+            ),
+            wraplength=580, justify="left",
+        ).pack(anchor="w", pady=(0, 4))
+        ttk.Label(
+            guia,
+            text="Datos obligatorios: Hora, T. Seca, T. Húmeda, T. Adjunto, Barómetro. El resto es opcional.",
+            wraplength=580, justify="left", bootstyle="secondary",
+        ).pack(anchor="w")
+
         ttk.Label(
             raiz,
             text=(
@@ -441,6 +460,11 @@ class App(ttk.Window):
             messagebox.showerror(
                 "Faltan datos", "Completá T. Seca, T. Húmeda, T. Adjunto y Barómetro (con números válidos)."
             )
+            return
+
+        errores = calculos.validar_observacion(datos)
+        if errores:
+            messagebox.showerror("Revisá los datos", "\n".join(errores))
             return
 
         if db.existe(datos["fecha"], datos["hora"]):

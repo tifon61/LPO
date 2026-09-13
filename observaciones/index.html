@@ -66,33 +66,33 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="tSeca">T. Seca (°C)</label>
-                        <input type="number" step="0.1" id="tSeca" name="tSeca" required>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required>
                     </div>
                     <div>
                         <label for="tHumeda">T. Húmeda (°C)</label>
-                        <input type="number" step="0.1" id="tHumeda" name="tHumeda" required>
+                        <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="tMax">T. Máx (°C) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" id="tMax" name="tMax">
+                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax">
                     </div>
                     <div>
                         <label for="tMin">T. Mín (°C) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" id="tMin" name="tMin">
+                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="tAdjunto">T. Adjunto (°C)</label>
-                        <input type="number" step="0.1" id="tAdjunto" name="tAdjunto" required>
+                        <input type="number" step="0.1" min="-15" max="45" id="tAdjunto" name="tAdjunto" required>
                     </div>
                     <div>
                         <label for="barometro">Barómetro (mmHg)</label>
-                        <input type="number" step="0.01" id="barometro" name="barometro" required>
+                        <input type="number" step="0.01" min="700" max="800" id="barometro" name="barometro" required>
                     </div>
                 </div>
 
@@ -100,11 +100,11 @@
                     <div>
                         <label for="tSeca12hAntes">T. Seca 12hs antes (°C)
                             <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" id="tSeca12hAntes" name="tSeca12hAntes">
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes">
                     </div>
                     <div>
                         <label for="lluvia">Lluvia (mm) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" id="lluvia" name="lluvia">
+                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia">
                     </div>
                 </div>
                 <p class="text-xs text-slate-400 -mt-2">
@@ -231,6 +231,11 @@
             const calculado = actualizarPreview();
             if (!calculado) {
                 mostrarBanner("error", "Completá T. Seca, T. Húmeda, T. Adjunto y Barómetro antes de guardar.");
+                return;
+            }
+            const errores = validarObservacion(input);
+            if (errores.length > 0) {
+                mostrarBanner("error", errores.join(" "));
                 return;
             }
             if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGAR_URL")) {

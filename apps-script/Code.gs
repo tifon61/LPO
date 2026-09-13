@@ -109,6 +109,47 @@ function correccionD4_(tPromedio, pEstMmhg) {
   return pEstMmhg < 760.0 ? fila.c730 : fila.c760;
 }
 
+// Rangos físicamente razonables para esta estación (La Plata). No son los
+// extremos absolutos posibles — un colchón generoso para atajar errores de
+// tipeo, no para rechazar lecturas reales raras. Mismos límites que
+// observaciones/calculos.js y programa/calculos.py.
+var RANGOS = {
+  tSeca: { min: -15, max: 45, etiqueta: "T. Seca" },
+  tHumeda: { min: -15, max: 45, etiqueta: "T. Húmeda" },
+  tMax: { min: -15, max: 45, etiqueta: "T. Máx" },
+  tMin: { min: -15, max: 45, etiqueta: "T. Mín" },
+  tAdjunto: { min: -15, max: 45, etiqueta: "T. Adjunto" },
+  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Seca 12hs antes" },
+  barometro: { min: 700, max: 800, etiqueta: "Barómetro" },
+  lluvia: { min: 0, max: 500, etiqueta: "Lluvia" },
+};
+
+function validarObservacion_(input) {
+  var errores = [];
+  for (var campo in RANGOS) {
+    var valor = input[campo];
+    if (valor === null || valor === undefined || valor === "") continue;
+    if (typeof valor !== "number" || isNaN(valor)) {
+      errores.push(RANGOS[campo].etiqueta + ": no es un número válido.");
+      continue;
+    }
+    var r = RANGOS[campo];
+    if (valor < r.min || valor > r.max) {
+      errores.push(r.etiqueta + " fuera de rango razonable (entre " + r.min + " y " + r.max + ").");
+    }
+  }
+  if (typeof input.tSeca === "number" && typeof input.tHumeda === "number" && input.tHumeda > input.tSeca + 0.05) {
+    errores.push("La T. Húmeda no puede ser mayor que la T. Seca.");
+  }
+  if (typeof input.tSeca === "number" && typeof input.tMax === "number" && input.tMax < input.tSeca - 0.05) {
+    errores.push("La T. Máx no puede ser menor que la T. Seca actual.");
+  }
+  if (typeof input.tSeca === "number" && typeof input.tMin === "number" && input.tMin > input.tSeca + 0.05) {
+    errores.push("La T. Mín no puede ser mayor que la T. Seca actual.");
+  }
+  return errores;
+}
+
 function calcularObservacion_(input) {
   var pEstMmhg = presionEstacionMmhg_(input.barometro, input.tAdjunto);
   var pEstHpa = mmhgAHpa_(pEstMmhg);
@@ -172,16 +213,32 @@ function doPost(e) {
       return jsonOut_({ ok: false, error: "Token inválido." });
     }
 
+    var numOrNull = function (v) {
+      return v === "" || v == null ? null : Number(v);
+    };
+
     var input = {
       tSeca: Number(body.tSeca),
       tHumeda: Number(body.tHumeda),
       tAdjunto: Number(body.tAdjunto),
       barometro: Number(body.barometro),
-      tSeca12hAntes:
-        body.tSeca12hAntes === "" || body.tSeca12hAntes == null ? null : Number(body.tSeca12hAntes),
+      tSeca12hAntes: numOrNull(body.tSeca12hAntes),
     };
     if ([input.tSeca, input.tHumeda, input.tAdjunto, input.barometro].some(isNaN)) {
       return jsonOut_({ ok: false, error: "Faltan datos obligatorios (T. Seca, T. Húmeda, T. Adjunto, Barómetro)." });
+    }
+
+    var tMax = numOrNull(body.tMax);
+    var tMin = numOrNull(body.tMin);
+    var lluvia = numOrNull(body.lluvia);
+
+    var errores = validarObservacion_({
+      tSeca: input.tSeca, tHumeda: input.tHumeda, tAdjunto: input.tAdjunto,
+      barometro: input.barometro, tSeca12hAntes: input.tSeca12hAntes,
+      tMax: tMax, tMin: tMin, lluvia: lluvia,
+    });
+    if (errores.length > 0) {
+      return jsonOut_({ ok: false, error: errores.join(" ") });
     }
 
     var calculado = calcularObservacion_(input);
@@ -191,8 +248,8 @@ function doPost(e) {
       hora: body.hora || "",
       tSeca: input.tSeca,
       tHumeda: input.tHumeda,
-      tMax: body.tMax === "" || body.tMax == null ? "" : Number(body.tMax),
-      tMin: body.tMin === "" || body.tMin == null ? "" : Number(body.tMin),
+      tMax: tMax === null ? "" : tMax,
+      tMin: tMin === null ? "" : tMin,
       tAdjunto: input.tAdjunto,
       barometro: input.barometro,
       tSeca12hAntes: input.tSeca12hAntes == null ? "" : input.tSeca12hAntes,
@@ -203,7 +260,7 @@ function doPost(e) {
       tensionVapor: calculado.tensionVapor,
       puntoRocio: calculado.puntoRocio,
       humedadRelativa: calculado.humedadRelativa,
-      lluvia: body.lluvia === "" || body.lluvia == null ? "" : Number(body.lluvia),
+      lluvia: lluvia === null ? "" : lluvia,
       cargadoEl: new Date().toISOString(),
     };
 
