@@ -62,10 +62,12 @@ pestaña Fórmulas y el ícono — sin eso, esas imágenes no aparecerían.
 
 Con solo este paso ya podés copiar `ObservacionesLPO.exe` al Escritorio o
 mandarle un acceso directo (click derecho → Enviar a → Escritorio) y va a
-verse como cualquier otro programa, con su ícono. `config.json` y
-`observaciones.db` se crean al lado del `.exe` la primera vez que se corre
-— cada computadora tiene su propia base local, y todas convergen a través
-de la misma Google Sheet.
+verse como cualquier otro programa, con su ícono. La primera vez que se
+corre, crea `config.json` y `observaciones.db` en
+`%APPDATA%\ObservacionesLPO\` (no al lado del `.exe` — esa carpeta puede
+no ser escribible, sobre todo si el programa termina instalado en
+"Program Files") — cada computadora tiene su propia base local ahí, y
+todas convergen a través de la misma Google Sheet.
 
 ### Paso 2 (opcional) — Armar un instalador de verdad
 

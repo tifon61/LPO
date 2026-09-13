@@ -7,8 +7,12 @@ Hay dos casos distintos:
   PyInstaller los extrae a una carpeta temporal (sys._MEIPASS) en cada
   arranque -> hay que leerlos de ahí.
 - Datos que el programa escribe y tienen que persistir entre arranques
-  (config.json, observaciones.db): tienen que vivir al lado del .exe real
-  (sys.executable), no en esa carpeta temporal que se borra sola.
+  (config.json, observaciones.db): tienen que vivir en una carpeta que el
+  usuario pueda escribir sin ser administrador. Al lado del .exe NO sirve
+  en cuanto el programa queda instalado en "Program Files" (requiere admin
+  para escribir ahí, y sqlite tira "unable to open database file") — se
+  usa la carpeta de datos de la app del usuario (%APPDATA% en Windows,
+  ~/.observaciones-lpo en Mac/Linux), que siempre es escribible.
 """
 import os
 import sys
@@ -19,9 +23,12 @@ CONGELADO = bool(getattr(sys, "frozen", False))
 
 def dir_datos():
     """Carpeta donde guardar archivos que tienen que persistir (config, DB)."""
-    if CONGELADO:
-        return os.path.dirname(sys.executable)
-    return DIR_SCRIPT
+    if not CONGELADO:
+        return DIR_SCRIPT
+    base = os.getenv("APPDATA") or os.path.expanduser("~")
+    carpeta = os.path.join(base, "ObservacionesLPO")
+    os.makedirs(carpeta, exist_ok=True)
+    return carpeta
 
 
 def ruta_recurso(*partes):
