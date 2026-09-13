@@ -68,6 +68,29 @@
             </div>
 
             <div class="card">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
+                        <i class="fa-solid fa-calendar-days mr-2 text-slate-500"></i> Resumen por período
+                    </h3>
+                    <select id="selectPeriodo">
+                        <option value="dia">Diario</option>
+                        <option value="semana">Semanal</option>
+                        <option value="mes">Mensual</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto max-h-[360px] overflow-y-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Período</th><th>T. Mínima (°C)</th><th>T. Máxima (°C)</th><th>Lluvia acumulada (mm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyResumen"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
                 <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center">
                     <i class="fa-solid fa-list mr-2 text-slate-500"></i> Observaciones
                     <span class="ml-2 normal-case font-medium text-slate-400 text-xs" id="conteo"></span>
@@ -132,6 +155,69 @@
             document.getElementById("conteo").textContent = `(${filas.length} registros)`;
         }
 
+        // Número de semana ISO (lunes a domingo), para agrupar "por semana".
+        function semanaIso(fecha) {
+            const d = new Date(fecha + "T00:00:00Z");
+            const diaSemana = (d.getUTCDay() + 6) % 7; // lunes = 0
+            d.setUTCDate(d.getUTCDate() - diaSemana + 3);
+            const primerJueves = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+            const semana = 1 + Math.round(((d - primerJueves) / 86400000 - 3 + ((primerJueves.getUTCDay() + 6) % 7)) / 7);
+            return `${d.getUTCFullYear()}-S${String(semana).padStart(2, "0")}`;
+        }
+
+        function clavePeriodo(fecha, periodo) {
+            if (periodo === "mes") return fecha.slice(0, 7);
+            if (periodo === "semana") return semanaIso(fecha);
+            return fecha; // "dia"
+        }
+
+        function calcularResumen(filas, periodo) {
+            const grupos = new Map();
+            for (const f of filas) {
+                if (!f.fecha) continue;
+                const clave = clavePeriodo(f.fecha, periodo);
+                if (!grupos.has(clave)) {
+                    grupos.set(clave, { minimos: [], maximos: [], lluvia: 0, tieneLluvia: false, primeraFecha: f.fecha });
+                }
+                const g = grupos.get(clave);
+                if (typeof f.tSeca === "number") {
+                    g.minimos.push(f.tSeca);
+                    g.maximos.push(f.tSeca);
+                }
+                if (typeof f.tMin === "number") g.minimos.push(f.tMin);
+                if (typeof f.tMax === "number") g.maximos.push(f.tMax);
+                if (typeof f.lluvia === "number") {
+                    g.lluvia += f.lluvia;
+                    g.tieneLluvia = true;
+                }
+                if (f.fecha < g.primeraFecha) g.primeraFecha = f.fecha;
+            }
+            return Array.from(grupos.entries())
+                .map(([clave, g]) => ({
+                    periodo: clave,
+                    tMin: g.minimos.length ? Math.min(...g.minimos) : null,
+                    tMax: g.maximos.length ? Math.max(...g.maximos) : null,
+                    lluvia: g.tieneLluvia ? g.lluvia : null,
+                    orden: g.primeraFecha,
+                }))
+                .sort((a, b) => (a.orden < b.orden ? 1 : -1)); // más reciente primero
+        }
+
+        function pintarResumen(filas, periodo) {
+            const resumen = calcularResumen(filas, periodo);
+            const tbody = document.getElementById("tbodyResumen");
+            tbody.innerHTML = resumen
+                .map(
+                    (r) => `<tr>
+                <td>${r.periodo}</td>
+                <td>${fmt(r.tMin)}</td>
+                <td>${fmt(r.tMax)}</td>
+                <td>${fmt(r.lluvia)}</td>
+            </tr>`
+                )
+                .join("");
+        }
+
         function pintarChart(filas, variable) {
             const ctx = document.getElementById("chartVariable");
             const labels = filas.map((f) => `${f.fecha} ${f.hora}`);
@@ -172,8 +258,12 @@
                 document.getElementById("contenido").classList.remove("hidden");
                 pintarTabla(filas);
                 pintarChart(filas, "tSeca");
+                pintarResumen(filas, "dia");
                 document.getElementById("selectVariable").addEventListener("change", (e) => {
                     pintarChart(filas, e.target.value);
+                });
+                document.getElementById("selectPeriodo").addEventListener("change", (e) => {
+                    pintarResumen(filas, e.target.value);
                 });
             } catch (err) {
                 document.getElementById("estado").innerHTML =

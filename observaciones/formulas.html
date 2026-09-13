@@ -63,11 +63,10 @@
             </p>
             <p class="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
                 <i class="fa-solid fa-circle-check mr-1"></i>
-                La presión de estación (punto 1) se verificó contra la Tabla D-2 oficial del SMN
-                ("corrección por gravedad (-0,72) y temperatura del termómetro adjunto, corrección instrumental (0,00)"):
-                los valores de la tabla coinciden con la fórmula al centésimo. No hace falta digitalizarla —
-                la corrección por gravedad multiplicativa que ya usa la fórmula equivale a esa constante -0,72 mmHg,
-                y la fórmula da resultado exacto para cualquier lectura, no solo para los pasos de 0,5°C / 10 mmHg de la tabla.
+                La corrección del barómetro (punto 1) es la misma que la Tabla D-2 del SMN
+                ("corrección por gravedad, temperatura del termómetro adjunto e instrumental") — da el mismo
+                resultado que buscarlo a mano en esa tabla, pero exacto para cualquier lectura, no solo
+                para los pasos de 0,5°C / 10 mmHg en los que está impresa.
             </p>
         </div>
 
@@ -87,8 +86,9 @@
         <div class="card space-y-3">
             <h3 class="text-base">1. Presión de estación (reducción del barómetro)</h3>
             <p class="text-sm text-slate-600">
-                Corrige el barómetro de mercurio por dilatación térmica y por gravedad local
-                (verificado contra la Tabla D-2 del SMN — ver nota arriba).
+                Corrige la lectura del barómetro de mercurio por la dilatación térmica del mercurio
+                y por la gravedad local de la estación — la misma corrección de la Tabla D-2 del SMN
+                (ver nota arriba).
             </p>
             <div class="formula">
                 C_t = -B × 0.000163 × T_adj<br>
@@ -130,8 +130,9 @@
         <div class="card space-y-3">
             <h3 class="text-base">Tablas SMN de referencia (tensión de vapor, punto de rocío, humedad relativa)</h3>
             <p class="text-sm text-slate-600">
-                Las tablas 2-4 se calculan con las fórmulas de arriba, no con lectura de tabla — quedan acá como
-                referencia del procedimiento en papel que usaban los observadores antes de este sistema.
+                La tensión de vapor, el punto de rocío y la humedad relativa se obtienen con las fórmulas
+                de arriba en vez de buscarlos en estas tablas. Te dejamos las fotos igual, por si querés
+                consultar o comparar con el procedimiento en papel.
             </p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <figure>

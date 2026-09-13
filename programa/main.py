@@ -6,7 +6,7 @@ Google Sheet que usa la página web cuando hay conexión.
 import os
 import threading
 import tkinter as tk
-from datetime import datetime
+from datetime import date, datetime
 from tkinter import messagebox
 
 import ttkbootstrap as ttk
@@ -188,6 +188,33 @@ class App(ttk.Window):
         self.lienzo_grafico = FigureCanvasTkAgg(self.figura, master=marco_grafico)
         self.lienzo_grafico.get_tk_widget().pack(fill="both", expand=True)
 
+        barra_resumen = ttk.Frame(contenedor)
+        barra_resumen.pack(fill="x", padx=8, pady=(10, 4))
+        ttk.Label(barra_resumen, text="Resumen por período:").pack(side="left", padx=(0, 6))
+        self.periodo_resumen = ttk.Combobox(
+            barra_resumen, state="readonly", width=14, values=["Diario", "Semanal", "Mensual"]
+        )
+        self.periodo_resumen.current(0)
+        self.periodo_resumen.pack(side="left")
+        self.periodo_resumen.bind("<<ComboboxSelected>>", lambda _e: self._actualizar_resumen())
+
+        marco_resumen = ttk.Frame(contenedor)
+        marco_resumen.pack(fill="x", padx=8, pady=(0, 4))
+        columnas_resumen = ("periodo", "t_min", "t_max", "lluvia")
+        titulos_resumen = {
+            "periodo": "Período", "t_min": "T. Mínima (°C)", "t_max": "T. Máxima (°C)", "lluvia": "Lluvia acumulada (mm)",
+        }
+        self.tabla_resumen = ttk.Treeview(
+            marco_resumen, columns=columnas_resumen, show="headings", height=5, bootstyle="secondary"
+        )
+        for col in columnas_resumen:
+            self.tabla_resumen.heading(col, text=titulos_resumen[col])
+            self.tabla_resumen.column(col, width=130, anchor="center")
+        scroll_resumen = ttk.Scrollbar(marco_resumen, orient="vertical", command=self.tabla_resumen.yview, bootstyle="round")
+        self.tabla_resumen.configure(yscrollcommand=scroll_resumen.set)
+        self.tabla_resumen.pack(side="left", fill="x", expand=True)
+        scroll_resumen.pack(side="right", fill="y")
+
         tabla_frame = ttk.Frame(contenedor)
         tabla_frame.pack(fill="both", expand=True, padx=8, pady=(8, 12))
 
@@ -235,6 +262,66 @@ class App(ttk.Window):
         self.ejes.grid(True, alpha=0.25)
         self.figura.tight_layout()
         self.lienzo_grafico.draw()
+
+    def _clave_periodo(self, fecha_iso, periodo):
+        anio, mes, dia = (int(p) for p in fecha_iso.split("-"))
+        fecha = date(anio, mes, dia)
+        if periodo == "Mensual":
+            return fecha_iso[:7]
+        if periodo == "Semanal":
+            iso_anio, iso_semana, _ = fecha.isocalendar()
+            return f"{iso_anio}-S{iso_semana:02d}"
+        return fecha_iso  # Diario
+
+    def _calcular_resumen(self, datos, periodo):
+        grupos = {}
+        for f in datos:
+            if not f.get("fecha"):
+                continue
+            clave = self._clave_periodo(f["fecha"], periodo)
+            g = grupos.setdefault(clave, {"minimos": [], "maximos": [], "lluvia": 0, "tiene_lluvia": False, "primera_fecha": f["fecha"]})
+            if isinstance(f.get("t_seca"), (int, float)):
+                g["minimos"].append(f["t_seca"])
+                g["maximos"].append(f["t_seca"])
+            if isinstance(f.get("t_min"), (int, float)):
+                g["minimos"].append(f["t_min"])
+            if isinstance(f.get("t_max"), (int, float)):
+                g["maximos"].append(f["t_max"])
+            if isinstance(f.get("lluvia"), (int, float)):
+                g["lluvia"] += f["lluvia"]
+                g["tiene_lluvia"] = True
+            if f["fecha"] < g["primera_fecha"]:
+                g["primera_fecha"] = f["fecha"]
+
+        filas = []
+        for clave, g in grupos.items():
+            filas.append({
+                "periodo": clave,
+                "t_min": min(g["minimos"]) if g["minimos"] else None,
+                "t_max": max(g["maximos"]) if g["maximos"] else None,
+                "lluvia": g["lluvia"] if g["tiene_lluvia"] else None,
+                "orden": g["primera_fecha"],
+            })
+        filas.sort(key=lambda f: f["orden"], reverse=True)
+        return filas
+
+    def _actualizar_resumen(self):
+        periodo = self.periodo_resumen.get()
+        datos = db.listar_para_grafico()
+        resumen = self._calcular_resumen(datos, periodo)
+
+        for item in self.tabla_resumen.get_children():
+            self.tabla_resumen.delete(item)
+        for fila in resumen:
+            self.tabla_resumen.insert(
+                "", tk.END,
+                values=(
+                    fila["periodo"],
+                    f"{fila['t_min']:.1f}" if fila["t_min"] is not None else "",
+                    f"{fila['t_max']:.1f}" if fila["t_max"] is not None else "",
+                    f"{fila['lluvia']:.1f}" if fila["lluvia"] is not None else "",
+                ),
+            )
 
     # ---------- Pestaña: Fórmulas ----------
 
@@ -297,9 +384,9 @@ class App(ttk.Window):
         ttk.Label(
             raiz,
             text=(
-                "Latitud -34.9°, elevación 15 m. Gravedad local g = 9.797207 m/s² vs. "
-                "estándar g₀ = 9.80665 m/s². Presión de estación y Tabla D-4 verificadas "
-                "contra las tablas oficiales del SMN (fotos abajo de cada sección)."
+                "Esta estación está en latitud -34.9°, a 15 m sobre el nivel del mar. La gravedad local "
+                "(g = 9.797207 m/s²) es un poco menor a la gravedad estándar (g₀ = 9.80665 m/s²), y esa "
+                "diferencia es justamente una de las correcciones que se le aplica al barómetro."
             ),
             wraplength=580, justify="left", bootstyle="secondary",
         ).pack(anchor="w", padx=18, pady=(14, 6))
@@ -307,8 +394,8 @@ class App(ttk.Window):
         self._seccion_formula(
             raiz,
             "1. Presión de estación",
-            "Corrige el barómetro de mercurio por dilatación térmica y por gravedad local. "
-            "Verificado contra la Tabla D-2 del SMN: coincide al centésimo.",
+            "Corrige la lectura del barómetro de mercurio por su dilatación térmica y por la gravedad "
+            "local — la misma corrección que da la Tabla D-2 del SMN, buscándola a mano.",
             "C_t = -B × 0.000163 × T_adj\n"
             "B0 = B + C_t\n"
             "P_estación (mmHg) = B0 × (g_local / g_estándar)",
@@ -345,7 +432,8 @@ class App(ttk.Window):
         tablas_ref.pack(fill="x", padx=12, pady=7)
         ttk.Label(
             tablas_ref,
-            text="Se calculan con las fórmulas de arriba, no con lectura de tabla. Quedan de referencia visual.",
+            text="La tensión de vapor, el punto de rocío y la humedad relativa se obtienen con las fórmulas "
+            "de arriba en vez de buscarlos en estas tablas. Quedan las fotos por si querés consultarlas.",
             wraplength=580, justify="left",
         ).pack(anchor="w", pady=(0, 6))
         galeria = ttk.Frame(tablas_ref)
@@ -510,6 +598,7 @@ class App(ttk.Window):
                 ),
             )
         self._actualizar_grafico()
+        self._actualizar_resumen()
         pendientes = db.contar_pendientes()
         if pendientes:
             self.estado_label.config(text=f"{pendientes} observación(es) pendiente(s) de sincronizar.")
