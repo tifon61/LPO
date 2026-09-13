@@ -8,7 +8,9 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "observaciones.db")
+import rutas
+
+DB_PATH = os.path.join(rutas.dir_datos(), "observaciones.db")
 
 CAMPOS_ENTRADA = [
     "fecha", "hora", "t_seca", "t_humeda", "t_max", "t_min",

@@ -17,9 +17,8 @@ from PIL import Image, ImageTk
 import calculos
 import db
 import sync
+from rutas import ruta_recurso
 
-DIR_ACTUAL = os.path.dirname(os.path.abspath(__file__))
-DIR_IMAGENES = os.path.join(DIR_ACTUAL, "img")
 TEMA = "flatly"
 COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
 
@@ -83,6 +82,10 @@ class App(ttk.Window):
         self.title("Observaciones meteorológicas — LPO")
         self.geometry("960x760")
         self.minsize(820, 620)
+        try:
+            self.iconbitmap(ruta_recurso("icono.ico"))
+        except tk.TclError:
+            pass  # en Linux/Mac iconbitmap no siempre acepta .ico; no es crítico
 
         self._imagenes = []  # mantiene referencias vivas para que Tkinter no las libere
         self.entradas = {}
@@ -236,7 +239,7 @@ class App(ttk.Window):
     # ---------- Pestaña: Fórmulas ----------
 
     def _cargar_imagen(self, nombre_archivo, ancho=320):
-        ruta = os.path.join(DIR_IMAGENES, nombre_archivo)
+        ruta = ruta_recurso("img", nombre_archivo)
         if not os.path.exists(ruta):
             return None
         img = Image.open(ruta)

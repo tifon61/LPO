@@ -6,7 +6,9 @@ sobreescribir editando config.json al lado de este archivo, sin tocar código.
 import json
 import os
 
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+import rutas
+
+CONFIG_PATH = os.path.join(rutas.dir_datos(), "config.json")
 
 VALORES_POR_DEFECTO = {
     "apps_script_url": "https://script.google.com/macros/s/AKfycbyjvZaO3s2ExJrqXR7a4QwF3bObO4MOOxDzrXO0WscDmYhJN-uyAwjgExXZGr13wRre/exec",

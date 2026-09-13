@@ -4,4 +4,5 @@ programa/observaciones.db
 programa/config.json
 programa/build/
 programa/dist/
+programa/Output/
 programa/*.spec

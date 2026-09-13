@@ -37,24 +37,49 @@ misma Sheet que la web — no hace falta configurar nada) y `observaciones.db`
   contra la Sheet. Si cargás dos veces la misma fecha/hora, la segunda se
   ignora (con un aviso).
 
-## Empaquetarlo como .exe (para instalar sin tener Python)
+## Empaquetarlo como .exe con ícono (para instalar sin tener Python)
 
-Con [PyInstaller](https://pyinstaller.org/):
+Hay que compilarlo en Windows (un .exe se genera corriendo PyInstaller en
+Windows, no en Linux/Mac — si en algún momento alguien lo usa en Mac, se
+compila un binario Mac aparte, en una Mac).
 
-```bash
-pip install pyinstaller
-pyinstaller --onefile --windowed --name ObservacionesLPO main.py
+### Paso 1 — Generar el .exe
+
+```
+py -3 -m pip install pyinstaller
+py -3 -m PyInstaller --onefile --windowed --name ObservacionesLPO ^
+  --icon icono.ico ^
+  --add-data "img;img" --add-data "icono.ico;." ^
+  main.py
 ```
 
-Esto genera `dist/ObservacionesLPO.exe` (en Windows) o el binario
-equivalente en Mac/Linux — un solo archivo que se puede copiar a cualquier
-computadora sin instalar Python ni nada más. Hay que compilarlo en el mismo
-sistema operativo donde se va a usar (un .exe se genera corriendo
-PyInstaller en Windows, no en Linux/Mac).
+(el `^` es el separador de línea de `cmd`; si lo pegás en PowerShell,
+escribí todo en una sola línea sin los `^`). Esto deja el ejecutable en
+`dist\ObservacionesLPO.exe`: un solo archivo, ya con el ícono del
+termómetro, que corre en cualquier Windows sin tener Python instalado.
+`--add-data` es necesario para que el .exe lleve adentro las fotos de la
+pestaña Fórmulas y el ícono — sin eso, esas imágenes no aparecerían.
 
-`config.json` y `observaciones.db` se crean al lado del ejecutable la
-primera vez que se corre — cada computadora tiene su propia base local, y
-todas convergen a través de la misma Google Sheet.
+Con solo este paso ya podés copiar `ObservacionesLPO.exe` al Escritorio o
+mandarle un acceso directo (click derecho → Enviar a → Escritorio) y va a
+verse como cualquier otro programa, con su ícono. `config.json` y
+`observaciones.db` se crean al lado del `.exe` la primera vez que se corre
+— cada computadora tiene su propia base local, y todas convergen a través
+de la misma Google Sheet.
+
+### Paso 2 (opcional) — Armar un instalador de verdad
+
+Si querés el asistente típico de "Siguiente > Siguiente > Instalar", con
+acceso directo automático en el Escritorio/Menú Inicio y un desinstalador
+en "Aplicaciones y características":
+
+1. Instalá [Inno Setup](https://jrsoftware.org/isinfo.php) (gratis).
+2. Abrí `instalador.iss` (de esta carpeta) con el Inno Setup Compiler.
+3. **Build → Compile** (o F9). Necesita que ya exista `dist\ObservacionesLPO.exe`
+   del paso 1.
+4. Queda el instalador en `programa\Output\Instalador_ObservacionesLPO.exe`
+   — ese es el archivo que le pasás a cualquier computadora para "instalar"
+   el programa como cualquier otro.
 
 ## Estructura
 
@@ -65,3 +90,8 @@ todas convergen a través de la misma Google Sheet.
 - `db.py` — almacenamiento local en SQLite.
 - `sync.py` — subir/bajar contra el Web App de Apps Script.
 - `config.py` / `config.json` — URL y token del backend.
+- `rutas.py` — resuelve dónde guardar/leer archivos, tanto corriendo `python main.py`
+  como empaquetado en un `.exe` (que necesita rutas distintas para no perder
+  `config.json`/`observaciones.db` entre arranques).
+- `icono.ico` / `icono.png` — ícono del programa.
+- `instalador.iss` — script de Inno Setup para generar un instalador de Windows.
