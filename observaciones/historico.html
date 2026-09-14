@@ -16,6 +16,8 @@
         thead th { color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.04em; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background: #fff; }
         tbody tr { border-bottom: 1px solid #f1f5f9; }
         tbody tr:hover { background-color: #f8fafc; }
+        .fila-resumen { cursor: pointer; }
+        .fila-resumen.seleccionada { background-color: #ccfbf1; }
         nav a { font-size: 0.8rem; font-weight: 700; color: #475569; }
         nav a.active, nav a:hover { color: #0f766e; }
         select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.85rem; }
@@ -72,12 +74,21 @@
                     <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
                         <i class="fa-solid fa-calendar-days mr-2 text-slate-500"></i> Resumen por período
                     </h3>
-                    <select id="selectPeriodo">
-                        <option value="dia">Diario</option>
-                        <option value="semana">Semanal</option>
-                        <option value="mes">Mensual</option>
-                    </select>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select id="selectPeriodo">
+                            <option value="dia">Diario</option>
+                            <option value="semana">Semanal</option>
+                            <option value="mes">Mensual</option>
+                        </select>
+                        <select id="selectPeriodoEspecifico">
+                            <option value="todos">Ver: todos los períodos</option>
+                        </select>
+                    </div>
                 </div>
+                <p class="text-xs text-slate-400 -mt-2 mb-3">
+                    Elegí un período puntual (o hacé click en una fila) para que el gráfico y la tabla de
+                    observaciones de abajo muestren solo esos datos.
+                </p>
                 <div class="overflow-x-auto max-h-[360px] overflow-y-auto">
                     <table>
                         <thead>
@@ -203,12 +214,12 @@
                 .sort((a, b) => (a.orden < b.orden ? 1 : -1)); // más reciente primero
         }
 
-        function pintarResumen(filas, periodo) {
+        function pintarResumen(filas, periodo, periodoEspecifico) {
             const resumen = calcularResumen(filas, periodo);
             const tbody = document.getElementById("tbodyResumen");
             tbody.innerHTML = resumen
                 .map(
-                    (r) => `<tr>
+                    (r) => `<tr class="fila-resumen${r.periodo === periodoEspecifico ? " seleccionada" : ""}" data-periodo="${r.periodo}">
                 <td>${r.periodo}</td>
                 <td>${fmt(r.tMin)}</td>
                 <td>${fmt(r.tMax)}</td>
@@ -216,6 +227,18 @@
             </tr>`
                 )
                 .join("");
+            return resumen;
+        }
+
+        function repoblarSelectorEspecifico(resumen, periodoEspecifico) {
+            const select = document.getElementById("selectPeriodoEspecifico");
+            const existe = resumen.some((r) => r.periodo === periodoEspecifico);
+            const seleccionActual = existe ? periodoEspecifico : "todos";
+            select.innerHTML =
+                '<option value="todos">Ver: todos los períodos</option>' +
+                resumen.map((r) => `<option value="${r.periodo}">${r.periodo}</option>`).join("");
+            select.value = seleccionActual;
+            return seleccionActual;
         }
 
         function pintarChart(filas, variable) {
@@ -256,14 +279,51 @@
                 const filas = data.filas || [];
                 document.getElementById("estado").classList.add("hidden");
                 document.getElementById("contenido").classList.remove("hidden");
-                pintarTabla(filas);
-                pintarChart(filas, "tSeca");
-                pintarResumen(filas, "dia");
-                document.getElementById("selectVariable").addEventListener("change", (e) => {
-                    pintarChart(filas, e.target.value);
-                });
+
+                let periodoActual = "dia";
+                let periodoEspecificoActual = "todos";
+
+                function filasDelPeriodoEspecifico() {
+                    if (periodoEspecificoActual === "todos") return filas;
+                    return filas.filter((f) => f.fecha && clavePeriodo(f.fecha, periodoActual) === periodoEspecificoActual);
+                }
+
+                function refrescarDetalle() {
+                    const filtradas = filasDelPeriodoEspecifico();
+                    pintarChart(filtradas, document.getElementById("selectVariable").value);
+                    pintarTabla(filtradas);
+                }
+
+                function refrescarResumenYSelector() {
+                    const resumen = pintarResumen(filas, periodoActual, periodoEspecificoActual);
+                    periodoEspecificoActual = repoblarSelectorEspecifico(resumen, periodoEspecificoActual);
+                }
+
+                refrescarResumenYSelector();
+                refrescarDetalle();
+
+                document.getElementById("selectVariable").addEventListener("change", refrescarDetalle);
+
                 document.getElementById("selectPeriodo").addEventListener("change", (e) => {
-                    pintarResumen(filas, e.target.value);
+                    periodoActual = e.target.value;
+                    periodoEspecificoActual = "todos";
+                    refrescarResumenYSelector();
+                    refrescarDetalle();
+                });
+
+                document.getElementById("selectPeriodoEspecifico").addEventListener("change", (e) => {
+                    periodoEspecificoActual = e.target.value;
+                    pintarResumen(filas, periodoActual, periodoEspecificoActual);
+                    refrescarDetalle();
+                });
+
+                document.getElementById("tbodyResumen").addEventListener("click", (e) => {
+                    const fila = e.target.closest(".fila-resumen");
+                    if (!fila) return;
+                    periodoEspecificoActual = fila.dataset.periodo;
+                    document.getElementById("selectPeriodoEspecifico").value = periodoEspecificoActual;
+                    pintarResumen(filas, periodoActual, periodoEspecificoActual);
+                    refrescarDetalle();
                 });
             } catch (err) {
                 document.getElementById("estado").innerHTML =

@@ -188,6 +188,8 @@ class App(ttk.Window):
         self.lienzo_grafico = FigureCanvasTkAgg(self.figura, master=marco_grafico)
         self.lienzo_grafico.get_tk_widget().pack(fill="both", expand=True)
 
+        self.periodo_especifico_actual = "Todos"
+
         barra_resumen = ttk.Frame(contenedor)
         barra_resumen.pack(fill="x", padx=8, pady=(10, 4))
         ttk.Label(barra_resumen, text="Resumen por período:").pack(side="left", padx=(0, 6))
@@ -196,7 +198,22 @@ class App(ttk.Window):
         )
         self.periodo_resumen.current(0)
         self.periodo_resumen.pack(side="left")
-        self.periodo_resumen.bind("<<ComboboxSelected>>", lambda _e: self._actualizar_resumen())
+        self.periodo_resumen.bind("<<ComboboxSelected>>", lambda _e: self._cambiar_granularidad())
+
+        ttk.Label(barra_resumen, text="  Ver:").pack(side="left", padx=(12, 6))
+        self.periodo_especifico = ttk.Combobox(barra_resumen, state="readonly", width=16, values=["Todos"])
+        self.periodo_especifico.current(0)
+        self.periodo_especifico.pack(side="left")
+        self.periodo_especifico.bind(
+            "<<ComboboxSelected>>", lambda _e: self._seleccionar_periodo_especifico(self.periodo_especifico.get())
+        )
+
+        ttk.Label(
+            contenedor,
+            text="Elegí un período puntual (o hacé click en una fila) para que el gráfico y la tabla de "
+            "observaciones de abajo muestren solo esos datos.",
+            bootstyle="secondary",
+        ).pack(anchor="w", padx=8, pady=(0, 6))
 
         marco_resumen = ttk.Frame(contenedor)
         marco_resumen.pack(fill="x", padx=8, pady=(0, 4))
@@ -210,6 +227,8 @@ class App(ttk.Window):
         for col in columnas_resumen:
             self.tabla_resumen.heading(col, text=titulos_resumen[col])
             self.tabla_resumen.column(col, width=130, anchor="center")
+        self.tabla_resumen.tag_configure("seleccionada", background="#ccfbf1")
+        self.tabla_resumen.bind("<<TreeviewSelect>>", self._on_click_fila_resumen)
         scroll_resumen = ttk.Scrollbar(marco_resumen, orient="vertical", command=self.tabla_resumen.yview, bootstyle="round")
         self.tabla_resumen.configure(yscrollcommand=scroll_resumen.set)
         self.tabla_resumen.pack(side="left", fill="x", expand=True)
@@ -240,9 +259,18 @@ class App(ttk.Window):
         self.tabla.pack(side="left", fill="both", expand=True)
         scroll_y.pack(side="right", fill="y")
 
+    def _filtrar_por_periodo(self, datos):
+        if self.periodo_especifico_actual == "Todos":
+            return datos
+        periodo = self.periodo_resumen.get()
+        return [
+            f for f in datos
+            if f.get("fecha") and self._clave_periodo(f["fecha"], periodo) == self.periodo_especifico_actual
+        ]
+
     def _actualizar_grafico(self):
         clave, etiqueta = VARIABLES_GRAFICO[self.variable_grafico.current()]
-        datos = db.listar_para_grafico()
+        datos = self._filtrar_por_periodo(db.listar_para_grafico())
 
         self.ejes.clear()
         puntos = [(f"{f['fecha']} {f['hora']}", f[clave]) for f in datos if f.get(clave) is not None]
@@ -310,9 +338,16 @@ class App(ttk.Window):
         datos = db.listar_para_grafico()
         resumen = self._calcular_resumen(datos, periodo)
 
+        valores_disponibles = ["Todos"] + [fila["periodo"] for fila in resumen]
+        if self.periodo_especifico_actual not in valores_disponibles:
+            self.periodo_especifico_actual = "Todos"
+        self.periodo_especifico.configure(values=valores_disponibles)
+        self.periodo_especifico.set(self.periodo_especifico_actual)
+
         for item in self.tabla_resumen.get_children():
             self.tabla_resumen.delete(item)
         for fila in resumen:
+            tags = ("seleccionada",) if fila["periodo"] == self.periodo_especifico_actual else ()
             self.tabla_resumen.insert(
                 "", tk.END,
                 values=(
@@ -321,7 +356,27 @@ class App(ttk.Window):
                     f"{fila['t_max']:.1f}" if fila["t_max"] is not None else "",
                     f"{fila['lluvia']:.1f}" if fila["lluvia"] is not None else "",
                 ),
+                tags=tags,
             )
+
+    def _cambiar_granularidad(self):
+        self.periodo_especifico_actual = "Todos"
+        self._actualizar_resumen()
+        self._actualizar_grafico()
+        self._refrescar_tabla_observaciones()
+
+    def _seleccionar_periodo_especifico(self, valor):
+        self.periodo_especifico_actual = valor
+        self._actualizar_resumen()
+        self._actualizar_grafico()
+        self._refrescar_tabla_observaciones()
+
+    def _on_click_fila_resumen(self, _evento):
+        seleccion = self.tabla_resumen.selection()
+        if not seleccion:
+            return
+        valores = self.tabla_resumen.item(seleccion[0], "values")
+        self._seleccionar_periodo_especifico(valores[0])
 
     # ---------- Pestaña: Fórmulas ----------
 
@@ -578,10 +633,11 @@ class App(ttk.Window):
             entrada.delete(0, tk.END)
         self._recalcular()
 
-    def _refrescar_historial(self):
+    def _refrescar_tabla_observaciones(self):
         for item in self.tabla.get_children():
             self.tabla.delete(item)
-        for fila in db.listar_observaciones():
+        datos = self._filtrar_por_periodo(db.listar_observaciones())
+        for fila in datos:
             self.tabla.insert(
                 "",
                 tk.END,
@@ -597,8 +653,14 @@ class App(ttk.Window):
                     "✓ sincronizada" if fila["sync_status"] == "sincronizado" else "pendiente",
                 ),
             )
-        self._actualizar_grafico()
+
+    def _refrescar_historial(self):
+        # El resumen va primero: si el período específico elegido ya no
+        # existe (por ejemplo, se sincronizó y cambió el conjunto de datos),
+        # ahí se resetea a "Todos" antes de filtrar la tabla y el gráfico.
         self._actualizar_resumen()
+        self._refrescar_tabla_observaciones()
+        self._actualizar_grafico()
         pendientes = db.contar_pendientes()
         if pendientes:
             self.estado_label.config(text=f"{pendientes} observación(es) pendiente(s) de sincronizar.")
