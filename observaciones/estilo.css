@@ -1,9 +1,9 @@
 /*
  * Hoja de estilos compartida por las cuatro páginas (Cargar, Histórico,
  * Fórmulas, Cómo funciona). Identidad técnica/instrumental: grafito frío +
- * azul de instrumento, tipografía monoespaciada para toda la estructura
- * (títulos, etiquetas, navegación, lecturas) y una sans solo para el texto
- * corrido — como la diferencia entre la voz del equipo y la del manual.
+ * azul de instrumento, con Titillium Web como tipografía principal (título,
+ * navegación, botones, texto corrido) y una monoespaciada acotada solo a
+ * los datos reales — lecturas, tablas, fórmulas — como en un instrumento.
  *
  * El mapeo de colores de Tailwind (teal -> azul técnico, slate -> grafito,
  * etc.) se define en el bloque <script>tailwind.config = {...}</script> de
@@ -12,7 +12,7 @@
  * aspecto sin tener que reescribir cada elemento.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root {
     --ink: #12161d;
@@ -25,12 +25,12 @@
     --line-soft: #e7ebef;
     --accent: #2c5aa0;
     --accent-deep: #1e3f73;
-    --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
-    --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --font-ui: 'Titillium Web', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
 }
 
 body {
-    font-family: var(--font-sans);
+    font-family: var(--font-ui);
     background-color: var(--bg);
     background-image:
         linear-gradient(var(--line-soft) 1px, transparent 1px),
@@ -40,7 +40,7 @@ body {
     margin: 0;
 }
 
-h1, h2, h3 { font-family: var(--font-mono); color: var(--ink); font-weight: 700; }
+h1, h2, h3 { font-family: var(--font-ui); color: var(--ink); font-weight: 700; }
 
 .step-num {
     width: 2.25rem; height: 2.25rem; border-radius: 2px; background: var(--accent); color: #fff;
@@ -67,31 +67,35 @@ h1, h2, h3 { font-family: var(--font-mono); color: var(--ink); font-weight: 700;
 .card.nota.aviso { border-left-color: #b5762b; }
 
 label {
-    font-family: var(--font-mono);
-    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    font-family: var(--font-ui);
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--ink-faint); display: block; margin-bottom: 0.35rem;
 }
-input[type=number], input[type=time], input[type=date], input[type=text] {
+input[type=number], input[type=time], input[type=date] {
     width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.55rem 0.7rem;
     font-size: 0.95rem; font-family: var(--font-mono); color: var(--ink); background: var(--paper);
+}
+input[type=text] {
+    width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.55rem 0.7rem;
+    font-size: 0.95rem; font-family: var(--font-ui); color: var(--ink); background: var(--paper);
 }
 input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(44,90,160,0.15); }
 
 #btnGuardar {
-    font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82rem;
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82rem;
 }
 
 .result-value { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 600; color: var(--ink); line-height: 1; }
-.result-label { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+.result-label { font-family: var(--font-ui); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
 .result-card { background: var(--paper-alt); border: 1px solid var(--line-soft); border-radius: 2px; padding: 0.9rem; }
 
-nav a { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+nav a { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }
 nav a.active, nav a:hover { color: var(--accent-deep); }
 nav a.active { text-decoration: underline; text-underline-offset: 4px; }
 
 select {
     border: 1px solid var(--line); border-radius: 2px; padding: 0.4rem 0.6rem; font-size: 0.85rem;
-    font-family: var(--font-mono); color: var(--ink);
+    font-family: var(--font-ui); color: var(--ink);
 }
 
 /* ---- Tablas ---- */
@@ -99,9 +103,9 @@ table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
 th, td { text-align: left; padding: 0.5rem 0.7rem; white-space: nowrap; }
 td { font-family: var(--font-mono); }
 thead th {
-    color: var(--ink-faint); font-weight: 600; text-transform: uppercase; font-size: 0.64rem;
+    color: var(--ink-faint); font-weight: 700; text-transform: uppercase; font-size: 0.64rem;
     letter-spacing: 0.06em; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--paper);
-    font-family: var(--font-mono);
+    font-family: var(--font-ui);
 }
 tbody tr { border-bottom: 1px solid var(--line-soft); }
 tbody tr:hover { background-color: var(--paper-alt); }
@@ -116,4 +120,4 @@ tbody tr:hover { background-color: var(--paper-alt); }
 .var { font-family: var(--font-mono); background: var(--line-soft); border-radius: 2px; padding: 0 0.3rem; }
 figure { margin: 0; }
 figure img { border: 1px solid var(--line); border-radius: 2px; width: 100%; height: 220px; object-fit: cover; object-position: top; cursor: zoom-in; }
-figcaption { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-faint); margin-top: 0.35rem; text-align: center; }
+figcaption { font-family: var(--font-ui); font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.35rem; text-align: center; }
