@@ -1,0 +1,108 @@
+/*
+ * Hoja de estilos compartida por las cuatro páginas (Cargar, Histórico,
+ * Fórmulas, Cómo funciona). El color y la tipografía toman la paleta y la
+ * tipografía del isotipo de la estación (dorado/bronce sobre blanco, con
+ * un serif institucional en el nombre) en vez de un esquema genérico.
+ *
+ * El mapeo de colores de Tailwind (teal -> dorado, slate -> tinta cálida,
+ * etc.) se define en el bloque <script>tailwind.config = {...}</script> de
+ * cada página, antes de este archivo — así las clases de Tailwind que ya
+ * están en el HTML (bg-teal-700, text-slate-600, rounded-xl...) cambian de
+ * aspecto sin tener que reescribir cada elemento.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --ink: #211d17;
+    --ink-soft: #4a4335;
+    --ink-faint: #8a8171;
+    --paper: #ffffff;
+    --paper-alt: #f5f3ec;
+    --line: #ded5bd;
+    --line-soft: #ece7d8;
+    --gold: #7a6640;
+    --gold-deep: #5c4d30;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+    --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--paper);
+    color: var(--ink-soft);
+    margin: 0;
+}
+
+h1, h3 { font-family: var(--font-serif); color: var(--ink); }
+
+.step-num {
+    width: 2.25rem; height: 2.25rem; border-radius: 2px; background: var(--gold); color: #fff;
+    font-family: var(--font-mono); font-weight: 600; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+}
+
+/* ---- Secciones de contenido (antes "card") ---- */
+.card {
+    background-color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.5rem;
+    box-shadow: none;
+}
+/* Nota / aviso destacado: una regla a la izquierda, no una franja arriba —
+   se reserva para lo que de verdad hace falta señalar (una guía, un
+   estado, una advertencia), nunca decorativo en un bloque cualquiera. */
+.card.nota {
+    border-left-width: 3px;
+    border-left-style: solid;
+    border-left-color: var(--gold);
+}
+.card.nota.aviso { border-left-color: #8a5a2b; }
+
+label {
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-faint); display: block; margin-bottom: 0.35rem;
+}
+input[type=number], input[type=time], input[type=date], input[type=text] {
+    width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.55rem 0.7rem;
+    font-size: 0.95rem; font-family: var(--font-mono); color: var(--ink); background: var(--paper);
+}
+input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(122,102,64,0.15); }
+
+.result-value { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 600; color: var(--ink); line-height: 1; }
+.result-label { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); }
+.result-card { background: var(--paper-alt); border: 1px solid var(--line-soft); border-radius: 2px; padding: 0.9rem; }
+
+nav a { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
+nav a.active, nav a:hover { color: var(--gold-deep); }
+
+select {
+    border: 1px solid var(--line); border-radius: 2px; padding: 0.4rem 0.6rem; font-size: 0.85rem;
+    font-family: var(--font-sans); color: var(--ink);
+}
+
+/* ---- Tablas ---- */
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th, td { text-align: left; padding: 0.5rem 0.7rem; white-space: nowrap; }
+td { font-family: var(--font-mono); }
+thead th {
+    color: var(--ink-faint); font-weight: 600; text-transform: uppercase; font-size: 0.64rem;
+    letter-spacing: 0.05em; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--paper);
+    font-family: var(--font-sans);
+}
+tbody tr { border-bottom: 1px solid var(--line-soft); }
+tbody tr:hover { background-color: var(--paper-alt); }
+.fila-resumen { cursor: pointer; }
+.fila-resumen.seleccionada { background-color: var(--paper-alt); box-shadow: inset 2px 0 0 var(--gold); }
+
+/* ---- Fórmulas ---- */
+.formula {
+    background: var(--paper-alt); border: 1px solid var(--line-soft); border-radius: 2px;
+    padding: 1rem 1.25rem; font-family: var(--font-mono); font-size: 0.88rem; color: var(--ink); overflow-x: auto;
+}
+.var { font-family: var(--font-mono); background: var(--line-soft); border-radius: 2px; padding: 0 0.3rem; }
+figure { margin: 0; }
+figure img { border: 1px solid var(--line); border-radius: 2px; width: 100%; height: 220px; object-fit: cover; object-position: top; cursor: zoom-in; }
+figcaption { font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.35rem; text-align: center; }
