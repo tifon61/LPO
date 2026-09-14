@@ -110,10 +110,11 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Fecha</th><th>Hora</th><th>T. Seca</th><th>T. Húmeda</th>
+                                <th>Fecha</th><th>Hora</th><th>Observador</th><th>T. Seca</th><th>T. Húmeda</th>
                                 <th>T. Máx</th><th>T. Mín</th><th>T. Adj.</th><th>Barómetro</th>
                                 <th>P. Est (mmHg)</th><th>P. Est (hPa)</th><th>P.N.M (mmHg)</th><th>P.N.M (hPa)</th>
                                 <th>Tensión Vapor</th><th>P. Rocío</th><th>H.R.</th><th>Lluvia</th>
+                                <th>Estado</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tbody"></tbody>
@@ -147,12 +148,16 @@
         }
 
         let chart;
+        function escaparAtributo(texto) {
+            return (texto || "").replace(/"/g, "&quot;");
+        }
         function pintarTabla(filas) {
             const tbody = document.getElementById("tbody");
             tbody.innerHTML = filas
-                .map(
-                    (f) => `<tr>
-                <td>${f.fecha || ""}</td><td>${f.hora || ""}</td>
+                .map((f) => {
+                    const descartada = !!f.descartada;
+                    return `<tr class="${descartada ? "opacity-50" : ""}">
+                <td>${f.fecha || ""}</td><td>${f.hora || ""}</td><td>${f.observador || ""}</td>
                 <td>${fmt(f.tSeca)}</td><td>${fmt(f.tHumeda)}</td>
                 <td>${fmt(f.tMax)}</td><td>${fmt(f.tMin)}</td>
                 <td>${fmt(f.tAdjunto)}</td><td>${fmt(f.barometro, 2)}</td>
@@ -160,10 +165,34 @@
                 <td>${fmt(f.pnmMmhg)}</td><td>${fmt(f.pnmHpa)}</td>
                 <td>${fmt(f.tensionVapor)}</td><td>${fmt(f.puntoRocio)}</td>
                 <td>${fmt(f.humedadRelativa, 0)}</td><td>${fmt(f.lluvia)}</td>
-            </tr>`
-                )
+                <td>${
+                    descartada
+                        ? `<span class="text-red-600 text-xs" title="${escaparAtributo(f.motivoDescarte)}"><i class="fa-solid fa-ban mr-1"></i>Descartada</span>`
+                        : ""
+                }</td>
+                <td>${
+                    descartada
+                        ? `<button type="button" class="text-teal-700 hover:underline text-xs" data-accion="reactivar" data-fecha="${f.fecha}" data-hora="${f.hora}"><i class="fa-solid fa-rotate-left mr-1"></i>Reactivar</button>`
+                        : `<button type="button" class="text-red-600 hover:underline text-xs" data-accion="descartar" data-fecha="${f.fecha}" data-hora="${f.hora}"><i class="fa-solid fa-ban mr-1"></i>Descartar</button>`
+                }</td>
+            </tr>`;
+                })
                 .join("");
             document.getElementById("conteo").textContent = `(${filas.length} registros)`;
+        }
+
+        function marcarDescarte(fecha, hora, descartada, motivo, descartadoPor) {
+            return fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                    accion: "marcar_descarte",
+                    fecha, hora, descartada,
+                    motivo: motivo || "",
+                    descartadoPor: descartadoPor || "",
+                    token: APPS_SCRIPT_TOKEN,
+                }),
+            }).then((resp) => resp.json());
         }
 
         // Número de semana ISO (lunes a domingo), para agrupar "por semana".
@@ -185,7 +214,7 @@
         function calcularResumen(filas, periodo) {
             const grupos = new Map();
             for (const f of filas) {
-                if (!f.fecha) continue;
+                if (!f.fecha || f.descartada) continue;
                 const clave = clavePeriodo(f.fecha, periodo);
                 if (!grupos.has(clave)) {
                     grupos.set(clave, { minimos: [], maximos: [], lluvia: 0, tieneLluvia: false, primeraFecha: f.fecha });
@@ -290,7 +319,10 @@
 
                 function refrescarDetalle() {
                     const filtradas = filasDelPeriodoEspecifico();
-                    pintarChart(filtradas, document.getElementById("selectVariable").value);
+                    pintarChart(
+                        filtradas.filter((f) => !f.descartada),
+                        document.getElementById("selectVariable").value
+                    );
                     pintarTabla(filtradas);
                 }
 
@@ -324,6 +356,38 @@
                     document.getElementById("selectPeriodoEspecifico").value = periodoEspecificoActual;
                     pintarResumen(filas, periodoActual, periodoEspecificoActual);
                     refrescarDetalle();
+                });
+
+                document.getElementById("tbody").addEventListener("click", async (e) => {
+                    const btn = e.target.closest("[data-accion]");
+                    if (!btn) return;
+                    const { fecha, hora, accion } = btn.dataset;
+                    const fila = filas.find((f) => f.fecha === fecha && f.hora === hora);
+                    if (!fila) return;
+
+                    let motivo = "";
+                    let descartadoPor = "";
+                    if (accion === "descartar") {
+                        motivo = prompt("¿Por qué se descarta esta observación?") || "";
+                        if (!motivo.trim()) return;
+                        descartadoPor = prompt("¿Quién la descarta? (opcional)") || "";
+                    } else if (!confirm("¿Reactivar esta observación?")) {
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    try {
+                        const data = await marcarDescarte(fecha, hora, accion === "descartar", motivo, descartadoPor);
+                        if (!data.ok) throw new Error(data.error || "Error desconocido");
+                        fila.descartada = accion === "descartar";
+                        fila.motivoDescarte = fila.descartada ? motivo : "";
+                        fila.descartadoPor = fila.descartada ? descartadoPor : "";
+                        refrescarResumenYSelector();
+                        refrescarDetalle();
+                    } catch (err) {
+                        alert("No se pudo actualizar: " + err.message);
+                        btn.disabled = false;
+                    }
                 });
             } catch (err) {
                 document.getElementById("estado").innerHTML =

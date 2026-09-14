@@ -48,6 +48,16 @@ class FilasServidorPrueba:
         with self.lock:
             return list(self.filas)
 
+    def marcar_descarte(self, fecha, hora, descartada, motivo, descartado_por):
+        with self.lock:
+            for fila in self.filas:
+                if fila.get("fecha") == fecha and fila.get("hora") == hora:
+                    fila["descartada"] = descartada
+                    fila["motivoDescarte"] = motivo if descartada else ""
+                    fila["descartadoPor"] = descartado_por if descartada else ""
+                    return True
+            return False
+
 
 def crear_handler(estado, token_esperado):
     class Handler(BaseHTTPRequestHandler):
@@ -59,6 +69,16 @@ def crear_handler(estado, token_esperado):
             body = json.loads(self.rfile.read(largo) or b"{}")
             if token_esperado and body.get("token") != token_esperado:
                 self._responder({"ok": False, "error": "Token inválido."})
+                return
+            if body.get("accion") == "marcar_descarte":
+                encontrada = estado.marcar_descarte(
+                    body.get("fecha"), body.get("hora"), bool(body.get("descartada")),
+                    body.get("motivo", ""), body.get("descartadoPor", ""),
+                )
+                if not encontrada:
+                    self._responder({"ok": False, "error": "No se encontró ninguna observación con esa fecha y hora."})
+                    return
+                self._responder({"ok": True, "fila": body})
                 return
             estado.agregar(body)
             self._responder({"ok": True, "fila": body})
@@ -158,6 +178,27 @@ def main():
     check(bajadas3 == 1, f"Bajó la observación cargada 'desde la web' (bajadas={bajadas3})")
     check(len(db.listar_observaciones()) == 3, "La base local ahora tiene las 3 observaciones")
     check(db.existe("2026-09-13", "21:00"), "La observación de la web quedó guardada local, sin cargarla a mano")
+
+    # --- Paso 5: descartar una observación local y sincronizar el descarte ---
+    print("\n--- Descartando una observación local (con motivo) y sincronizando ---")
+    obs1 = next(f for f in db.listar_observaciones() if f["fecha"] == "2026-09-13" and f["hora"] == "09:00")
+    db.marcar_descarte(obs1["id"], True, motivo="Termómetro descalibrado", descartado_por="Mauricio")
+    check(len(db.obtener_descartes_pendientes()) == 1, "El descarte queda 'pendiente' de subir")
+
+    subidas4, bajadas4 = sync.sincronizar_todo()
+    check(len(db.obtener_descartes_pendientes()) == 0, "El descarte ya no queda pendiente tras sincronizar")
+    fila_servidor = next(f for f in estado_servidor.listar() if f["fecha"] == "2026-09-13" and f["hora"] == "09:00")
+    check(fila_servidor.get("descartada") is True, "El servidor (Sheet simulada) recibió el descarte")
+    check(fila_servidor.get("motivoDescarte") == "Termómetro descalibrado", "El servidor recibió el motivo correcto")
+
+    # --- Paso 6: un descarte hecho "desde la web" baja y se refleja local ---
+    print("\n--- Simulando un descarte hecho desde la web ---")
+    estado_servidor.marcar_descarte("2026-09-13", "15:00", True, "Lluvia mojó el instrumento", "Otro observador")
+    _, bajadas5 = sync.sincronizar_todo()
+    obs2 = next(f for f in db.listar_observaciones() if f["fecha"] == "2026-09-13" and f["hora"] == "15:00")
+    check(bool(obs2["descartada"]), "El descarte hecho en el servidor se reflejó en la base local")
+    check(obs2["motivo_descarte"] == "Lluvia mojó el instrumento", "El motivo bajado coincide con el del servidor")
+    check(obs2["descartado_por"] == "Otro observador", "Quién descartó también se sincronizó")
 
     servidor.shutdown()
 

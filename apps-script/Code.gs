@@ -49,6 +49,7 @@ function getToken_() {
 var COLUMNAS = [
   { key: "fecha", header: "Fecha" },
   { key: "hora", header: "Hora" },
+  { key: "observador", header: "Observador" },
   { key: "tSeca", header: "T. Seca" },
   { key: "tHumeda", header: "T. Húmeda" },
   { key: "tMax", header: "T. Máx" },
@@ -65,6 +66,9 @@ var COLUMNAS = [
   { key: "humedadRelativa", header: "Humedad Relativa" },
   { key: "lluvia", header: "Lluvia (mm)" },
   { key: "cargadoEl", header: "Cargado el" },
+  { key: "descartada", header: "Descartada" },
+  { key: "motivoDescarte", header: "Motivo descarte" },
+  { key: "descartadoPor", header: "Descartado por" },
 ];
 
 // ---- Motor de cálculo (mismo que observaciones/calculos.js) ----
@@ -208,6 +212,54 @@ function getSheet_() {
   return sheet;
 }
 
+// Busca la fila (1-indexada, incluyendo el encabezado) cuya fecha+hora
+// coincida. Devuelve -1 si no la encuentra.
+function buscarFilaPorClave_(sheet, fecha, hora) {
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; }) + 1;
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; }) + 1;
+  var valores = sheet.getDataRange().getValues();
+  for (var i = 1; i < valores.length; i++) {
+    var filaFecha = formatearFecha_(valores[i][colFecha - 1]);
+    var filaHora = formatearHora_(valores[i][colHora - 1]);
+    if (filaFecha === fecha && filaHora === hora) {
+      return i + 1; // +1 porque getValues() es 0-indexado y las filas de Sheets son 1-indexadas
+    }
+  }
+  return -1;
+}
+
+function marcarDescarte_(body) {
+  if (!body.fecha || !body.hora) {
+    return { ok: false, error: "Faltan fecha y hora para identificar la observación." };
+  }
+  var descartada = !!body.descartada;
+  if (descartada && !body.motivo) {
+    return { ok: false, error: "Hace falta un motivo para descartar una observación." };
+  }
+
+  var sheet = getSheet_();
+  var numeroFila = buscarFilaPorClave_(sheet, body.fecha, body.hora);
+  if (numeroFila === -1) {
+    return { ok: false, error: "No se encontró ninguna observación con esa fecha y hora." };
+  }
+
+  var colDescartada = COLUMNAS.findIndex(function (c) { return c.key === "descartada"; }) + 1;
+  var colMotivo = COLUMNAS.findIndex(function (c) { return c.key === "motivoDescarte"; }) + 1;
+  var colDescartadoPor = COLUMNAS.findIndex(function (c) { return c.key === "descartadoPor"; }) + 1;
+  sheet.getRange(numeroFila, colDescartada).setValue(descartada);
+  sheet.getRange(numeroFila, colMotivo).setValue(descartada ? body.motivo : "");
+  sheet.getRange(numeroFila, colDescartadoPor).setValue(descartada ? (body.descartadoPor || "") : "");
+
+  return {
+    ok: true,
+    fila: {
+      fecha: body.fecha, hora: body.hora, descartada: descartada,
+      motivoDescarte: descartada ? body.motivo : "",
+      descartadoPor: descartada ? (body.descartadoPor || "") : "",
+    },
+  };
+}
+
 function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
@@ -230,6 +282,10 @@ function doPost(e) {
     var expectedToken = getToken_();
     if (expectedToken && body.token !== expectedToken) {
       return jsonOut_({ ok: false, error: "Token inválido." });
+    }
+
+    if (body.accion === "marcar_descarte") {
+      return jsonOut_(marcarDescarte_(body));
     }
 
     var numOrNull = function (v) {
@@ -265,6 +321,7 @@ function doPost(e) {
     var fila = {
       fecha: body.fecha || "",
       hora: body.hora || "",
+      observador: body.observador || "",
       tSeca: input.tSeca,
       tHumeda: input.tHumeda,
       tMax: tMax === null ? "" : tMax,
@@ -281,6 +338,9 @@ function doPost(e) {
       humedadRelativa: calculado.humedadRelativa,
       lluvia: lluvia === null ? "" : lluvia,
       cargadoEl: new Date().toISOString(),
+      descartada: false,
+      motivoDescarte: "",
+      descartadoPor: "",
     };
 
     var sheet = getSheet_();

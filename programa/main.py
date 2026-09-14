@@ -7,7 +7,7 @@ import os
 import threading
 import tkinter as tk
 from datetime import date, datetime
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 
 import ttkbootstrap as ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -25,6 +25,7 @@ COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
 CAMPOS = [
     ("fecha", "Fecha (AAAA-MM-DD)", True),
     ("hora", "Hora (HH:MM)", True),
+    ("observador", "Observador — opcional", False),
     ("t_seca", "T. Seca (°C)", True),
     ("t_humeda", "T. Húmeda (°C)", True),
     ("t_max", "T. Máx (°C) — opcional", False),
@@ -238,26 +239,37 @@ class App(ttk.Window):
         tabla_frame.pack(fill="both", expand=True, padx=8, pady=(8, 12))
 
         columnas = (
-            "fecha", "hora", "t_seca", "t_humeda", "t_adjunto", "barometro",
+            "fecha", "hora", "observador", "t_seca", "t_humeda", "t_adjunto", "barometro",
             "p_est_hpa", "pnm_hpa", "tension_vapor", "punto_rocio", "humedad_relativa",
-            "lluvia", "sync_status",
+            "lluvia", "sync_status", "descarte",
         )
         titulos = {
-            "fecha": "Fecha", "hora": "Hora", "t_seca": "T.Seca", "t_humeda": "T.Húmeda",
+            "fecha": "Fecha", "hora": "Hora", "observador": "Observador",
+            "t_seca": "T.Seca", "t_humeda": "T.Húmeda",
             "t_adjunto": "T.Adj.", "barometro": "Barómetro",
             "p_est_hpa": "P.Est (hPa)", "pnm_hpa": "P.N.M (hPa)",
             "tension_vapor": "T.Vapor", "punto_rocio": "P.Rocío", "humedad_relativa": "H.R. (%)",
-            "lluvia": "Lluvia", "sync_status": "Estado",
+            "lluvia": "Lluvia", "sync_status": "Sync", "descarte": "Descarte",
         }
         self.tabla = ttk.Treeview(tabla_frame, columns=columnas, show="headings", height=10, bootstyle="secondary")
         for col in columnas:
             self.tabla.heading(col, text=titulos[col])
             self.tabla.column(col, width=82, anchor="center")
+        self.tabla.column("descarte", width=160)
+        self.tabla.tag_configure("descartada", foreground="#94a3b8")
+        self.tabla.bind("<Button-3>", self._menu_contextual_tabla)
+        self._filas_tabla_por_id = {}
 
         scroll_y = ttk.Scrollbar(tabla_frame, orient="vertical", command=self.tabla.yview, bootstyle="round")
         self.tabla.configure(yscrollcommand=scroll_y.set)
         self.tabla.pack(side="left", fill="both", expand=True)
         scroll_y.pack(side="right", fill="y")
+
+        ttk.Label(
+            contenedor,
+            text="Click derecho sobre una fila para descartarla (o reactivarla) sin borrar el dato original.",
+            bootstyle="secondary",
+        ).pack(anchor="w", padx=8, pady=(0, 10))
 
     def _filtrar_por_periodo(self, datos):
         if self.periodo_especifico_actual == "Todos":
@@ -273,7 +285,11 @@ class App(ttk.Window):
         datos = self._filtrar_por_periodo(db.listar_para_grafico())
 
         self.ejes.clear()
-        puntos = [(f"{f['fecha']} {f['hora']}", f[clave]) for f in datos if f.get(clave) is not None]
+        puntos = [
+            (f"{f['fecha']} {f['hora']}", f[clave])
+            for f in datos
+            if f.get(clave) is not None and not f.get("descartada")
+        ]
         if puntos:
             etiquetas_x = [p[0] for p in puntos]
             valores_y = [p[1] for p in puntos]
@@ -304,7 +320,7 @@ class App(ttk.Window):
     def _calcular_resumen(self, datos, periodo):
         grupos = {}
         for f in datos:
-            if not f.get("fecha"):
+            if not f.get("fecha") or f.get("descartada"):
                 continue
             clave = self._clave_periodo(f["fecha"], periodo)
             g = grupos.setdefault(clave, {"minimos": [], "maximos": [], "lluvia": 0, "tiene_lluvia": False, "primera_fecha": f["fecha"]})
@@ -563,9 +579,13 @@ class App(ttk.Window):
             return None
 
     def _leer_formulario(self):
-        datos = {"fecha": self.entradas["fecha"].get().strip(), "hora": self.entradas["hora"].get().strip()}
+        datos = {
+            "fecha": self.entradas["fecha"].get().strip(),
+            "hora": self.entradas["hora"].get().strip(),
+            "observador": self.entradas["observador"].get().strip(),
+        }
         for clave, _etiqueta, _obligatorio in CAMPOS:
-            if clave in ("fecha", "hora"):
+            if clave in ("fecha", "hora", "observador"):
                 continue
             datos[clave] = self._leer_entrada(clave)
         return datos
@@ -637,12 +657,17 @@ class App(ttk.Window):
         for item in self.tabla.get_children():
             self.tabla.delete(item)
         datos = self._filtrar_por_periodo(db.listar_observaciones())
+        self._filas_tabla_por_id = {}
         for fila in datos:
+            self._filas_tabla_por_id[fila["id"]] = fila
+            descartada = bool(fila.get("descartada"))
             self.tabla.insert(
                 "",
                 tk.END,
+                iid=str(fila["id"]),
                 values=(
-                    fila["fecha"], fila["hora"], fila["t_seca"], fila["t_humeda"],
+                    fila["fecha"], fila["hora"], fila.get("observador") or "",
+                    fila["t_seca"], fila["t_humeda"],
                     fila["t_adjunto"], fila["barometro"],
                     f"{fila['p_est_hpa']:.1f}" if fila["p_est_hpa"] is not None else "",
                     f"{fila['pnm_hpa']:.1f}" if fila["pnm_hpa"] is not None else "",
@@ -651,8 +676,44 @@ class App(ttk.Window):
                     f"{fila['humedad_relativa']:.0f}" if fila["humedad_relativa"] is not None else "",
                     fila["lluvia"] if fila["lluvia"] is not None else "",
                     "✓ sincronizada" if fila["sync_status"] == "sincronizado" else "pendiente",
+                    f"Descartada: {fila.get('motivo_descarte') or ''}" if descartada else "",
                 ),
+                tags=("descartada",) if descartada else (),
             )
+
+    def _menu_contextual_tabla(self, evento):
+        iid = self.tabla.identify_row(evento.y)
+        if not iid:
+            return
+        self.tabla.selection_set(iid)
+        fila = self._filas_tabla_por_id.get(int(iid))
+        if not fila:
+            return
+        menu = tk.Menu(self, tearoff=0)
+        if fila.get("descartada"):
+            menu.add_command(label="Reactivar observación", command=lambda: self._alternar_descarte(fila, False))
+        else:
+            menu.add_command(label="Descartar observación...", command=lambda: self._alternar_descarte(fila, True))
+        menu.tk_popup(evento.x_root, evento.y_root)
+
+    def _alternar_descarte(self, fila, descartar):
+        motivo, descartado_por = "", ""
+        if descartar:
+            motivo = simpledialog.askstring(
+                "Descartar observación", "¿Por qué se descarta esta observación?", parent=self
+            )
+            if not motivo:
+                return
+            descartado_por = simpledialog.askstring(
+                "Descartar observación", "¿Quién la descarta? (opcional)", parent=self
+            ) or ""
+        elif not messagebox.askyesno("Reactivar", "¿Reactivar esta observación?"):
+            return
+
+        db.marcar_descarte(fila["id"], descartar, motivo=motivo, descartado_por=descartado_por)
+        self._refrescar_historial()
+        self.estado_label.config(text="Descarte guardado localmente. Sincronizando...")
+        self._sincronizar(automatico=True)
 
     def _refrescar_historial(self):
         # El resumen va primero: si el período específico elegido ya no
