@@ -18,6 +18,25 @@ var ESTACION = {
 
 var SHEET_NAME = "Observaciones";
 
+// Zona horaria de la estación, para volver a formatear fecha/hora si Google
+// Sheets las auto-convirtió a un valor de fecha/hora al guardarlas (pasa
+// solo por cómo Sheets interpreta el texto, no es algo que hagamos nosotros).
+var ZONA_HORARIA = "America/Argentina/Buenos_Aires";
+
+function formatearFecha_(valor) {
+  if (Object.prototype.toString.call(valor) === "[object Date]") {
+    return Utilities.formatDate(valor, ZONA_HORARIA, "yyyy-MM-dd");
+  }
+  return valor;
+}
+
+function formatearHora_(valor) {
+  if (Object.prototype.toString.call(valor) === "[object Date]") {
+    return Utilities.formatDate(valor, ZONA_HORARIA, "HH:mm");
+  }
+  return valor;
+}
+
 // Token compartido simple para evitar que cualquiera con la URL escriba
 // datos falsos. Se configura en Project Settings > Script Properties (clave TOKEN).
 // Si no se configura ninguno, no se exige token (no recomendado).
@@ -288,7 +307,10 @@ function doGet(e) {
       var row = values[i];
       var obj = {};
       COLUMNAS.forEach(function (c, idx) {
-        obj[c.key] = row[idx];
+        var valor = row[idx];
+        if (c.key === "fecha") valor = formatearFecha_(valor);
+        if (c.key === "hora") valor = formatearHora_(valor);
+        obj[c.key] = valor;
       });
       filas.push(obj);
     }
