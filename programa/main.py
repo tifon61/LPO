@@ -92,6 +92,8 @@ class App(ttk.Window):
         self.entradas = {}
         self.color_fondo = self.style.colors.bg
 
+        self._armar_encabezado()
+
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True, padx=12, pady=(12, 0))
 
@@ -112,6 +114,22 @@ class App(ttk.Window):
         self._recalcular()
         self._refrescar_historial()
         self._sincronizar(automatico=True)
+
+    # ---------- Encabezado ----------
+
+    def _armar_encabezado(self):
+        frame = ttk.Frame(self)
+        frame.pack(fill="x", padx=12, pady=(12, 0))
+        logo = self._cargar_imagen("logo-marca.png", ancho=48)
+        if logo:
+            ttk.Label(frame, image=logo).pack(side="left", padx=(0, 10))
+        titulos = ttk.Frame(frame)
+        titulos.pack(side="left")
+        ttk.Label(
+            titulos, text="Estación Meteorológica — La Plata Observatorio",
+            font=("TkDefaultFont", 13, "bold"),
+        ).pack(anchor="w")
+        ttk.Label(titulos, text="FCAG · UNLP", bootstyle="secondary").pack(anchor="w")
 
     # ---------- Pestaña: Cargar ----------
 
