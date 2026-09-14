@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cómo funciona — LPO</title>
+    <link rel="icon" type="image/png" href="img/logo-marca.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; }
+        .card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        nav a { font-size: 0.8rem; font-weight: 700; color: #475569; }
+        nav a.active, nav a:hover { color: #0f766e; }
+        .step-num {
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: #0f766e; color: #fff;
+            font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+
+        <header class="bg-white p-6 rounded-2xl border border-slate-200 border-t-4 border-t-teal-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-5 w-full md:w-auto">
+                <div class="w-16 h-16 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100 shrink-0 p-1.5">
+                    <img src="img/logo-marca.png" alt="Logo Estación Meteorológica La Plata" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">¿Cómo funciona esto?</h1>
+                    <p class="text-slate-500 font-semibold text-sm mt-1">Una explicación simple, sin tecnicismos</p>
+                </div>
+            </div>
+            <nav class="flex items-center gap-4 shrink-0">
+                <a href="index.html"><i class="fa-solid fa-pen-to-square mr-1"></i>Cargar</a>
+                <a href="historico.html"><i class="fa-solid fa-table-list mr-1"></i>Histórico</a>
+                <a href="formulas.html"><i class="fa-solid fa-square-root-variable mr-1"></i>Fórmulas</a>
+                <a href="como-funciona.html" class="active"><i class="fa-solid fa-circle-info mr-1"></i>Cómo funciona</a>
+            </nav>
+        </header>
+
+        <div class="card border-t-4 border-t-teal-700">
+            <p class="text-slate-600 leading-relaxed">
+                Esta estación tiene dos formas de cargar una observación — esta página web, o un programa que
+                se instala en una computadora — pero un solo lugar donde queda guardada. Así es el recorrido
+                que hace cada dato, paso a paso.
+            </p>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-stretch gap-3">
+            <div class="card border-t-4 border-t-teal-700 flex-1 text-center md:text-left">
+                <div class="step-num mx-auto md:mx-0 mb-3">1</div>
+                <h3 class="font-bold text-slate-800 mb-1">Se carga el dato</h3>
+                <p class="text-sm text-slate-500">Desde esta web o desde el programa de la computadora — cualquiera de los dos funciona igual.</p>
+            </div>
+            <div class="flex items-center justify-center text-slate-300 px-1">
+                <i class="fa-solid fa-arrow-down md:hidden text-xl"></i>
+                <i class="fa-solid fa-arrow-right hidden md:block text-xl"></i>
+            </div>
+            <div class="card border-t-4 border-t-teal-700 flex-1 text-center md:text-left">
+                <div class="step-num mx-auto md:mx-0 mb-3">2</div>
+                <h3 class="font-bold text-slate-800 mb-1">Se revisa y se calcula</h3>
+                <p class="text-sm text-slate-500">Se chequea que los valores tengan sentido y se calcula el resto (presión, humedad, punto de rocío) siempre con las mismas cuentas.</p>
+            </div>
+            <div class="flex items-center justify-center text-slate-300 px-1">
+                <i class="fa-solid fa-arrow-down md:hidden text-xl"></i>
+                <i class="fa-solid fa-arrow-right hidden md:block text-xl"></i>
+            </div>
+            <div class="card border-t-4 border-t-teal-700 flex-1 text-center md:text-left">
+                <div class="step-num mx-auto md:mx-0 mb-3">3</div>
+                <h3 class="font-bold text-slate-800 mb-1">Queda guardado en un solo lugar</h3>
+                <p class="text-sm text-slate-500">Todo va a una única planilla compartida — la fuente real de los datos. No hay copias sueltas dando vueltas.</p>
+            </div>
+            <div class="flex items-center justify-center text-slate-300 px-1">
+                <i class="fa-solid fa-arrow-down md:hidden text-xl"></i>
+                <i class="fa-solid fa-arrow-right hidden md:block text-xl"></i>
+            </div>
+            <div class="card border-t-4 border-t-teal-700 flex-1 text-center md:text-left">
+                <div class="step-num mx-auto md:mx-0 mb-3">4</div>
+                <h3 class="font-bold text-slate-800 mb-1">Se puede consultar</h3>
+                <p class="text-sm text-slate-500">El histórico que ves acá (o en el programa) siempre se arma leyendo esa misma planilla, así que está siempre al día.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card border-t-4 border-t-amber-500">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-plane-slash text-amber-500 text-lg"></i>
+                    <h3 class="font-bold text-slate-800">¿Y si no hay internet al cargar el dato?</h3>
+                </div>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    El programa de la computadora guarda el dato ahí mismo al toque, y lo manda solo apenas
+                    vuelve la conexión. No se pierde nada por un corte de internet.
+                </p>
+            </div>
+            <div class="card border-t-4 border-t-amber-500">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-rotate-left text-amber-500 text-lg"></i>
+                    <h3 class="font-bold text-slate-800">¿Y si se cargó algo mal?</h3>
+                </div>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Nunca se borra nada. La observación se marca como "descartada" junto con el motivo (y
+                    quién lo hizo), así queda el registro completo, sin perder el dato original.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
