@@ -3,250 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relevamiento de disponibilidad — Davis | FCAG</title>
+    <title>Relevamiento de disponibilidad — Davis | FCAG UNLP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #334155;
+            background-color: #f1f5f9; /* Un gris más formal y neutral */
+            color: #1e293b;
             margin: 0;
+        }
+
+        .academic-title {
+            font-family: 'Merriweather', serif;
         }
 
         .metric-card {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
             border-top-width: 4px;
-            border-radius: 12px;
-            padding: 1.25rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: 6px; /* Menos redondeado, más serio */
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease;
         }
 
         .metric-title {
-            font-size: 0.70rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: #64748b;
         }
 
         .metric-value {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 2.25rem;
+            font-weight: 700;
             color: #0f172a;
-            line-height: 1;
+            line-height: 1.1;
             letter-spacing: -0.02em;
         }
 
         .metric-unit {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
             margin-left: 0.25rem;
         }
 
         .chart-card {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 1.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .status-banner {
-            border-radius: 16px;
-            padding: 1.75rem 2rem;
+            border-radius: 6px;
+            padding: 1.5rem 2rem;
             display: flex;
             align-items: center;
             gap: 1.25rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-left-width: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         table { border-collapse: collapse; width: 100%; }
-        th, td { text-align: left; padding: 0.65rem 0.9rem; font-size: 0.85rem; }
-        thead th { color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
-        tbody tr { border-bottom: 1px solid #f1f5f9; }
+        th, td { text-align: left; padding: 0.875rem 1rem; font-size: 0.875rem; }
+        thead th { 
+            color: #475569; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            letter-spacing: 0.05em; 
+            border-bottom: 2px solid #e2e8f0; 
+        }
+        tbody tr { border-bottom: 1px solid #f1f5f9; transition: background-color 0.15s; }
         tbody tr:hover { background-color: #f8fafc; }
 
         .badge-ongoing {
-            background-color: #fef2f2; color: #b91c1c;
-            font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.55rem;
-            border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em;
+            background-color: #fee2e2; 
+            color: #991b1b;
+            font-size: 0.7rem; 
+            font-weight: 600; 
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px; /* Cuadrado con bordes suaves */
+            text-transform: uppercase; 
+            letter-spacing: 0.04em;
         }
     </style>
 </head>
-<body class="p-4 md:p-6 lg:p-8">
+<body class="p-4 md:p-8 lg:p-10">
 
     <div class="max-w-6xl mx-auto space-y-6">
 
-        <header class="bg-white p-6 rounded-2xl border border-slate-200 border-t-4 border-t-slate-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <!-- Encabezado Institucional -->
+        <header class="bg-white p-8 rounded-md border border-slate-300 border-t-4 border-t-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div class="flex items-center gap-5 w-full md:w-auto">
-                <div class="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center border border-slate-200 shrink-0">
-                    <i class="fa-solid fa-server text-2xl text-slate-600"></i>
+                <div class="w-14 h-14 bg-slate-800 rounded-md flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-satellite-dish text-2xl text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">Relevamiento de disponibilidad</h1>
-                    <p class="text-slate-500 font-semibold text-sm mt-1">
-                        <i class="fa-solid fa-link mr-1"></i>
-                        meteo.fcaglp.unlp.edu.ar (dato: meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt)
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight academic-title">Relevamiento de disponibilidad</h1>
+                    <p class="text-slate-500 font-medium text-sm mt-1 flex items-center gap-2">
+                        <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">FCAG UNLP</span>
+                        Estación Davis
                     </p>
                 </div>
             </div>
-            <a href="https://meteo.fcaglp.unlp.edu.ar/" target="_blank" class="text-sm font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 shrink-0">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver estación
+            <a href="https://meteo.fcaglp.unlp.edu.ar/" target="_blank" class="text-sm font-semibold text-slate-700 hover:text-blue-700 transition flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-md hover:bg-slate-50 shrink-0">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Acceder a la estación
             </a>
         </header>
 
-        <div id="statusBanner" class="status-banner bg-slate-100 border border-slate-200">
-            <i id="statusIcon" class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-500"></i>
+        <div id="statusBanner" class="status-banner border-l-slate-400">
+            <i id="statusIcon" class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-400"></i>
             <div>
-                <div class="text-lg font-black" id="statusTitle">Cargando estado...</div>
-                <div class="text-sm text-slate-600" id="statusSubtitle">&nbsp;</div>
+                <div class="text-xl font-bold academic-title text-slate-800" id="statusTitle">Inicializando monitor...</div>
+                <div class="text-sm text-slate-500 mt-1" id="statusSubtitle">&nbsp;</div>
             </div>
         </div>
 
-        <div class="chart-card">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
-                    <i class="fa-solid fa-window-restore mr-2 text-slate-500"></i> Página pública en vivo
-                </h3>
-                <a href="https://meteo.fcaglp.unlp.edu.ar/" target="_blank" class="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir en otra pestaña
-                </a>
-            </div>
-            <iframe
-                src="https://meteo.fcaglp.unlp.edu.ar/"
-                class="w-full rounded-lg border border-slate-200"
-                style="height: 480px;"
-                title="Página pública de la estación meteorológica (público general)"
-                loading="lazy"
-            ></iframe>
-            <p class="text-xs text-slate-400 mt-2">
-                Es la página que ve el público general, embebida tal cual. Si el navegador la bloquea por política del
-                servidor de origen, usá el link de arriba para abrirla directo.
-            </p>
-        </div>
-
-        <div class="chart-card">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
-                    <i class="fa-solid fa-database mr-2 text-slate-500"></i> Dato crudo (lo que chequea el monitoreo)
-                </h3>
-                <a href="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt" target="_blank" class="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir en otra pestaña
-                </a>
-            </div>
-            <iframe
-                src="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
-                class="w-full rounded-lg border border-slate-200"
-                style="height: 320px;"
-                title="Dato crudo de la Davis (campo)"
-                loading="lazy"
-            ></iframe>
-            <p class="text-xs text-slate-400 mt-2">
-                Archivo de texto plano que descarga <code>scripts/check_davis.py</code> cada 15 minutos para
-                detectar caídas y datos desactualizados.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
             <div class="metric-card border-t-[#0f766e]">
-                <div class="metric-title mb-3"><i class="fa-solid fa-chart-line mr-1"></i> Disponibilidad</div>
+                <div class="metric-title mb-2"><i class="fa-solid fa-chart-line mr-1"></i> Disponibilidad (Uptime)</div>
                 <div class="flex items-baseline">
                     <span class="metric-value" id="valUptime">--</span>
                     <span class="metric-unit">%</span>
                 </div>
             </div>
-            <div class="metric-card border-t-[#dc2626]">
-                <div class="metric-title mb-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Caídas registradas</div>
+            <div class="metric-card border-t-[#b91c1c]">
+                <div class="metric-title mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Caídas Registradas</div>
                 <div class="flex items-baseline">
                     <span class="metric-value" id="valCount">--</span>
                 </div>
             </div>
-            <div class="metric-card border-t-[#9333ea]">
-                <div class="metric-title mb-3"><i class="fa-solid fa-clock mr-1"></i> Tiempo caído (total)</div>
+            <div class="metric-card border-t-[#6b21a8]">
+                <div class="metric-title mb-2"><i class="fa-solid fa-clock mr-1"></i> Tiempo Caído (Total)</div>
                 <div class="flex items-baseline">
-                    <span class="metric-value" id="valTotalDown" style="font-size:1.5rem;">--</span>
+                    <span class="metric-value" id="valTotalDown" style="font-size:1.75rem;">--</span>
                 </div>
             </div>
-            <div class="metric-card border-t-[#ea580c]">
-                <div class="metric-title mb-3"><i class="fa-solid fa-hourglass-half mr-1"></i> Caída más larga</div>
+            <div class="metric-card border-t-[#b45309]">
+                <div class="metric-title mb-2"><i class="fa-solid fa-stopwatch mr-1"></i> Caída Más Larga</div>
                 <div class="flex items-baseline">
-                    <span class="metric-value" id="valLongest" style="font-size:1.5rem;">--</span>
+                    <span class="metric-value" id="valLongest" style="font-size:1.75rem;">--</span>
                 </div>
             </div>
         </div>
 
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="chart-card flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wide flex items-center">
+                        <i class="fa-solid fa-window-restore mr-2 text-slate-400"></i> Interfaz Pública en Vivo
+                    </h3>
+                </div>
+                <iframe
+                    src="https://meteo.fcaglp.unlp.edu.ar/"
+                    class="w-full rounded border border-slate-200 flex-grow"
+                    style="min-height: 380px;"
+                    title="Página pública de la estación meteorológica"
+                    loading="lazy"
+                ></iframe>
+                <p class="text-xs text-slate-500 mt-3 border-t border-slate-100 pt-3">
+                    Vista embebida directa. Si experimenta bloqueos por políticas CORS del servidor, <a href="https://meteo.fcaglp.unlp.edu.ar/" target="_blank" class="text-blue-600 hover:underline">abra el enlace directamente</a>.
+                </p>
+            </div>
+
+            <div class="chart-card flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wide flex items-center">
+                        <i class="fa-solid fa-database mr-2 text-slate-400"></i> Fuente de Datos Crudos
+                    </h3>
+                </div>
+                <iframe
+                    src="https://meteo.fcaglp.unlp.edu.ar/davis/campo/downld08.txt"
+                    class="w-full rounded border border-slate-200 flex-grow bg-slate-50 font-mono text-sm"
+                    style="min-height: 380px;"
+                    title="Dato crudo de la Davis"
+                    loading="lazy"
+                ></iframe>
+                <p class="text-xs text-slate-500 mt-3 border-t border-slate-100 pt-3">
+                    Archivo de texto base <code>downld08.txt</code> evaluado por el sistema automatizado (frecuencia: 15 min).
+                </p>
+            </div>
+        </div>
+
         <div class="chart-card">
-            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center">
-                <i class="fa-solid fa-chart-column mr-2 text-slate-500"></i> Minutos caído por día
+            <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-6 flex items-center">
+                <i class="fa-solid fa-chart-column mr-2 text-slate-400"></i> Distribución de Tiempo Caído (Minutos/Día)
             </h3>
-            <div class="relative w-full h-[220px]">
+            <div class="relative w-full h-[260px]">
                 <canvas id="chartDowntime"></canvas>
             </div>
         </div>
 
         <div class="chart-card">
-            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center">
-                <i class="fa-solid fa-list mr-2 text-slate-500"></i> Historial de incidentes
+            <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-4 flex items-center">
+                <i class="fa-solid fa-list-ul mr-2 text-slate-400"></i> Registro de Incidentes (Davis)
             </h3>
             <div class="overflow-x-auto">
                 <table>
                     <thead>
                         <tr>
-                            <th>Inicio</th>
-                            <th>Fin</th>
+                            <th>Fecha de Inicio</th>
+                            <th>Resolución</th>
                             <th>Duración</th>
-                            <th>Motivo</th>
+                            <th>Observaciones</th>
                         </tr>
                     </thead>
                     <tbody id="incidentsBody">
-                        <tr><td colspan="4" class="text-slate-400 text-center py-6">Cargando...</td></tr>
+                        <tr><td colspan="4" class="text-slate-400 text-center py-8">Cargando registros...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <p class="text-xs text-slate-400 text-center pb-4">
-            Relevamiento automático: se revisa la página pública cada 15 minutos.
-            Se considera "caída" cuando no responde, o cuando los datos que muestra
-            tienen más de 60 minutos de antigüedad.
+        <p class="text-xs text-slate-500 text-center pb-2">
+            Nota Técnica: Las revisiones se ejecutan automáticamente cada 15 minutos. Un estado inactivo se declara ante falta de respuesta HTTP o datos con antigüedad superior a 60 minutos.
         </p>
 
-        <div class="chart-card">
-            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-1 flex items-center">
-                <i class="fa-solid fa-network-wired mr-2 text-slate-500"></i> Red de estaciones (escuelas)
+        <!-- Red de escuelas -->
+        <div class="chart-card border-t-4 border-t-slate-700">
+            <h3 class="text-lg font-bold text-slate-900 academic-title mb-2 flex items-center">
+                <i class="fa-solid fa-network-wired mr-2 text-slate-600"></i> Monitoreo de Red Extendida (Escuelas)
             </h3>
-            <p class="text-xs text-slate-400 mb-4">
-                ThingSpeak / Wunderground · umbral de caída: más de 120 minutos sin datos nuevos.
-                No incluye Monte Veloz ni EP N°34 (apagadas a propósito).
+            <p class="text-sm text-slate-500 mb-6">
+                Red de nodos ThingSpeak / Wunderground. Umbral crítico: >120 minutos sin transmisión. (Excluye temporalmente nodos inactivos planificados).
             </p>
-            <div id="stationsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                <div class="text-slate-400 text-sm py-6 text-center col-span-full">Cargando...</div>
+            <div id="stationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="text-slate-400 text-sm py-8 text-center col-span-full">Cargando red de estaciones...</div>
             </div>
 
-            <div class="mt-5 pt-5 border-t border-slate-100">
-                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center">
-                    <i class="fa-solid fa-list mr-2 text-slate-500"></i>
-                    Historial de: <span id="stationIncidentsTitle" class="text-teal-700 ml-1">--</span>
+            <div class="mt-8 pt-6 border-t border-slate-200">
+                <h4 class="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-4 flex items-center">
+                    <i class="fa-solid fa-timeline mr-2 text-slate-400"></i>
+                    Historial del nodo: <span id="stationIncidentsTitle" class="text-blue-700 ml-1 font-bold">--</span>
                 </h4>
                 <div class="overflow-x-auto">
                     <table>
                         <thead>
                             <tr>
-                                <th>Inicio</th>
-                                <th>Fin</th>
+                                <th>Fecha de Inicio</th>
+                                <th>Resolución</th>
                                 <th>Duración</th>
-                                <th>Motivo</th>
+                                <th>Observaciones</th>
                             </tr>
                         </thead>
                         <tbody id="stationIncidentsBody">
-                            <tr><td colspan="4" class="text-slate-400 text-center py-6">Elegí una estación arriba.</td></tr>
+                            <tr><td colspan="4" class="text-slate-400 text-center py-8">Seleccione un nodo en el panel superior.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -269,16 +282,15 @@
         return new Date(iso).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
     }
 
-    // Se lee del caché estático (data/davis-monitor.json), que actualiza
-    // GitHub Actions cada 15 minutos corriendo scripts/check_davis.py.
     async function loadMonitor() {
         try {
             const resp = await fetch(`data/davis-monitor.json?_t=${Date.now()}`);
             const data = await resp.json();
             render(data);
         } catch (err) {
-            document.getElementById('statusTitle').textContent = 'Error al cargar el relevamiento';
+            document.getElementById('statusTitle').textContent = 'Error de conexión';
             document.getElementById('statusSubtitle').textContent = err.message;
+            document.getElementById('statusBanner').className = 'status-banner border-l-red-600 bg-red-50';
         }
     }
 
@@ -292,30 +304,27 @@
         const subtitle = document.getElementById('statusSubtitle');
 
         if (isPending) {
-            banner.className = 'status-banner bg-slate-100 border border-slate-200';
-            icon.className = 'fa-solid fa-hourglass-half text-3xl text-slate-500';
-            title.textContent = 'Esperando el primer chequeo automático';
-            title.className = 'text-lg font-black text-slate-700';
-            subtitle.textContent = data.current_reason || '';
+            banner.className = 'status-banner border-l-slate-400 bg-white';
+            icon.className = 'fa-solid fa-hourglass-half text-3xl text-slate-400';
+            title.textContent = 'En espera de datos automatizados';
+            title.className = 'text-xl font-bold academic-title text-slate-700';
+            subtitle.textContent = data.current_reason || 'Proceso en cola';
         } else if (isDown) {
-            banner.className = 'status-banner bg-red-50 border border-red-200';
-            icon.className = 'fa-solid fa-circle-exclamation text-3xl text-red-600';
+            banner.className = 'status-banner border-l-red-600 bg-white';
+            icon.className = 'fa-solid fa-triangle-exclamation text-3xl text-red-600';
             const downSince = data.down_since ? new Date(data.down_since) : null;
             const mins = downSince ? (now - downSince) / 60000 : null;
-            title.textContent = 'Caída en curso';
-            title.className = 'text-lg font-black text-red-700';
-            subtitle.textContent = `${data.current_reason || ''} · desde hace ${fmtDuration(mins)}`;
+            title.textContent = 'Interrupción del Servicio';
+            title.className = 'text-xl font-bold academic-title text-red-700';
+            subtitle.textContent = `${data.current_reason || 'Sin datos'} · Inactividad: ${fmtDuration(mins)}`;
         } else {
-            banner.className = 'status-banner bg-emerald-50 border border-emerald-200';
-            icon.className = 'fa-solid fa-circle-check text-3xl text-emerald-600';
-            title.textContent = 'En línea';
-            title.className = 'text-lg font-black text-emerald-700';
-            subtitle.textContent = data.last_check
-                ? `Último chequeo: ${fmtDate(data.last_check)}`
-                : '';
+            banner.className = 'status-banner border-l-emerald-600 bg-white';
+            icon.className = 'fa-solid fa-check-circle text-3xl text-emerald-600';
+            title.textContent = 'Servicio Operativo';
+            title.className = 'text-xl font-bold academic-title text-slate-800';
+            subtitle.textContent = data.last_check ? `Sincronizado: ${fmtDate(data.last_check)}` : '';
         }
 
-        // --- Métricas ---
         const incidents = data.incidents || [];
         const closedIncidents = incidents.filter(i => i.duration_minutes !== null);
         let totalDown = closedIncidents.reduce((sum, i) => sum + i.duration_minutes, 0);
@@ -336,27 +345,23 @@
             : (isDown ? totalDown : 0);
         document.getElementById('valLongest').textContent = fmtDuration(longest);
 
-        // --- Tabla de incidentes (más reciente primero) ---
         const tbody = document.getElementById('incidentsBody');
         if (incidents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-400 text-center py-6">Sin incidentes registrados todavía.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-500 text-center py-8">No se han registrado incidencias en el período evaluado.</td></tr>';
         } else {
             tbody.innerHTML = [...incidents].reverse().map(i => `
                 <tr>
-                    <td class="font-semibold text-slate-700">${fmtDate(i.start)}</td>
+                    <td class="font-medium text-slate-800">${fmtDate(i.start)}</td>
                     <td>${i.end ? fmtDate(i.end) : '<span class="badge-ongoing">En curso</span>'}</td>
                     <td>${i.duration_minutes !== null ? fmtDuration(i.duration_minutes) : fmtDuration((now - new Date(i.start)) / 60000)}</td>
-                    <td class="text-slate-500">${i.reason || '--'}</td>
+                    <td class="text-slate-600">${i.reason || '--'}</td>
                 </tr>
             `).join('');
         }
 
-        // --- Gráfico: minutos caído por día ---
         const byDay = new Map();
         incidents.forEach(inc => {
             const start = new Date(inc.start);
-            const end = inc.end ? new Date(inc.end) : now;
-            // Reparte los minutos de la caída entre los días que abarca (simplificado: los suma todos al día de inicio si es corta)
             const key = start.toLocaleDateString('es-AR');
             const dur = inc.duration_minutes !== null ? inc.duration_minutes : (now - start) / 60000;
             byDay.set(key, (byDay.get(key) || 0) + dur);
@@ -369,25 +374,23 @@
             data: {
                 labels,
                 datasets: [{
-                    label: 'Minutos caído',
+                    label: 'Minutos inactivo',
                     data: values,
-                    backgroundColor: '#dc2626aa',
-                    borderRadius: 4,
+                    backgroundColor: '#1e293b', /* Un color oscuro y serio para el gráfico */
+                    borderRadius: 2,
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } },
-                    y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }, beginAtZero: true }
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } } },
+                    y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }, beginAtZero: true }
                 }
             }
         });
     }
 
-    // Se lee del caché estático (data/stations-monitor.json), que actualiza
-    // GitHub Actions cada 15 minutos corriendo scripts/check_stations.py.
     let stationsCache = {};
     let selectedStationKey = null;
 
@@ -399,7 +402,7 @@
             stationsCache = data.stations || {};
             renderStations(stationsCache);
         } catch (err) {
-            grid.innerHTML = `<div class="text-red-400 text-sm py-6 text-center col-span-full">Error al cargar: ${err.message}</div>`;
+            grid.innerHTML = `<div class="text-red-600 text-sm py-8 text-center col-span-full">Error de sincronización con la red de escuelas: ${err.message}</div>`;
         }
     }
 
@@ -415,22 +418,22 @@
         const tbody = document.getElementById('stationIncidentsBody');
         if (!s) {
             title.textContent = '--';
-            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-400 text-center py-6">Elegí una estación arriba.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-500 text-center py-8">Seleccione un nodo para visualizar su historial.</td></tr>';
             return;
         }
         title.textContent = s.display_name || key;
         const incidents = s.incidents || [];
         if (incidents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-400 text-center py-6">Sin incidentes registrados todavía.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-slate-500 text-center py-8">Nodo sin incidencias registradas.</td></tr>';
             return;
         }
         const now = new Date();
         tbody.innerHTML = [...incidents].reverse().map(i => `
             <tr>
-                <td class="font-semibold text-slate-700">${fmtDate(i.start)}</td>
+                <td class="font-medium text-slate-800">${fmtDate(i.start)}</td>
                 <td>${i.end ? fmtDate(i.end) : '<span class="badge-ongoing">En curso</span>'}</td>
                 <td>${i.duration_minutes !== null ? fmtDuration(i.duration_minutes) : fmtDuration((now - new Date(i.start)) / 60000)}</td>
-                <td class="text-slate-500">${i.reason || '--'}</td>
+                <td class="text-slate-600">${i.reason || '--'}</td>
             </tr>
         `).join('');
     }
@@ -439,7 +442,7 @@
         const grid = document.getElementById('stationsGrid');
         const keys = Object.keys(stations);
         if (keys.length === 0) {
-            grid.innerHTML = '<div class="text-slate-400 text-sm py-6 text-center col-span-full">Todavía no corrió el primer chequeo.</div>';
+            grid.innerHTML = '<div class="text-slate-500 text-sm py-8 text-center col-span-full">Aguardando telemetría inicial...</div>';
             return;
         }
         if (selectedStationKey === null) selectedStationKey = keys[0];
@@ -450,11 +453,11 @@
             const isPending = s.current_status === 'pending' || !s.monitoring_since;
             const isDown = s.current_status === 'down';
 
-            let badgeClass = 'bg-slate-100 text-slate-500 border-slate-200';
-            let badgeText = 'Esperando...';
+            let badgeClass = 'bg-slate-100 text-slate-600 border-slate-300';
+            let badgeText = 'EN ESPERA';
             if (!isPending) {
                 badgeClass = isDown ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                badgeText = isDown ? 'Caída' : 'En línea';
+                badgeText = isDown ? 'INACTIVO' : 'OPERATIVO';
             }
 
             const incidents = s.incidents || [];
@@ -466,23 +469,23 @@
             const uptimePct = isPending ? null : Math.max(0, 100 * (1 - totalDown / totalMonitoredMin));
 
             const subtitle = isPending
-                ? (s.current_reason || '')
+                ? (s.current_reason || 'Sincronizando...')
                 : (isDown
-                    ? (s.current_reason || '')
-                    : (s.last_data_timestamp ? `Último dato: ${fmtDate(s.last_data_timestamp)}` : ''));
+                    ? (s.current_reason || 'Sin respuesta del sensor')
+                    : (s.last_data_timestamp ? `Última lectura: ${fmtDate(s.last_data_timestamp)}` : 'Lectura confirmada'));
 
             const isSelected = key === selectedStationKey;
             return `
-                <div class="rounded-xl border p-4 cursor-pointer transition hover:border-teal-300 ${isSelected ? 'border-teal-500 ring-1 ring-teal-500' : 'border-slate-200'}"
+                <div class="rounded-md border bg-white p-4 cursor-pointer transition-all hover:border-slate-400 hover:shadow-sm ${isSelected ? 'border-slate-800 ring-1 ring-slate-800 bg-slate-50' : 'border-slate-200'}"
                      onclick="selectStation('${key}')">
                     <div class="flex items-start justify-between gap-2 mb-2">
-                        <span class="font-bold text-sm text-slate-700">${s.display_name || key}</span>
-                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}">${badgeText}</span>
+                        <span class="font-bold text-sm text-slate-800">${s.display_name || key}</span>
+                        <span class="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded border shrink-0 ${badgeClass}">${badgeText}</span>
                     </div>
-                    <p class="text-xs text-slate-500 mb-2 min-h-[2.2em]">${subtitle}</p>
-                    <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
-                        <span>Disp: <b class="text-slate-700">${uptimePct === null ? '--' : uptimePct.toFixed(1) + '%'}</b></span>
-                        <span>Caídas: <b class="text-slate-700">${s.current_issue_number ?? incidents.length}</b></span>
+                    <p class="text-xs text-slate-500 mb-3 min-h-[2.2em] font-medium">${subtitle}</p>
+                    <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2 mt-auto">
+                        <span>Uptime: <b class="text-slate-800">${uptimePct === null ? '--' : uptimePct.toFixed(1) + '%'}</b></span>
+                        <span>Fallos: <b class="text-slate-800">${s.current_issue_number ?? incidents.length}</b></span>
                     </div>
                 </div>
             `;
