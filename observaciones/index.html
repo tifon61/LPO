@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar observación — LPO | FCAG</title>
+    <title>Cargar observación — LPO | FCAG UNLP</title>
     <link rel="icon" type="image/png" href="img/logo-marca.png">
     
-    <!-- Fuentes: Inter para lectura, JetBrains Mono para los datos numéricos -->
+    <!-- Tipografía: Merriweather para títulos (formal) e Inter para datos (legibilidad) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,16 +18,27 @@
                 extend: {
                     fontFamily: {
                         sans: ['"Inter"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
+                        serif: ['"Merriweather"', 'serif']
                     },
                     colors: {
-                        // Paleta institucional oscura y elegante
                         brand: {
                             50: '#f0f5fa',
                             100: '#e1ebf6',
-                            500: '#3b82f6',
-                            800: '#1e3a8a',
-                            900: '#0f172a', // Slate muy oscuro para el panel derecho
+                            600: '#2563eb',
+                            800: '#1e3a8a', // Azul institucional profundo
+                            900: '#172554',
+                        },
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
                         }
                     }
                 }
@@ -37,67 +48,89 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        body { background-color: #ffffff; color: #0f172a; }
+        body { 
+            background-color: #f1f5f9; 
+            color: #334155; 
+        }
         
-        /* Ocultar flechas en inputs numéricos para un look más limpio */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-
-        /* Diseño de los inputs de carga */
-        .data-input-group {
-            background-color: #f8fafc;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            border: 1px solid transparent;
-            transition: all 0.2s ease-in-out;
-            position: relative;
+        .academic-title { 
+            font-family: 'Merriweather', serif; 
         }
-        .data-input-group:focus-within {
+        
+        /* Contenedores principales */
+        .panel {
             background-color: #ffffff;
-            border-color: #3b82f6;
-            box-shadow: 0 4px 20px -5px rgba(59, 130, 246, 0.15);
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
-        .data-label {
+
+        /* Estilos de Formulario Clásicos y Formales */
+        .input-label {
             display: block;
-            font-size: 0.65rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.375rem;
+        }
+
+        .input-field {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.95rem;
+            color: #0f172a;
+            background-color: #ffffff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .optional-tag {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+            text-transform: none;
+        }
+
+        /* Grilla de Resultados Equilibrada */
+        .result-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-title {
+            font-size: 0.7rem;
             font-weight: 700;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 0.25rem;
         }
-        .data-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.125rem;
-            font-weight: 500;
-            color: #0f172a;
-        }
-        .data-input::placeholder { color: #cbd5e1; font-weight: 400; }
-        
-        /* Estilos específicos para inputs de texto y fecha */
-        input[type=date].data-input, input[type=time].data-input, input[type=text].data-input {
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
-        }
 
-        /* Indicador de Opcional */
-        .tag-optional {
-            position: absolute;
-            top: 0.75rem;
-            right: 1rem;
-            font-size: 0.6rem;
-            background-color: #e2e8f0;
-            color: #64748b;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
+        .result-data {
+            font-size: 1.5rem;
             font-weight: 600;
-            text-transform: uppercase;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        
+        .result-unit {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-left: 2px;
         }
 
         /* Notificación flotante (Toast) */
@@ -107,207 +140,199 @@
             right: 2rem;
             z-index: 50;
             transform: translateY(150%);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.3s ease-out;
         }
         #banner.show { transform: translateY(0); }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col lg:flex-row">
+<body class="antialiased min-h-screen p-4 md:p-6 lg:p-8">
 
     <!-- Notificación Flotante -->
-    <div id="banner" class="flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl font-medium text-sm border-l-4"></div>
+    <div id="banner" class="flex items-center gap-3 px-5 py-4 rounded shadow-lg font-medium text-sm border-l-4 bg-white"></div>
 
-    <!-- PANEL IZQUIERDO: Formulario de Carga (60% ancho en PC) -->
-    <div class="w-full lg:w-[60%] flex flex-col h-full bg-white relative">
+    <div class="max-w-6xl mx-auto space-y-6">
         
-        <!-- Navbar Minimalista -->
-        <header class="flex items-center justify-between px-8 py-6 border-b border-slate-100">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center border border-brand-100">
-                    <img src="img/logo-marca.png" alt="LPO" class="w-6 h-6 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <i class="fa-solid fa-wind text-brand-500 hidden"></i>
+        <!-- Encabezado Institucional -->
+        <header class="panel p-6 border-t-4 border-t-brand-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-slate-50 border border-slate-200 rounded p-1.5 flex-shrink-0">
+                    <img src="img/logo-marca.png" alt="LPO Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <i class="fa-solid fa-university text-2xl text-slate-700 hidden text-center mt-2"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Estación LPO</h1>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest">FCAG UNLP</p>
+                    <h1 class="text-2xl font-bold text-slate-900 academic-title">Registro de Observación</h1>
+                    <p class="text-slate-500 font-medium text-sm mt-1">Estación Meteorológica LPO — FCAG UNLP</p>
                 </div>
             </div>
             
-            <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-500">
-                <a href="index.html" class="text-brand-500 flex items-center gap-2 relative after:absolute after:bottom-[-26px] after:left-0 after:w-full after:h-[2px] after:bg-brand-500"><i class="fa-solid fa-pen-to-square"></i> Cargar</a>
-                <a href="historico.html" class="hover:text-slate-900 transition-colors flex items-center gap-2"><i class="fa-solid fa-table-list"></i> Histórico</a>
-                <a href="formulas.html" class="hover:text-slate-900 transition-colors flex items-center gap-2"><i class="fa-solid fa-square-root-variable"></i> Fórmulas</a>
-                <a href="como-funciona.html" class="hover:text-slate-900 transition-colors text-xl"><i class="fa-solid fa-circle-info"></i></a>
+            <nav class="flex flex-wrap items-center gap-1 md:gap-2">
+                <a href="index.html" class="px-3 py-2 text-sm font-semibold bg-slate-100 text-slate-900 rounded border border-slate-200"><i class="fa-solid fa-pen-to-square mr-1.5 text-slate-500"></i>Cargar</a>
+                <a href="historico.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-table-list mr-1.5 text-slate-400"></i>Histórico</a>
+                <a href="formulas.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-square-root-variable mr-1.5 text-slate-400"></i>Fórmulas</a>
+                <a href="como-funciona.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i>Info</a>
             </nav>
         </header>
 
-        <!-- Formulario -->
-        <main class="flex-grow overflow-y-auto p-8 lg:p-12">
-            <div class="max-w-2xl mx-auto">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Cargar observación</h2>
-                    <p class="text-sm text-slate-500 mt-2">Ingrese los datos leídos del instrumental. Las variables derivadas se calcularán automáticamente.</p>
+        <form id="obsForm" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- PANEL IZQUIERDO: Ingreso de Datos (7 columnas) -->
+            <div class="panel p-6 lg:p-8 lg:col-span-7 space-y-6">
+                <div class="border-b border-slate-200 pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 academic-title">Datos de Instrumental</h2>
                 </div>
 
-                <form id="obsForm" class="space-y-4">
-                    
-                    <!-- Fila 1: Metadatos -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100 pb-6 mb-6">
-                        <div class="data-input-group">
-                            <label for="fecha" class="data-label">Fecha</label>
-                            <input type="date" id="fecha" name="fecha" required class="data-input">
-                        </div>
-                        <div class="data-input-group">
-                            <label for="hora" class="data-label">Hora</label>
-                            <input type="time" id="hora" name="hora" required class="data-input">
-                        </div>
-                        <div class="data-input-group">
-                            <label for="observador" class="data-label">Observador</label>
-                            <span class="tag-optional">Opc</span>
-                            <input type="text" id="observador" name="observador" maxlength="60" placeholder="Nombre" class="data-input">
-                        </div>
+                <!-- Fila 1: Metadatos -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label for="fecha" class="input-label">Fecha</label>
+                        <input type="date" id="fecha" name="fecha" required class="input-field">
                     </div>
-
-                    <!-- Fila 2: Termómetros Principales -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="data-input-group bg-blue-50/50">
-                            <label for="tSeca" class="data-label text-blue-700">T. Seca (°C)</label>
-                            <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required placeholder="00.0" class="data-input text-blue-900">
-                        </div>
-                        <div class="data-input-group bg-blue-50/50">
-                            <label for="tHumeda" class="data-label text-blue-700">T. Húmeda (°C)</label>
-                            <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required placeholder="00.0" class="data-input text-blue-900">
-                        </div>
+                    <div>
+                        <label for="hora" class="input-label">Hora</label>
+                        <input type="time" id="hora" name="hora" required class="input-field">
                     </div>
-
-                    <!-- Fila 3: Extremos -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="data-input-group">
-                            <label for="tMax" class="data-label">T. Máx (°C)</label>
-                            <span class="tag-optional">Opc</span>
-                            <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax" placeholder="00.0" class="data-input">
-                        </div>
-                        <div class="data-input-group">
-                            <label for="tMin" class="data-label">T. Mín (°C)</label>
-                            <span class="tag-optional">Opc</span>
-                            <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin" placeholder="00.0" class="data-input">
-                        </div>
+                    <div>
+                        <label for="observador" class="input-label">Observador <span class="optional-tag">(Opcional)</span></label>
+                        <input type="text" id="observador" name="observador" maxlength="60" class="input-field">
                     </div>
+                </div>
 
-                    <!-- Fila 4: Presión -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="data-input-group">
-                            <label for="tAdjunto" class="data-label">T. Adjunto (°C)</label>
-                            <input type="number" step="0.1" min="-15" max="45" id="tAdjunto" name="tAdjunto" required placeholder="00.0" class="data-input">
-                        </div>
-                        <div class="data-input-group">
-                            <label for="barometro" class="data-label">Barómetro (mmHg)</label>
-                            <input type="number" step="0.01" min="700" max="800" id="barometro" name="barometro" required placeholder="000.00" class="data-input">
-                        </div>
+                <hr class="border-slate-100">
+
+                <!-- Fila 2: Termómetros principales -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="tSeca" class="input-label">T. Seca (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required class="input-field bg-blue-50/30">
                     </div>
-
-                    <!-- Fila 5: Otros -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100 pb-6 mb-6">
-                        <div class="data-input-group">
-                            <label for="tSeca12hAntes" class="data-label">T. Seca 12hs antes (°C)</label>
-                            <span class="tag-optional">Opc</span>
-                            <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes" placeholder="00.0" class="data-input">
-                        </div>
-                        <div class="data-input-group">
-                            <label for="lluvia" class="data-label">Lluvia (mm)</label>
-                            <span class="tag-optional">Opc</span>
-                            <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia" placeholder="0.0" class="data-input">
-                        </div>
+                    <div>
+                        <label for="tHumeda" class="input-label">T. Húmeda (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required class="input-field bg-blue-50/30">
                     </div>
+                </div>
 
-                    <div class="pt-2">
-                        <button type="submit" id="btnGuardar" class="w-full bg-slate-900 hover:bg-brand-500 text-white font-bold py-4 rounded-xl text-base flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-brand-500/30">
-                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i> Registrar en Base de Datos
-                        </button>
+                <!-- Fila 3: Extremos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="tMax" class="input-label">T. Máxima (°C) <span class="optional-tag">(Opcional)</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax" class="input-field">
                     </div>
-                </form>
-            </div>
-        </main>
-    </div>
+                    <div>
+                        <label for="tMin" class="input-label">T. Mínima (°C) <span class="optional-tag">(Opcional)</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin" class="input-field">
+                    </div>
+                </div>
 
-    <!-- PANEL DERECHO: Resultados en Vivo (40% ancho en PC) -->
-    <div class="w-full lg:w-[40%] bg-brand-900 lg:min-h-screen p-8 lg:p-12 flex flex-col justify-center relative overflow-hidden">
-        <!-- Elemento decorativo de fondo -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-80 h-80 bg-teal-500 rounded-full blur-[150px] opacity-10 pointer-events-none"></div>
+                <hr class="border-slate-100">
 
-        <div class="relative z-10">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-                <h3 class="text-sm font-bold text-white uppercase tracking-widest">Telemetría Calculada</h3>
+                <!-- Fila 4: Presión -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="tAdjunto" class="input-label">T. Adjunto (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tAdjunto" name="tAdjunto" required class="input-field">
+                    </div>
+                    <div>
+                        <label for="barometro" class="input-label">Barómetro (mmHg)</label>
+                        <input type="number" step="0.01" min="700" max="800" id="barometro" name="barometro" required class="input-field">
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Fila 5: Otros -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="tSeca12hAntes" class="input-label">T. Seca 12hs antes (°C) <span class="optional-tag">(Opcional)</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes" class="input-field">
+                    </div>
+                    <div>
+                        <label for="lluvia" class="input-label">Lluvia (mm) <span class="optional-tag">(Opcional)</span></label>
+                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia" class="input-field">
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-500 flex items-start gap-2 pt-2">
+                    <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i> 
+                    <span>Nota: Si el campo "T. Seca 12hs antes" queda vacío, se aproxima con la T. Seca actual para el cálculo de la Tabla D-4 (Presión a nivel del mar).</span>
+                </p>
+
+                <div class="pt-4">
+                    <button type="submit" id="btnGuardar" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-semibold py-3 rounded text-sm transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-800 focus:ring-offset-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Observación Oficial
+                    </button>
+                </div>
             </div>
 
-            <!-- Grilla de Resultados Digitales -->
-            <div class="grid grid-cols-2 gap-x-8 gap-y-10">
+            <!-- PANEL DERECHO: Variables Calculadas (5 columnas) -->
+            <div class="panel p-6 lg:p-8 lg:col-span-5 h-fit sticky top-6">
+                <div class="border-b border-slate-200 pb-3 mb-6 flex justify-between items-end">
+                    <h2 class="text-lg font-bold text-slate-800 academic-title">Cálculo de Variables</h2>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">En Vivo</span>
+                </div>
                 
-                <!-- Presión Estación -->
-                <div class="col-span-2 md:col-span-1">
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">P. Estación</div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="rPEstHpa" class="font-mono text-4xl font-light text-white">--</span>
-                        <span class="font-mono text-sm text-slate-500">hPa</span>
+                <!-- Grilla completamente equitativa -->
+                <div class="grid grid-cols-2 gap-4">
+                    
+                    <div class="result-box">
+                        <div class="result-title">P. Estación</div>
+                        <div>
+                            <span id="rPEstMmhg" class="result-data">--</span><span class="result-unit">mmHg</span>
+                        </div>
                     </div>
-                    <div class="mt-1">
-                        <span id="rPEstMmhg" class="font-mono text-lg text-slate-400">--</span>
-                        <span class="font-mono text-xs text-slate-600">mmHg</span>
-                    </div>
-                </div>
 
-                <!-- Presión Nivel del Mar -->
-                <div class="col-span-2 md:col-span-1">
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">P. Nivel Mar</div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="rPnmHpa" class="font-mono text-4xl font-light text-white">--</span>
-                        <span class="font-mono text-sm text-slate-500">hPa</span>
+                    <div class="result-box">
+                        <div class="result-title">P. Estación</div>
+                        <div>
+                            <span id="rPEstHpa" class="result-data">--</span><span class="result-unit">hPa</span>
+                        </div>
                     </div>
-                    <div class="mt-1">
-                        <span id="rPnmMmhg" class="font-mono text-lg text-slate-400">--</span>
-                        <span class="font-mono text-xs text-slate-600">mmHg</span>
-                    </div>
-                </div>
 
-                <!-- Tensión de Vapor -->
-                <div>
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Tensión Vapor</div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="rTv" class="font-mono text-3xl font-light text-white">--</span>
-                        <span class="font-mono text-sm text-slate-500">hPa</span>
+                    <div class="result-box">
+                        <div class="result-title">P. Nivel Mar</div>
+                        <div>
+                            <span id="rPnmMmhg" class="result-data">--</span><span class="result-unit">mmHg</span>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Punto de Rocío -->
-                <div>
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Punto Rocío</div>
-                    <div class="flex items-baseline gap-1">
-                        <span id="rPr" class="font-mono text-3xl font-light text-white">--</span>
-                        <span class="font-mono text-lg text-slate-500">°</span>
+                    <div class="result-box">
+                        <div class="result-title">P. Nivel Mar</div>
+                        <div>
+                            <span id="rPnmHpa" class="result-data">--</span><span class="result-unit">hPa</span>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Humedad Relativa (Destacada) -->
-                <div class="col-span-2 bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm mt-4">
-                    <div class="text-brand-400 text-xs font-bold uppercase tracking-widest mb-3">Humedad Relativa</div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="rHr" class="font-mono text-7xl font-bold text-white tracking-tighter">--</span>
-                        <span class="font-mono text-2xl text-brand-500 font-bold">%</span>
+                    <div class="result-box">
+                        <div class="result-title">Tensión Vapor</div>
+                        <div>
+                            <span id="rTv" class="result-data">--</span><span class="result-unit">hPa</span>
+                        </div>
                     </div>
-                    <!-- Barra de progreso visual (se actualiza por JS) -->
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-6 overflow-hidden">
-                        <div id="hrBar" class="bg-brand-500 h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-                    </div>
-                </div>
 
+                    <div class="result-box">
+                        <div class="result-title">Punto de Rocío</div>
+                        <div>
+                            <span id="rPr" class="result-data">--</span><span class="result-unit">°C</span>
+                        </div>
+                    </div>
+
+                    <!-- Humedad abarca 2 columnas para balancear la grilla impar (7 ítems), pero mantiene el mismo estilo y tamaño exacto -->
+                    <div class="result-box col-span-2">
+                        <div class="result-title">Humedad Relativa</div>
+                        <div>
+                            <span id="rHr" class="result-data">--</span><span class="result-unit">%</span>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-slate-100">
+                    <p class="text-[11px] text-slate-500 leading-relaxed text-justify">
+                        Los cálculos derivados se realizan aplicando las fórmulas psicrométricas estándar. La reducción de la presión al nivel del mar se efectúa utilizando la Tabla D-4 provista por el SMN para las coordenadas y cota específicas de esta estación. 
+                        <a href="formulas.html" class="text-brand-600 hover:underline">Consultar detalle de fórmulas.</a>
+                    </p>
+                </div>
             </div>
-
-            <p class="text-[10px] text-slate-500 mt-12 leading-relaxed uppercase tracking-wider">
-                Motor de cálculo: Ecuación psicrométrica y Tabla D-4 (SMN). <br>Sistema de observaciones de superficie.
-            </p>
-        </div>
+        </form>
     </div>
 
     <!-- Scripts Originales de Lógica -->
@@ -351,7 +376,6 @@
             
             if (!listos) {
                 ids.forEach((id) => (document.getElementById(id).textContent = "--"));
-                document.getElementById("hrBar").style.width = "0%";
                 return null;
             }
             
@@ -362,17 +386,7 @@
             document.getElementById("rPnmHpa").textContent = fmt(r.pnmHpa, 1);
             document.getElementById("rTv").textContent = fmt(r.tensionVapor, 1);
             document.getElementById("rPr").textContent = fmt(r.puntoRocio, 1);
-            
-            // Animación y color de la barra de humedad
-            const hrValue = Number.isFinite(r.humedadRelativa) ? r.humedadRelativa : 0;
-            document.getElementById("rHr").textContent = fmt(hrValue, 0);
-            
-            const hrBar = document.getElementById("hrBar");
-            hrBar.style.width = `${Math.min(Math.max(hrValue, 0), 100)}%`;
-            // Cambiar color según humedad (seco = amarillo, normal = azul, saturado = cian)
-            if(hrValue < 30) hrBar.className = "h-full rounded-full transition-all duration-500 ease-out bg-amber-500";
-            else if(hrValue > 85) hrBar.className = "h-full rounded-full transition-all duration-500 ease-out bg-cyan-400";
-            else hrBar.className = "h-full rounded-full transition-all duration-500 ease-out bg-brand-500";
+            document.getElementById("rHr").textContent = fmt(r.humedadRelativa, 0);
 
             return r;
         }
@@ -384,17 +398,17 @@
         document.getElementById("fecha").value = ahora.toISOString().slice(0, 10);
         document.getElementById("hora").value = ahora.toTimeString().slice(0, 5);
 
-        // Nuevo sistema de Banner Flotante (Toast)
+        // Sistema de Banner Flotante formal
         function mostrarBanner(tipo, mensaje) {
             clearTimeout(bannerTimeout);
             
             const isOk = tipo === "ok";
-            banner.className = `flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl font-medium text-sm border-l-4 show z-50 fixed bottom-6 right-6 ${
-                isOk ? "bg-white border-green-500 text-slate-800" : "bg-red-50 border-red-500 text-red-900"
+            banner.className = `flex items-center gap-3 px-5 py-4 rounded shadow-lg font-medium text-sm border-l-4 show z-50 fixed bottom-6 right-6 ${
+                isOk ? "bg-white border-green-600 text-slate-800" : "bg-white border-red-600 text-red-800"
             }`;
             
             banner.innerHTML = `
-                <i class="fa-solid ${isOk ? "fa-circle-check text-green-500" : "fa-triangle-exclamation text-red-500"} text-xl"></i>
+                <i class="fa-solid ${isOk ? "fa-circle-check text-green-600" : "fa-triangle-exclamation text-red-600"} text-lg"></i>
                 <div>${mensaje}</div>
             `;
 
@@ -409,7 +423,7 @@
             const input = leerInputs();
             const calculado = actualizarPreview();
             if (!calculado) {
-                mostrarBanner("error", "Complete los campos principales antes de registrar.");
+                mostrarBanner("error", "Debe completar T. Seca, T. Húmeda, T. Adjunto y Barómetro antes de guardar.");
                 return;
             }
             const errores = validarObservacion(input);
@@ -418,15 +432,15 @@
                 return;
             }
             if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGAR_URL")) {
-                mostrarBanner("error", "Falta configurar APPS_SCRIPT_URL en el sistema.");
+                mostrarBanner("error", "Error de configuración: Falta definir APPS_SCRIPT_URL.");
                 return;
             }
 
             const btn = document.getElementById("btnGuardar");
             const btnOriginalHTML = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xl"></i> Transmitiendo...';
-            btn.classList.add("opacity-90", "cursor-not-allowed");
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando registro...';
+            btn.classList.add("opacity-80", "cursor-wait");
 
             const payload = { ...input, ...calculado, token: APPS_SCRIPT_TOKEN };
 
@@ -438,20 +452,20 @@
                 });
                 const data = await resp.json();
                 if (data.ok) {
-                    mostrarBanner("ok", "Registro almacenado exitosamente.");
+                    mostrarBanner("ok", "La observación fue registrada correctamente.");
                     form.reset();
                     document.getElementById("fecha").value = new Date().toISOString().slice(0, 10);
                     document.getElementById("hora").value = new Date().toTimeString().slice(0, 5);
                     actualizarPreview();
                 } else {
-                    mostrarBanner("error", "Fallo en servidor: " + (data.error || "Desconocido"));
+                    mostrarBanner("error", "Error del servidor al intentar guardar: " + (data.error || "Desconocido"));
                 }
             } catch (err) {
-                mostrarBanner("error", "No hay conexión con el servidor base.");
+                mostrarBanner("error", "Falla de conexión con la base de datos.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = btnOriginalHTML;
-                btn.classList.remove("opacity-90", "cursor-not-allowed");
+                btn.classList.remove("opacity-80", "cursor-wait");
             }
         });
     </script>
