@@ -3,174 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar observación — LPO</title>
+    <title>Cargar observación — LPO | FCAG UNLP</title>
     <link rel="icon" type="image/png" href="img/logo-marca.png">
+    
+    <!-- Fuentes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        teal: { 50: '#eaf1fb', 100: '#d3e3f6', 200: '#a8c7ec', 300: '#7aa8df', 400: '#4f87cc', 500: '#2c5aa0', 600: '#25497f', 700: '#1e3f73', 800: '#162c52', 900: '#0f1e38' },
-                        slate: { 50: '#f4f6f8', 100: '#e7ebef', 200: '#d7dee5', 300: '#c0c9d2', 400: '#8f99a6', 500: '#6b7684', 600: '#4a5563', 700: '#333c48', 800: '#1c222c', 900: '#12161d' },
-                        emerald: { 50: '#eaf5ef', 100: '#d3e9dd', 600: '#2f7d5a', 700: '#256349' },
-                        red: { 50: '#f8ecec', 600: '#b23a3a', 700: '#8f2e2e' },
-                        amber: { 50: '#f8f1e6', 300: '#e0c48e', 500: '#b5762b', 600: '#b5762b', 700: '#8f5c20' },
+                        teal: { 50: '#f0fdfa', 100: '#ccfbf1', 600: '#0d9488', 700: '#0f766e', 800: '#115e59' },
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
                     },
-                    fontFamily: { sans: ['"Titillium Web"', 'sans-serif'] },
-                    borderRadius: { lg: '2px', xl: '3px', '2xl': '4px' },
-                    boxShadow: { sm: 'none' },
+                    fontFamily: { 
+                        sans: ['"Inter"', 'sans-serif'],
+                        serif: ['"Merriweather"', 'serif']
+                    },
                 },
             },
         };
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="estilo.css">
+    
+    <!-- Estilos personalizados integrados para asegurar el diseño -->
+    <style>
+        body { background-color: #f1f5f9; color: #1e293b; }
+        
+        .academic-title { font-family: 'Merriweather', serif; }
+        
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 1.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .input-field {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #1e293b;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #475569;
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.375rem;
+        }
+
+        .result-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Navegación */
+        nav a {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        nav a:hover {
+            color: #1e293b;
+            background-color: #f1f5f9;
+        }
+        nav a.active {
+            color: #0f172a;
+            background-color: #e2e8f0;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body class="p-4 md:p-6 lg:p-8">
     <div class="max-w-5xl mx-auto space-y-6">
 
-        <header class="bg-white p-6 rounded-2xl border border-slate-200 border-t-2 border-t-teal-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-5 w-full md:w-auto">
-                <div class="w-16 h-16 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100 shrink-0 p-1.5">
-                    <img src="img/logo-marca.png" alt="Logo Estación Meteorológica La Plata" class="w-full h-full object-contain">
+        <!-- Encabezado Institucional -->
+        <header class="bg-white p-6 rounded-md border border-slate-300 border-t-4 border-t-slate-800 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-5 w-full lg:w-auto">
+                <div class="w-16 h-16 bg-slate-50 rounded-md flex items-center justify-center border border-slate-200 shrink-0 p-2">
+                    <!-- Si no tienes el logo, este ícono sirve de fallback formal -->
+                    <img src="img/logo-marca.png" alt="Logo LPO" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <i class="fa-solid fa-university text-2xl text-slate-700 hidden"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">Cargar observación</h1>
-                    <p class="text-slate-500 font-semibold text-sm mt-1">Estación meteorológica — cálculo automático de variables derivadas</p>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight academic-title">Cargar observación</h1>
+                    <p class="text-slate-500 font-medium text-sm mt-1">Estación Meteorológica LPO — Cálculo automático de variables</p>
                 </div>
             </div>
-            <nav class="flex items-center gap-4 shrink-0">
-                <a href="index.html" class="active"><i class="fa-solid fa-pen-to-square mr-1"></i>Cargar</a>
-                <a href="historico.html"><i class="fa-solid fa-table-list mr-1"></i>Histórico</a>
-                <a href="formulas.html"><i class="fa-solid fa-square-root-variable mr-1"></i>Fórmulas</a>
-                <a href="como-funciona.html"><i class="fa-solid fa-circle-info mr-1"></i>Cómo funciona</a>
+            <nav class="flex items-center gap-2 shrink-0 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+                <a href="index.html" class="active whitespace-nowrap"><i class="fa-solid fa-pen-to-square mr-1.5"></i>Cargar</a>
+                <a href="historico.html" class="whitespace-nowrap"><i class="fa-solid fa-table-list mr-1.5"></i>Histórico</a>
+                <a href="formulas.html" class="whitespace-nowrap"><i class="fa-solid fa-square-root-variable mr-1.5"></i>Fórmulas</a>
+                <a href="como-funciona.html" class="whitespace-nowrap"><i class="fa-solid fa-circle-info mr-1.5"></i>Info</a>
             </nav>
         </header>
 
-        <div id="banner" class="hidden card border-t-4"></div>
+        <div id="banner" class="hidden card border-l-4 py-4 px-5 flex items-center gap-3"></div>
 
-        <form id="obsForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="card space-y-4">
-                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
-                    <i class="fa-solid fa-thermometer-half mr-2 text-slate-500"></i> Datos de entrada
-                </h2>
+        <form id="obsForm" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Columna Izquierda: Datos de Entrada (Ocupa 7 columnas en desktop) -->
+            <div class="card space-y-5 lg:col-span-7">
+                <div class="border-b border-slate-100 pb-3">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center">
+                        <i class="fa-solid fa-keyboard mr-2 text-slate-400"></i> Registro de Datos
+                    </h2>
+                </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="fecha">Fecha</label>
-                        <input type="date" id="fecha" name="fecha" required
-                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                        <label for="fecha" class="input-label">Fecha</label>
+                        <input type="date" id="fecha" name="fecha" required class="input-field">
                     </div>
                     <div>
-                        <label for="hora">Hora</label>
-                        <input type="time" id="hora" name="hora" required>
+                        <label for="hora" class="input-label">Hora</label>
+                        <input type="time" id="hora" name="hora" required class="input-field">
                     </div>
                 </div>
 
                 <div>
-                    <label for="observador">Observador <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                    <input type="text" id="observador" name="observador" maxlength="60"
-                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                    <label for="observador" class="input-label">Observador <span class="normal-case font-medium text-slate-400 float-right">Opcional</span></label>
+                    <input type="text" id="observador" name="observador" maxlength="60" placeholder="Ej. Mauricio" class="input-field">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border border-slate-100">
                     <div>
-                        <label for="tSeca">T. Seca (°C)</label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required>
+                        <label for="tSeca" class="input-label">T. Seca (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required class="input-field">
                     </div>
                     <div>
-                        <label for="tHumeda">T. Húmeda (°C)</label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="tMax">T. Máx (°C) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax">
-                    </div>
-                    <div>
-                        <label for="tMin">T. Mín (°C) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin">
+                        <label for="tHumeda" class="input-label">T. Húmeda (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required class="input-field">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="tAdjunto">T. Adjunto (°C)</label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tAdjunto" name="tAdjunto" required>
+                        <label for="tMax" class="input-label">T. Máx (°C) <span class="normal-case font-medium text-slate-400 float-right">Opc.</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax" class="input-field">
                     </div>
                     <div>
-                        <label for="barometro">Barómetro (mmHg)</label>
-                        <input type="number" step="0.01" min="700" max="800" id="barometro" name="barometro" required>
+                        <label for="tMin" class="input-label">T. Mín (°C) <span class="normal-case font-medium text-slate-400 float-right">Opc.</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin" class="input-field">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="tSeca12hAntes">T. Seca 12hs antes (°C)
-                            <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes">
+                        <label for="tAdjunto" class="input-label">T. Adjunto (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tAdjunto" name="tAdjunto" required class="input-field">
                     </div>
                     <div>
-                        <label for="lluvia">Lluvia (mm) <span class="normal-case font-medium text-slate-400">opcional</span></label>
-                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia">
+                        <label for="barometro" class="input-label">Barómetro (mmHg)</label>
+                        <input type="number" step="0.01" min="700" max="800" id="barometro" name="barometro" required class="input-field">
                     </div>
                 </div>
-                <p class="text-xs text-slate-400 -mt-2">
-                    Si el campo queda vacío, se aproxima con la T. Seca actual para la Tabla D-4 (presión a nivel del mar).
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="tSeca12hAntes" class="input-label">T. Seca 12hs antes (°C) <span class="normal-case font-medium text-slate-400 float-right">Opc.</span></label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes" class="input-field">
+                    </div>
+                    <div>
+                        <label for="lluvia" class="input-label">Lluvia (mm) <span class="normal-case font-medium text-slate-400 float-right">Opc.</span></label>
+                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia" class="input-field">
+                    </div>
+                </div>
+                
+                <p class="text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
+                    <i class="fa-solid fa-circle-info text-slate-400 mr-1"></i> Si el campo "T. Seca 12hs antes" queda vacío, se aproxima con la T. Seca actual para la Tabla D-4.
                 </p>
 
                 <button type="submit" id="btnGuardar"
-                        class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
-                    <i class="fa-solid fa-floppy-disk"></i> Guardar observación
+                        class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-md text-sm flex items-center justify-center gap-2 transition-colors mt-4 shadow-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar observación en base de datos
                 </button>
             </div>
 
-            <div class="card space-y-4">
-                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
-                    <i class="fa-solid fa-calculator mr-2 text-slate-500"></i> Variables calculadas
-                    <span class="ml-2 normal-case font-medium text-slate-400 text-xs">(se actualiza en vivo)</span>
-                </h2>
+            <!-- Columna Derecha: Resultados (Ocupa 5 columnas en desktop) -->
+            <div class="card space-y-4 lg:col-span-5 bg-slate-800 text-white border-slate-800">
+                <div class="border-b border-slate-700 pb-3 mb-2 flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wide flex items-center">
+                        <i class="fa-solid fa-microchip mr-2 text-slate-400"></i> Variables Calculadas
+                    </h2>
+                    <span class="text-[10px] font-bold bg-slate-700 px-2 py-1 rounded text-slate-300 uppercase tracking-wider">En vivo</span>
+                </div>
+                
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="result-card">
-                        <div class="result-label">P. Estación</div>
-                        <div class="result-value"><span id="rPEstMmhg">--</span> <span class="text-sm font-semibold text-slate-400">mmHg</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">P. Estación</div>
+                        <div class="result-value !text-white"><span id="rPEstMmhg">--</span> <span class="text-xs font-normal text-slate-400">mmHg</span></div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">P. Estación</div>
-                        <div class="result-value"><span id="rPEstHpa">--</span> <span class="text-sm font-semibold text-slate-400">hPa</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">P. Estación</div>
+                        <div class="result-value !text-white"><span id="rPEstHpa">--</span> <span class="text-xs font-normal text-slate-400">hPa</span></div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">P. Nivel del Mar</div>
-                        <div class="result-value"><span id="rPnmMmhg">--</span> <span class="text-sm font-semibold text-slate-400">mmHg</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">P. Nivel del Mar</div>
+                        <div class="result-value !text-white"><span id="rPnmMmhg">--</span> <span class="text-xs font-normal text-slate-400">mmHg</span></div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">P. Nivel del Mar</div>
-                        <div class="result-value"><span id="rPnmHpa">--</span> <span class="text-sm font-semibold text-slate-400">hPa</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">P. Nivel del Mar</div>
+                        <div class="result-value !text-white"><span id="rPnmHpa">--</span> <span class="text-xs font-normal text-slate-400">hPa</span></div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">Tensión de Vapor</div>
-                        <div class="result-value"><span id="rTv">--</span> <span class="text-sm font-semibold text-slate-400">hPa</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">Tensión de Vapor</div>
+                        <div class="result-value !text-white"><span id="rTv">--</span> <span class="text-xs font-normal text-slate-400">hPa</span></div>
                     </div>
-                    <div class="result-card">
-                        <div class="result-label">Punto de Rocío</div>
-                        <div class="result-value"><span id="rPr">--</span> <span class="text-sm font-semibold text-slate-400">°C</span></div>
+                    <div class="result-card !bg-slate-700 !border-slate-600">
+                        <div class="result-label !text-slate-300">Punto de Rocío</div>
+                        <div class="result-value !text-white"><span id="rPr">--</span> <span class="text-xs font-normal text-slate-400">°C</span></div>
                     </div>
-                    <div class="result-card col-span-2">
-                        <div class="result-label">Humedad Relativa</div>
-                        <div class="result-value"><span id="rHr">--</span> <span class="text-sm font-semibold text-slate-400">%</span></div>
+                    <div class="result-card col-span-2 !bg-teal-900 !border-teal-800">
+                        <div class="result-label !text-teal-200">Humedad Relativa</div>
+                        <div class="result-value !text-white text-3xl"><span id="rHr">--</span> <span class="text-sm font-normal text-teal-400">%</span></div>
                     </div>
                 </div>
-                <p class="text-xs text-slate-400">
-                    Presión de estación, tensión de vapor, punto de rocío y humedad relativa: fórmulas.
-                    Presión a nivel del mar: Tabla D-4 oficial del SMN para esta estación (ver <a href="formulas.html" class="text-teal-700 hover:underline">Fórmulas</a>).
+                
+                <p class="text-[11px] text-slate-400 pt-2 leading-relaxed">
+                    Presión a nivel del mar calculada utilizando la Tabla D-4 oficial del SMN para esta estación específica. Las demás variables se obtienen mediante fórmulas teóricas. Ver <a href="formulas.html" class="text-teal-400 hover:text-teal-300 underline">documentación de fórmulas</a>.
                 </p>
             </div>
         </form>
     </div>
 
+    <!-- Scripts de Lógica Originales -->
     <script src="config.js"></script>
     <script src="calculos.js"></script>
     <script>
@@ -229,12 +330,17 @@
         document.getElementById("hora").value = ahora.toTimeString().slice(0, 5);
 
         function mostrarBanner(tipo, mensaje) {
-            banner.classList.remove("hidden", "border-t-emerald-600", "border-t-red-600");
-            banner.classList.add(tipo === "ok" ? "border-t-emerald-600" : "border-t-red-600");
-            banner.innerHTML = `<div class="flex items-center gap-3">
-                <i class="fa-solid ${tipo === "ok" ? "fa-circle-check text-emerald-600" : "fa-circle-exclamation text-red-600"} text-xl"></i>
-                <div class="font-semibold text-sm">${mensaje}</div>
-            </div>`;
+            banner.classList.remove("hidden", "border-l-emerald-600", "border-l-red-600", "bg-emerald-50", "bg-red-50", "text-emerald-800", "text-red-800");
+            
+            const isOk = tipo === "ok";
+            banner.classList.add(isOk ? "border-l-emerald-600" : "border-l-red-600");
+            banner.classList.add(isOk ? "bg-emerald-50" : "bg-red-50");
+            banner.classList.add(isOk ? "text-emerald-800" : "text-red-800");
+            
+            banner.innerHTML = `
+                <i class="fa-solid ${isOk ? "fa-circle-check" : "fa-circle-exclamation"} text-xl ${isOk ? "text-emerald-600" : "text-red-600"}"></i>
+                <div class="font-medium text-sm">${mensaje}</div>
+            `;
         }
 
         form.addEventListener("submit", async (ev) => {
@@ -264,13 +370,12 @@
             try {
                 const resp = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    // text/plain evita el preflight CORS que Apps Script no maneja bien.
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify(payload),
                 });
                 const data = await resp.json();
                 if (data.ok) {
-                    mostrarBanner("ok", "Observación guardada en la planilla.");
+                    mostrarBanner("ok", "Observación guardada exitosamente en la base de datos.");
                     form.reset();
                     document.getElementById("fecha").value = new Date().toISOString().slice(0, 10);
                     document.getElementById("hora").value = new Date().toTimeString().slice(0, 5);
@@ -279,10 +384,10 @@
                     mostrarBanner("error", "Error al guardar: " + (data.error || "desconocido"));
                 }
             } catch (err) {
-                mostrarBanner("error", "No se pudo conectar con Google Apps Script: " + err.message);
+                mostrarBanner("error", "No se pudo conectar con el servidor: " + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar observación';
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar observación en base de datos';
             }
         });
     </script>
