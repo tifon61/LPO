@@ -5,8 +5,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:08:23+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T14:59:12+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 15,
       "incidents": [
         {
@@ -107,8 +107,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:14:03+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:04:03+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -118,8 +118,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:13:54+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:03:46+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -136,8 +136,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:16:56+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:01:39+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Daza (Facultad · Wunderground)"
@@ -147,8 +147,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:16:48+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:05:07+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -172,7 +172,7 @@
       "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-09-04T21:29:59.031088+00:00",
       "last_data_timestamp": "2026-09-04T18:30:34+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -189,8 +189,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:13:51+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:04:59+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -208,7 +208,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -237,8 +237,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-09-16T10:15:54+00:00",
-      "last_check": "2026-09-16T10:16:56.821953+00:00",
+      "last_data_timestamp": "2026-09-16T15:00:54+00:00",
+      "last_check": "2026-09-16T15:05:24.382535+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Bavío / EMA Violeta) — Pluviómetro"
