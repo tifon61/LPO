@@ -145,6 +145,12 @@ function validarObservacion(input) {
  * si no se manda, se usa la T. Seca actual como aproximación.
  * Devuelve todas las variables derivadas.
  */
+// Redondea a 1 decimal — evita guardar el resultado crudo de la cuenta en
+// punto flotante (con 8-10 decimales de ruido) en la Sheet/base local.
+function redondear1_(n) {
+  return Math.round(n * 10) / 10;
+}
+
 function calcularObservacion(input) {
   const pEstMmhg = presionEstacionMmhg(input.barometro, input.tAdjunto);
   const pEstHpa = mmhgAHpa(pEstMmhg);
@@ -159,13 +165,13 @@ function calcularObservacion(input) {
   const pnmHpa = mmhgAHpa(pnmMmhg);
 
   return {
-    pEstMmhg,
-    pEstHpa,
-    tensionVapor: tv,
-    puntoRocio: pr,
-    humedadRelativa: hr,
-    pnmMmhg,
-    pnmHpa,
+    pEstMmhg: redondear1_(pEstMmhg),
+    pEstHpa: redondear1_(pEstHpa),
+    tensionVapor: redondear1_(tv),
+    puntoRocio: redondear1_(pr),
+    humedadRelativa: redondear1_(hr),
+    pnmMmhg: redondear1_(pnmMmhg),
+    pnmHpa: redondear1_(pnmHpa),
   };
 }
 

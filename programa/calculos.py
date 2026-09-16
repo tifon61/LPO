@@ -144,12 +144,14 @@ def calcular_observacion(entrada):
     pnm_mmhg = p_est_mmhg + corr_d4
     pnm_hpa = mmhg_a_hpa(pnm_mmhg)
 
+    # Redondeado a 1 decimal: evita guardar el resultado crudo de la cuenta
+    # en punto flotante (con 8-10 decimales de ruido) en la base local/Sheet.
     return {
-        "p_est_mmhg": p_est_mmhg,
-        "p_est_hpa": p_est_hpa,
-        "tension_vapor": tv,
-        "punto_rocio": pr,
-        "humedad_relativa": hr,
-        "pnm_mmhg": pnm_mmhg,
-        "pnm_hpa": pnm_hpa,
+        "p_est_mmhg": round(p_est_mmhg, 1),
+        "p_est_hpa": round(p_est_hpa, 1),
+        "tension_vapor": round(tv, 1),
+        "punto_rocio": round(pr, 1),
+        "humedad_relativa": round(hr, 1),
+        "pnm_mmhg": round(pnm_mmhg, 1),
+        "pnm_hpa": round(pnm_hpa, 1),
     }

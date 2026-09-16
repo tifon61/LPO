@@ -180,6 +180,12 @@ function validarObservacion_(input) {
   return errores;
 }
 
+// Redondea a 1 decimal — evita guardar el resultado crudo de la cuenta en
+// punto flotante (con 8-10 decimales de ruido) en la celda de la Sheet.
+function redondear1_(n) {
+  return Math.round(n * 10) / 10;
+}
+
 function calcularObservacion_(input) {
   var pEstMmhg = presionEstacionMmhg_(input.barometro, input.tAdjunto);
   var pEstHpa = mmhgAHpa_(pEstMmhg);
@@ -194,13 +200,13 @@ function calcularObservacion_(input) {
   var pnmHpa = mmhgAHpa_(pnmMmhg);
 
   return {
-    pEstMmhg: pEstMmhg,
-    pEstHpa: pEstHpa,
-    tensionVapor: tv,
-    puntoRocio: pr,
-    humedadRelativa: hr,
-    pnmMmhg: pnmMmhg,
-    pnmHpa: pnmHpa,
+    pEstMmhg: redondear1_(pEstMmhg),
+    pEstHpa: redondear1_(pEstHpa),
+    tensionVapor: redondear1_(tv),
+    puntoRocio: redondear1_(pr),
+    humedadRelativa: redondear1_(hr),
+    pnmMmhg: redondear1_(pnmMmhg),
+    pnmHpa: redondear1_(pnmHpa),
   };
 }
 
