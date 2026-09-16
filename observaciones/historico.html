@@ -3,26 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico — LPO</title>
+    <title>Histórico — LPO | FCAG UNLP</title>
     <link rel="icon" type="image/png" href="img/logo-marca.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        teal: { 50: '#eaf1fb', 100: '#d3e3f6', 200: '#a8c7ec', 300: '#7aa8df', 400: '#4f87cc', 500: '#2c5aa0', 600: '#25497f', 700: '#1e3f73', 800: '#162c52', 900: '#0f1e38' },
-                        slate: { 50: '#f4f6f8', 100: '#e7ebef', 200: '#d7dee5', 300: '#c0c9d2', 400: '#8f99a6', 500: '#6b7684', 600: '#4a5563', 700: '#333c48', 800: '#1c222c', 900: '#12161d' },
-                        emerald: { 50: '#eaf5ef', 100: '#d3e9dd', 600: '#2f7d5a', 700: '#256349' },
-                        red: { 50: '#f8ecec', 600: '#b23a3a', 700: '#8f2e2e' },
-                        amber: { 50: '#f8f1e6', 300: '#e0c48e', 500: '#b5762b', 600: '#b5762b', 700: '#8f5c20' },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        serif: ['"Merriweather"', 'serif']
                     },
-                    fontFamily: { sans: ['"Titillium Web"', 'sans-serif'] },
-                    borderRadius: { lg: '2px', xl: '3px', '2xl': '4px' },
-                    boxShadow: { sm: 'none' },
-                },
-            },
+                    colors: {
+                        brand: {
+                            50: '#f0f5fa',
+                            100: '#e1ebf6',
+                            600: '#2563eb',
+                            800: '#1e3a8a',
+                            900: '#172554',
+                        },
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
         };
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -31,35 +51,36 @@
 <body class="p-4 md:p-6 lg:p-8">
     <div class="max-w-6xl mx-auto space-y-6">
 
-        <header class="bg-white p-6 rounded-2xl border border-slate-200 border-t-2 border-t-teal-700 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-5 w-full md:w-auto">
-                <div class="w-16 h-16 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100 shrink-0 p-1.5">
-                    <img src="img/logo-marca.png" alt="Logo Estación Meteorológica La Plata" class="w-full h-full object-contain">
+        <header class="panel p-6 border-t-4 border-t-brand-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-slate-50 border border-slate-200 rounded p-1.5 flex-shrink-0">
+                    <img src="img/logo-marca.png" alt="LPO Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <i class="fa-solid fa-university text-2xl text-slate-700 hidden text-center mt-2"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">Histórico de observaciones</h1>
-                    <p class="text-slate-500 font-semibold text-sm mt-1">Datos guardados en la planilla de Google Sheets</p>
+                    <h1 class="text-2xl font-bold text-slate-900 academic-title">Histórico de Observaciones</h1>
+                    <p class="text-slate-500 font-medium text-sm mt-1">Datos guardados en la planilla de Google Sheets</p>
                 </div>
             </div>
-            <nav class="flex items-center gap-4 shrink-0">
-                <a href="index.html"><i class="fa-solid fa-pen-to-square mr-1"></i>Cargar</a>
-                <a href="historico.html" class="active"><i class="fa-solid fa-table-list mr-1"></i>Histórico</a>
-                <a href="formulas.html"><i class="fa-solid fa-square-root-variable mr-1"></i>Fórmulas</a>
-                <a href="como-funciona.html"><i class="fa-solid fa-circle-info mr-1"></i>Cómo funciona</a>
+            <nav class="flex flex-wrap items-center gap-1 md:gap-2">
+                <a href="index.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-pen-to-square mr-1.5 text-slate-400"></i>Cargar</a>
+                <a href="historico.html" class="px-3 py-2 text-sm font-semibold bg-slate-100 text-slate-900 rounded border border-slate-200"><i class="fa-solid fa-table-list mr-1.5 text-slate-500"></i>Histórico</a>
+                <a href="formulas.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-square-root-variable mr-1.5 text-slate-400"></i>Fórmulas</a>
+                <a href="como-funciona.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"><i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i>Info</a>
             </nav>
         </header>
 
-        <div id="estado" class="card text-sm text-slate-500 flex items-center gap-2">
+        <div id="estado" class="panel p-6 text-sm text-slate-500 flex items-center gap-2">
             <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando histórico...
         </div>
 
         <div id="contenido" class="hidden space-y-6">
-            <div class="card">
+            <div class="panel p-6">
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
                         <i class="fa-solid fa-chart-line mr-2 text-slate-500"></i> Variable en el tiempo
                     </h3>
-                    <select id="selectVariable">
+                    <select id="selectVariable" class="input-field w-auto">
                         <option value="tSeca">T. Bulbo Seco (°C)</option>
                         <option value="tHumeda">T. Bulbo Húmedo (°C)</option>
                         <option value="puntoRocio">Punto de Rocío (°C)</option>
@@ -75,18 +96,18 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="panel p-6">
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
                         <i class="fa-solid fa-calendar-days mr-2 text-slate-500"></i> Resumen por período
                     </h3>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <select id="selectPeriodo">
+                        <select id="selectPeriodo" class="input-field w-auto">
                             <option value="dia">Diario</option>
                             <option value="semana">Semanal</option>
                             <option value="mes">Mensual</option>
                         </select>
-                        <select id="selectPeriodoEspecifico">
+                        <select id="selectPeriodoEspecifico" class="input-field w-auto">
                             <option value="todos">Ver: todos los períodos</option>
                         </select>
                     </div>
@@ -107,7 +128,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="panel p-6">
                 <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center">
                     <i class="fa-solid fa-list mr-2 text-slate-500"></i> Observaciones
                     <span class="ml-2 normal-case font-medium text-slate-400 text-xs" id="conteo"></span>
@@ -178,7 +199,7 @@
                 }</td>
                 <td>${
                     descartada
-                        ? `<button type="button" class="text-teal-700 hover:underline text-xs" data-accion="reactivar" data-fecha="${f.fecha}" data-hora="${f.hora}"><i class="fa-solid fa-rotate-left mr-1"></i>Reactivar</button>`
+                        ? `<button type="button" class="text-brand-800 hover:underline text-xs" data-accion="reactivar" data-fecha="${f.fecha}" data-hora="${f.hora}"><i class="fa-solid fa-rotate-left mr-1"></i>Reactivar</button>`
                         : `<button type="button" class="text-red-600 hover:underline text-xs" data-accion="descartar" data-fecha="${f.fecha}" data-hora="${f.hora}"><i class="fa-solid fa-ban mr-1"></i>Descartar</button>`
                 }</td>
             </tr>`;
@@ -289,8 +310,8 @@
                         {
                             label: document.getElementById("selectVariable").selectedOptions[0].textContent,
                             data: datos,
-                            borderColor: "#2c5aa0",
-                            backgroundColor: "rgba(44,90,160,0.12)",
+                            borderColor: "#1e3a8a",
+                            backgroundColor: "rgba(30,58,138,0.12)",
                             tension: 0.25,
                             spanGaps: true,
                         },

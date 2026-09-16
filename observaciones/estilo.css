@@ -1,123 +1,147 @@
 /*
  * Hoja de estilos compartida por las cuatro páginas (Cargar, Histórico,
- * Fórmulas, Cómo funciona). Identidad técnica/instrumental: grafito frío +
- * azul de instrumento, con Titillium Web como tipografía principal (título,
- * navegación, botones, texto corrido) y una monoespaciada acotada solo a
- * los datos reales — lecturas, tablas, fórmulas — como en un instrumento.
+ * Fórmulas, Cómo funciona). Identidad institucional/académica: Merriweather
+ * para los títulos ("academic-title") e Inter para el resto, con un azul
+ * institucional profundo (brand-800) como acento único.
  *
- * El mapeo de colores de Tailwind (teal -> azul técnico, slate -> grafito,
- * etc.) se define en el bloque <script>tailwind.config = {...}</script> de
- * cada página, antes de este archivo — así las clases de Tailwind que ya
- * están en el HTML (bg-teal-700, text-slate-600, rounded-xl...) cambian de
- * aspecto sin tener que reescribir cada elemento.
+ * El bloque <script>tailwind.config = {...}</script> de cada página (antes
+ * de este archivo) define los colores "brand" y "slate" — igual en las
+ * cuatro páginas, así que si hace falta ajustar la paleta alcanza con
+ * cambiarlo en un solo lugar y copiarlo al resto.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
-
-:root {
-    --ink: #12161d;
-    --ink-soft: #333c48;
-    --ink-faint: #6b7684;
-    --bg: #eef1f5;
-    --paper: #ffffff;
-    --paper-alt: #eef1f4;
-    --line: #d7dee5;
-    --line-soft: #e7ebef;
-    --accent: #2c5aa0;
-    --accent-deep: #1e3f73;
-    --font-ui: 'Titillium Web', -apple-system, 'Segoe UI', sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
-}
-
 body {
-    font-family: var(--font-ui);
-    background-color: var(--bg);
-    background-image:
-        linear-gradient(var(--line-soft) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-    background-size: 28px 28px;
-    color: var(--ink-soft);
-    margin: 0;
+    background-color: #f1f5f9;
+    color: #334155;
 }
 
-h1, h2, h3 { font-family: var(--font-ui); color: var(--ink); font-weight: 700; }
-
-.step-num {
-    width: 2.25rem; height: 2.25rem; border-radius: 2px; background: var(--accent); color: #fff;
-    font-family: var(--font-mono); font-weight: 600; display: flex; align-items: center;
-    justify-content: center; flex-shrink: 0;
+.academic-title {
+    font-family: 'Merriweather', serif;
 }
 
-/* ---- Secciones de contenido (antes "card") ---- */
-.card {
-    background-color: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 1.5rem;
-    box-shadow: none;
+/* ---- Paneles (contenedores principales) ---- */
+.panel {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-/* Nota / aviso destacado: una regla a la izquierda, no una franja arriba —
-   se reserva para lo que de verdad hace falta señalar (una guía, un
-   estado, una advertencia), nunca decorativo en un bloque cualquiera. */
-.card.nota {
+
+/* Nota / aviso destacado dentro de un panel: una regla a la izquierda, no
+   decorativa en cualquier bloque — se reserva para lo que hace falta
+   señalar (una guía, una advertencia). */
+.panel.nota {
     border-left-width: 3px;
     border-left-style: solid;
-    border-left-color: var(--accent);
+    border-left-color: #1e3a8a;
 }
-.card.nota.aviso { border-left-color: #b5762b; }
+.panel.nota.aviso { border-left-color: #b45309; }
 
-label {
-    font-family: var(--font-ui);
-    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--ink-faint); display: block; margin-bottom: 0.35rem;
-}
-input[type=number], input[type=time], input[type=date] {
-    width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.55rem 0.7rem;
-    font-size: 0.95rem; font-family: var(--font-mono); color: var(--ink); background: var(--paper);
-}
-input[type=text] {
-    width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.55rem 0.7rem;
-    font-size: 0.95rem; font-family: var(--font-ui); color: var(--ink); background: var(--paper);
-}
-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(44,90,160,0.15); }
-
-#btnGuardar {
-    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82rem;
+/* ---- Formularios ---- */
+.input-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.375rem;
 }
 
-.result-value { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 600; color: var(--ink); line-height: 1; }
-.result-label { font-family: var(--font-ui); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
-.result-card { background: var(--paper-alt); border: 1px solid var(--line-soft); border-radius: 2px; padding: 0.9rem; }
-
-nav a { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }
-nav a.active, nav a:hover { color: var(--accent-deep); }
-nav a.active { text-decoration: underline; text-underline-offset: 4px; }
-
-select {
-    border: 1px solid var(--line); border-radius: 2px; padding: 0.4rem 0.6rem; font-size: 0.85rem;
-    font-family: var(--font-ui); color: var(--ink);
+.input-field {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    background-color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.input-field:focus {
+    outline: none;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
 }
 
-/* ---- Tablas ---- */
+.optional-tag {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #94a3b8;
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+}
+
+.step-num {
+    width: 2.25rem; height: 2.25rem; border-radius: 4px; background: #1e3a8a; color: #fff;
+    font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ---- Grilla de resultados (variables calculadas) ---- */
+.result-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.result-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+.result-data {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.2;
+}
+.result-unit {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+/* ---- Notificación flotante (toast) ---- */
+#banner {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 50;
+    transform: translateY(150%);
+    transition: transform 0.3s ease-out;
+}
+#banner.show { transform: translateY(0); }
+
+/* ---- Tablas (Histórico) ---- */
 table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
 th, td { text-align: left; padding: 0.5rem 0.7rem; white-space: nowrap; }
-td { font-family: var(--font-mono); }
 thead th {
-    color: var(--ink-faint); font-weight: 700; text-transform: uppercase; font-size: 0.64rem;
-    letter-spacing: 0.06em; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--paper);
-    font-family: var(--font-ui);
+    color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.64rem;
+    letter-spacing: 0.05em; border-bottom: 1px solid #cbd5e1; position: sticky; top: 0; background: #ffffff;
 }
-tbody tr { border-bottom: 1px solid var(--line-soft); }
-tbody tr:hover { background-color: var(--paper-alt); }
+tbody tr { border-bottom: 1px solid #e2e8f0; }
+tbody tr:hover { background-color: #f8fafc; }
 .fila-resumen { cursor: pointer; }
-.fila-resumen.seleccionada { background-color: var(--paper-alt); box-shadow: inset 2px 0 0 var(--accent); }
+.fila-resumen.seleccionada { background-color: #eef2ff; box-shadow: inset 2px 0 0 #1e3a8a; }
+
+select.input-field { appearance: auto; }
 
 /* ---- Fórmulas ---- */
 .formula {
-    background: var(--paper-alt); border: 1px solid var(--line-soft); border-radius: 2px;
-    padding: 1rem 1.25rem; font-family: var(--font-mono); font-size: 0.88rem; color: var(--ink); overflow-x: auto;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 1rem 1.25rem; font-family: ui-monospace, Consolas, 'Courier New', monospace;
+    font-size: 0.88rem; color: #0f172a; overflow-x: auto;
 }
-.var { font-family: var(--font-mono); background: var(--line-soft); border-radius: 2px; padding: 0 0.3rem; }
+.var {
+    font-family: ui-monospace, Consolas, 'Courier New', monospace;
+    background: #e2e8f0; border-radius: 4px; padding: 0 0.3rem;
+}
 figure { margin: 0; }
-figure img { border: 1px solid var(--line); border-radius: 2px; width: 100%; height: 220px; object-fit: cover; object-position: top; cursor: zoom-in; }
-figcaption { font-family: var(--font-ui); font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.35rem; text-align: center; }
+figure img { border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; height: 220px; object-fit: cover; object-position: top; cursor: zoom-in; }
+figcaption { font-size: 0.7rem; color: #94a3b8; margin-top: 0.35rem; text-align: center; }
