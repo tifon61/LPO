@@ -6,6 +6,9 @@
     <title>Laboratorio de Análisis: EMA Verde vs Campbell vs Daza - UNLP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Dependencias para el Zoom (Hammer.js para táctil y el plugin de zoom de Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
     <!-- Librería para exportar a PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -55,7 +58,7 @@
 
         /* Ajustes para el renderizado del PDF */
         .pdf-export-mode {
-            background-color: #0f172a !important; /* Mantiene tema oscuro */
+            background-color: #0f172a !important;
             padding: 20px;
         }
         .pdf-export-mode .no-print { display: none !important; }
@@ -101,6 +104,7 @@
                     </button>
                 </div>
             </div>
+            <p class="text-xs text-slate-400 mt-2 text-right no-print"><i class="fa-solid fa-lightbulb text-yellow-400 mr-1"></i> Tip: Podés usar la rueda del mouse sobre los gráficos para hacer zoom, o hacer click y arrastrar para desplazarte en el tiempo.</p>
         </header>
 
         <div id="loadingBox" class="glass p-6 rounded-2xl text-center text-slate-300 mb-8">
@@ -140,7 +144,7 @@
                 <ul id="recomendacionesList" class="text-sm text-slate-200 space-y-2 list-disc list-inside"></ul>
             </div>
 
-            <!-- Explicación de Parámetros (Actualizado) -->
+            <!-- Explicación de Parámetros -->
             <div class="glass p-6 rounded-2xl mt-8 border-l-4 border-slate-500">
                 <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide mb-4"><i class="fa-solid fa-book-open mr-1"></i>Glosario de Parámetros Estadísticos</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-300">
@@ -205,7 +209,6 @@
         }
     }
 
-    // Adaptador para iterar según resolución dinámica
     function createBuckets(startStr, endStr, resolution) {
         const start = new Date(startStr);
         const end = new Date(endStr);
@@ -218,7 +221,6 @@
         } else if (resolution === 'horario') {
             current.setMinutes(0, 0, 0);
         } else {
-            // Crudo = alineación 15 mins
             current.setSeconds(0, 0);
             const remainder = current.getMinutes() % 15;
             current.setMinutes(current.getMinutes() - remainder);
@@ -234,7 +236,7 @@
                 key = `${pad(current.getDate())}/${pad(current.getMonth()+1)} ${pad(current.getHours())}:${pad(current.getMinutes())}`;
             }
             
-            buckets.set(key, { sum: 0, count: 0, value: 0 }); // struct preparado
+            buckets.set(key, { sum: 0, count: 0, value: 0 });
             
             if (resolution === 'diario') current.setDate(current.getDate() + 1);
             else if (resolution === 'horario') current.setHours(current.getHours() + 1);
@@ -247,7 +249,6 @@
         const pad = (n) => n.toString().padStart(2, '0');
         if (resolution === 'diario') return `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)}/${dateObj.getFullYear()}`;
         if (resolution === 'horario') return `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)} ${pad(dateObj.getHours())}:00`;
-        // Para crudo, agrupar al bloque de 15 min más cercano
         const m = Math.floor(dateObj.getMinutes() / 15) * 15;
         return `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)} ${pad(dateObj.getHours())}:${pad(m)}`;
     }
@@ -444,9 +445,6 @@
         return inc.map((v, i) => stationResult.hasData[i] ? v : null);
     }
 
-    // ============================================================
-    // Estadística Matemática
-    // ============================================================
     function pairStats(a, b) {
         const xs = [], ys = [];
         for (let i = 0; i < a.length; i++) {
@@ -507,7 +505,13 @@
     }
 
     let lastReport = null;
-    let chartInstances = [];
+    let chartInstances = {}; // Modificado a objeto para acceder fácilmente al hacer reset
+
+    function resetChartZoom(varKey) {
+        if (chartInstances[varKey]) {
+            chartInstances[varKey].resetZoom();
+        }
+    }
 
     function toInputValue(date) {
         const pad = (n) => n.toString().padStart(2, '0');
@@ -578,8 +582,9 @@
     }
 
     function renderReport(report) {
-        chartInstances.forEach(c => c.destroy());
-        chartInstances = [];
+        // Destruir gráficos anteriores
+        Object.values(chartInstances).forEach(c => c.destroy());
+        chartInstances = {};
 
         const container = document.getElementById('variablesContainer');
         container.innerHTML = '';
@@ -614,6 +619,7 @@
             sectionEl.innerHTML = `
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line mr-2" style="color:${v.cfg.color}"></i>${v.cfg.label} (${v.cfg.unit})</h3>
+                    <button onclick="resetChartZoom('${varKey}')" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors no-print border border-slate-500"><i class="fa-solid fa-magnifying-glass-minus mr-1"></i>Restablecer Zoom</button>
                 </div>
                 <div class="relative w-full h-[280px] mb-6">
                     <canvas id="chart-line-${varKey}"></canvas>
@@ -643,7 +649,9 @@
             container.appendChild(sectionEl);
 
             const ctx = document.getElementById(`chart-line-${varKey}`).getContext('2d');
-            chartInstances.push(new Chart(ctx, {
+            
+            // Configuración del gráfico con el plugin de zoom activado
+            chartInstances[varKey] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: v.labels,
@@ -654,14 +662,29 @@
                     ]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { labels: { color: '#cbd5e1' } },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: 'ctrl', // Opcional: requiere apretar ctrl, lo dejo libre abajo
+                            },
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                            }
+                        }
+                    },
                     scales: {
                         x: { ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.05)' } },
                         y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
-            }));
+            });
         });
 
         document.getElementById('resumenList').innerHTML = resumen.map(t => `<li>${t}</li>`).join('');
@@ -714,7 +737,6 @@
     function descargarPDF() {
         const elemento = document.getElementById('laboratorio-container');
         
-        // Configuración para html2pdf
         const opt = {
             margin:       10,
             filename:     `Informe_Laboratorio_Verde_${new Date().toISOString().slice(0,10)}.pdf`,
@@ -723,12 +745,9 @@
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // Activamos un modo de diseño especial para la captura
         elemento.classList.add('pdf-export-mode');
         
-        // Se ejecuta la descarga
         html2pdf().set(opt).from(elemento).save().then(() => {
-            // Restauramos el aspecto web normal tras la descarga
             elemento.classList.remove('pdf-export-mode');
         });
     }
