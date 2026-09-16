@@ -86,15 +86,19 @@ function correccionD4(tPromedio, pEstMmhg) {
  * lecturas reales raras.
  */
 const RANGOS = {
-  tSeca: { min: -15, max: 45, etiqueta: "T. Seca" },
-  tHumeda: { min: -15, max: 45, etiqueta: "T. Húmeda" },
+  tSeca: { min: -15, max: 45, etiqueta: "T. Bulbo Seco" },
+  tHumeda: { min: -15, max: 45, etiqueta: "T. Bulbo Húmedo" },
   tMax: { min: -15, max: 45, etiqueta: "T. Máx" },
   tMin: { min: -15, max: 45, etiqueta: "T. Mín" },
   tAdjunto: { min: -15, max: 45, etiqueta: "T. Adjunto" },
-  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Seca 12hs antes" },
+  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Bulbo Seco 12hs antes" },
   barometro: { min: 700, max: 800, etiqueta: "Barómetro" },
   lluvia: { min: 0, max: 500, etiqueta: "Lluvia" },
 };
+
+/** Esta estación solo toma observaciones a las tres horas sinópticas
+ * (12, 18 y 00 UTC), en hora local de Argentina (UTC-3). */
+const HORAS_VALIDAS = ["09:00", "15:00", "21:00"];
 
 /**
  * Valida una observación antes de calcular/guardar. input: mismas claves
@@ -119,13 +123,16 @@ function validarObservacion(input) {
   const tSeca = input.tSeca;
   const tHumeda = input.tHumeda;
   if (typeof tSeca === "number" && typeof tHumeda === "number" && tHumeda > tSeca + 0.05) {
-    errores.push("La T. Húmeda no puede ser mayor que la T. Seca.");
+    errores.push("La T. Bulbo Húmedo no puede ser mayor que la T. Bulbo Seco.");
   }
   if (typeof tSeca === "number" && typeof input.tMax === "number" && input.tMax < tSeca - 0.05) {
-    errores.push("La T. Máx no puede ser menor que la T. Seca actual.");
+    errores.push("La T. Máx no puede ser menor que la T. Bulbo Seco actual.");
   }
   if (typeof tSeca === "number" && typeof input.tMin === "number" && input.tMin > tSeca + 0.05) {
-    errores.push("La T. Mín no puede ser mayor que la T. Seca actual.");
+    errores.push("La T. Mín no puede ser mayor que la T. Bulbo Seco actual.");
+  }
+  if (input.hora && !HORAS_VALIDAS.includes(input.hora)) {
+    errores.push(`La hora debe ser una de las tres observaciones sinópticas: ${HORAS_VALIDAS.join(", ")}.`);
   }
 
   return errores;

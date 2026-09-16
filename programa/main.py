@@ -24,23 +24,23 @@ COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
 
 CAMPOS = [
     ("fecha", "Fecha (AAAA-MM-DD)", True),
-    ("hora", "Hora (HH:MM)", True),
+    ("hora", "Hora (sinóptica)", True),
     ("observador", "Observador — opcional", False),
-    ("t_seca", "T. Seca (°C)", True),
-    ("t_humeda", "T. Húmeda (°C)", True),
+    ("t_seca", "T. Bulbo Seco (°C)", True),
+    ("t_humeda", "T. Bulbo Húmedo (°C)", True),
     ("t_max", "T. Máx (°C) — opcional", False),
     ("t_min", "T. Mín (°C) — opcional", False),
     ("t_adjunto", "T. Adjunto (°C)", True),
     ("barometro", "Barómetro (mmHg)", True),
-    ("t_seca_12h_antes", "T. Seca 12hs antes (°C) — opcional", False),
+    ("t_seca_12h_antes", "T. Bulbo Seco 12hs antes (°C) — opcional", False),
     ("lluvia", "Lluvia (mm) — opcional", False),
 ]
 
 OBLIGATORIOS = ["t_seca", "t_humeda", "t_adjunto", "barometro"]
 
 VARIABLES_GRAFICO = [
-    ("t_seca", "T. Seca (°C)"),
-    ("t_humeda", "T. Húmeda (°C)"),
+    ("t_seca", "T. Bulbo Seco (°C)"),
+    ("t_humeda", "T. Bulbo Húmedo (°C)"),
     ("punto_rocio", "Punto de Rocío (°C)"),
     ("humedad_relativa", "Humedad Relativa (%)"),
     ("p_est_hpa", "P. Estación (hPa)"),
@@ -140,9 +140,13 @@ class App(ttk.Window):
         for i, (clave, etiqueta, _obligatorio) in enumerate(CAMPOS):
             fila, col = divmod(i, 2)
             ttk.Label(frame, text=etiqueta).grid(row=fila, column=col * 2, sticky="w", padx=6, pady=5)
-            entrada = ttk.Entry(frame, width=18)
+            if clave == "hora":
+                entrada = ttk.Combobox(frame, width=16, state="readonly", values=list(calculos.HORAS_VALIDAS))
+                entrada.bind("<<ComboboxSelected>>", lambda _e: self._recalcular())
+            else:
+                entrada = ttk.Entry(frame, width=18)
+                entrada.bind("<KeyRelease>", lambda _e: self._recalcular())
             entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
-            entrada.bind("<KeyRelease>", lambda _e: self._recalcular())
             self.entradas[clave] = entrada
 
         botones = ttk.Frame(frame)
@@ -263,7 +267,7 @@ class App(ttk.Window):
         )
         titulos = {
             "fecha": "Fecha", "hora": "Hora", "observador": "Observador",
-            "t_seca": "T.Seca", "t_humeda": "T.Húmeda",
+            "t_seca": "T.B.Seco", "t_humeda": "T.B.Húm.",
             "t_adjunto": "T.Adj.", "barometro": "Barómetro",
             "p_est_hpa": "P.Est (hPa)", "pnm_hpa": "P.N.M (hPa)",
             "tension_vapor": "T.Vapor", "punto_rocio": "P.Rocío", "humedad_relativa": "H.R. (%)",
@@ -466,9 +470,15 @@ class App(ttk.Window):
         ).pack(anchor="w", pady=(0, 4))
         ttk.Label(
             guia,
-            text="Datos obligatorios: Hora, T. Seca, T. Húmeda, T. Adjunto, Barómetro. El resto es opcional.",
+            text="Datos obligatorios: Hora, T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro. El resto es opcional.",
             wraplength=580, justify="left", bootstyle="secondary",
         ).pack(anchor="w")
+        ttk.Label(
+            guia,
+            text="La estación toma observaciones a las 09:00, 15:00 y 21:00 (hora local) — las tres horas "
+            "sinópticas (12, 18 y 00 UTC).",
+            wraplength=580, justify="left", bootstyle="secondary",
+        ).pack(anchor="w", pady=(4, 0))
 
         ttk.Label(
             raiz,
@@ -553,7 +563,7 @@ class App(ttk.Window):
             "corrección = TABLA_D4[fila T_prom][columna P_estación]\n"
             "P_mar (mmHg) = P_estación + corrección\n\n" + tabla_d4_txt,
             imagen="tabla-d4.jpg",
-            nota="Si falta la T. Seca de 12hs antes, se aproxima con la T. Seca actual.",
+            nota="Si falta la T. Bulbo Seco de 12hs antes, se aproxima con la T. Bulbo Seco actual.",
         )
 
         self._seccion_formula(
@@ -582,10 +592,23 @@ class App(ttk.Window):
 
     # ---------- Lógica ----------
 
+    def _hora_sinoptica_mas_cercana(self, momento):
+        minutos_actuales = momento.hour * 60 + momento.minute
+        mejor, mejor_diferencia = calculos.HORAS_VALIDAS[0], None
+        for hora in calculos.HORAS_VALIDAS:
+            h, m = (int(p) for p in hora.split(":"))
+            minutos_hora = h * 60 + m
+            diferencia = min(
+                abs(minutos_actuales - minutos_hora), 1440 - abs(minutos_actuales - minutos_hora)
+            )
+            if mejor_diferencia is None or diferencia < mejor_diferencia:
+                mejor, mejor_diferencia = hora, diferencia
+        return mejor
+
     def _set_fecha_hora_actual(self):
         ahora = datetime.now()
         self.entradas["fecha"].insert(0, ahora.strftime("%Y-%m-%d"))
-        self.entradas["hora"].insert(0, ahora.strftime("%H:%M"))
+        self.entradas["hora"].set(self._hora_sinoptica_mas_cercana(ahora))
 
     def _leer_entrada(self, clave):
         texto = self.entradas[clave].get().strip()
@@ -639,7 +662,7 @@ class App(ttk.Window):
         resultado = self._recalcular()
         if resultado is None:
             messagebox.showerror(
-                "Faltan datos", "Completá T. Seca, T. Húmeda, T. Adjunto y Barómetro (con números válidos)."
+                "Faltan datos", "Completá T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto y Barómetro (con números válidos)."
             )
             return
 
@@ -668,6 +691,8 @@ class App(ttk.Window):
 
     def _limpiar(self):
         for clave, entrada in self.entradas.items():
+            if clave == "hora":
+                continue  # combobox de solo lectura: siempre tiene que quedar una hora válida elegida
             entrada.delete(0, tk.END)
         self._recalcular()
 

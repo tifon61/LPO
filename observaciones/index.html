@@ -64,7 +64,11 @@
                     </div>
                     <div>
                         <label for="hora">Hora</label>
-                        <input type="time" id="hora" name="hora" required>
+                        <select id="hora" name="hora" required class="w-full">
+                            <option value="09:00">09:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="21:00">21:00</option>
+                        </select>
                     </div>
                 </div>
 
@@ -76,11 +80,11 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="tSeca">T. Seca (°C)</label>
+                        <label for="tSeca">T. Bulbo Seco (°C)</label>
                         <input type="number" step="0.1" min="-15" max="45" id="tSeca" name="tSeca" required>
                     </div>
                     <div>
-                        <label for="tHumeda">T. Húmeda (°C)</label>
+                        <label for="tHumeda">T. Bulbo Húmedo (°C)</label>
                         <input type="number" step="0.1" min="-15" max="45" id="tHumeda" name="tHumeda" required>
                     </div>
                 </div>
@@ -109,7 +113,7 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="tSeca12hAntes">T. Seca 12hs antes (°C)
+                        <label for="tSeca12hAntes">T. Bulbo Seco 12hs antes (°C)
                             <span class="normal-case font-medium text-slate-400">opcional</span></label>
                         <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes">
                     </div>
@@ -119,7 +123,7 @@
                     </div>
                 </div>
                 <p class="text-xs text-slate-400 -mt-2">
-                    Si el campo queda vacío, se aproxima con la T. Seca actual para la Tabla D-4 (presión a nivel del mar).
+                    Si el campo queda vacío, se aproxima con la T. Bulbo Seco actual para la Tabla D-4 (presión a nivel del mar).
                 </p>
 
                 <button type="submit" id="btnGuardar"
@@ -223,10 +227,31 @@
 
         form.addEventListener("input", actualizarPreview);
 
+        // La estación solo observa a las tres horas sinópticas (12, 18 y 00 UTC = 09, 15 y 21 hora local).
+        // Al abrir el formulario, se preselecciona la más cercana a la hora actual.
+        function horaSinopticaMasCercana(fecha) {
+            const minutosActuales = fecha.getHours() * 60 + fecha.getMinutes();
+            let mejor = null;
+            let mejorDiferencia = Infinity;
+            for (const hora of HORAS_VALIDAS) {
+                const [h, m] = hora.split(":").map(Number);
+                const minutosHora = h * 60 + m;
+                const diferencia = Math.min(
+                    Math.abs(minutosActuales - minutosHora),
+                    1440 - Math.abs(minutosActuales - minutosHora)
+                );
+                if (diferencia < mejorDiferencia) {
+                    mejorDiferencia = diferencia;
+                    mejor = hora;
+                }
+            }
+            return mejor;
+        }
+
         // Fecha/hora por defecto: ahora.
         const ahora = new Date();
         document.getElementById("fecha").value = ahora.toISOString().slice(0, 10);
-        document.getElementById("hora").value = ahora.toTimeString().slice(0, 5);
+        document.getElementById("hora").value = horaSinopticaMasCercana(ahora);
 
         function mostrarBanner(tipo, mensaje) {
             banner.classList.remove("hidden", "border-t-emerald-600", "border-t-red-600");
@@ -242,7 +267,7 @@
             const input = leerInputs();
             const calculado = actualizarPreview();
             if (!calculado) {
-                mostrarBanner("error", "Complete los campos T. Seca, T. Húmeda, T. Adjunto y Barómetro antes de guardar.");
+                mostrarBanner("error", "Complete los campos T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto y Barómetro antes de guardar.");
                 return;
             }
             const errores = validarObservacion(input);
@@ -273,7 +298,7 @@
                     mostrarBanner("ok", "Observación guardada en la planilla.");
                     form.reset();
                     document.getElementById("fecha").value = new Date().toISOString().slice(0, 10);
-                    document.getElementById("hora").value = new Date().toTimeString().slice(0, 5);
+                    document.getElementById("hora").value = horaSinopticaMasCercana(new Date());
                     actualizarPreview();
                 } else {
                     mostrarBanner("error", "Error al guardar: " + (data.error || "desconocido"));

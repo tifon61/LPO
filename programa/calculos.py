@@ -77,15 +77,19 @@ def correccion_d4(t_promedio, p_est_mmhg):
 # errores de tipeo (ej. "225" en vez de "22.5"), no para rechazar lecturas
 # reales raras.
 RANGOS = {
-    "t_seca": (-15, 45, "T. Seca"),
-    "t_humeda": (-15, 45, "T. Húmeda"),
+    "t_seca": (-15, 45, "T. Bulbo Seco"),
+    "t_humeda": (-15, 45, "T. Bulbo Húmedo"),
     "t_max": (-15, 45, "T. Máx"),
     "t_min": (-15, 45, "T. Mín"),
     "t_adjunto": (-15, 45, "T. Adjunto"),
-    "t_seca_12h_antes": (-15, 45, "T. Seca 12hs antes"),
+    "t_seca_12h_antes": (-15, 45, "T. Bulbo Seco 12hs antes"),
     "barometro": (700, 800, "Barómetro"),
     "lluvia": (0, 500, "Lluvia"),
 }
+
+# Esta estación solo toma observaciones a las tres horas sinópticas
+# (12, 18 y 00 UTC), en hora local de Argentina (UTC-3).
+HORAS_VALIDAS = ("09:00", "15:00", "21:00")
 
 
 def validar_observacion(entrada):
@@ -106,13 +110,16 @@ def validar_observacion(entrada):
     t_seca = entrada.get("t_seca")
     t_humeda = entrada.get("t_humeda")
     if isinstance(t_seca, (int, float)) and isinstance(t_humeda, (int, float)) and t_humeda > t_seca + 0.05:
-        errores.append("La T. Húmeda no puede ser mayor que la T. Seca.")
+        errores.append("La T. Bulbo Húmedo no puede ser mayor que la T. Bulbo Seco.")
     t_max = entrada.get("t_max")
     if isinstance(t_seca, (int, float)) and isinstance(t_max, (int, float)) and t_max < t_seca - 0.05:
-        errores.append("La T. Máx no puede ser menor que la T. Seca actual.")
+        errores.append("La T. Máx no puede ser menor que la T. Bulbo Seco actual.")
     t_min = entrada.get("t_min")
     if isinstance(t_seca, (int, float)) and isinstance(t_min, (int, float)) and t_min > t_seca + 0.05:
-        errores.append("La T. Mín no puede ser mayor que la T. Seca actual.")
+        errores.append("La T. Mín no puede ser mayor que la T. Bulbo Seco actual.")
+    hora = entrada.get("hora")
+    if hora and hora not in HORAS_VALIDAS:
+        errores.append(f"La hora debe ser una de las tres observaciones sinópticas: {', '.join(HORAS_VALIDAS)}.")
 
     return errores
 

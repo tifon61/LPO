@@ -21,20 +21,27 @@ hacer nada. Si querés forzarlo, está el botón "Sincronizar ahora".
 Usá esta opción cuando sepas que no vas a tener internet en el momento de
 cargar el dato.
 
+## Horario de las observaciones
+
+La estación solo toma observaciones a las **09:00, 15:00 y 21:00** (hora
+local) — las tres horas sinópticas (12, 18 y 00 UTC). Por eso el campo
+"Hora" es un desplegable con esas tres opciones nada más, no un horario
+libre.
+
 ## Datos obligatorios vs. opcionales
 
-**Obligatorios:** Fecha, Hora, T. Seca, T. Húmeda, T. Adjunto, Barómetro.
+**Obligatorios:** Fecha, Hora, T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro.
 
-**Opcionales:** T. Máx, T. Mín, T. Seca 12hs antes (mejora la precisión de
+**Opcionales:** T. Máx, T. Mín, T. Bulbo Seco 12hs antes (mejora la precisión de
 la presión a nivel del mar, pero si no la tenés a mano no pasa nada), Lluvia.
 
 ## Si el sistema no te deja guardar
 
 Desde hace poco, el sistema avisa si algún valor parece un error de tipeo
-(por ejemplo, una temperatura de "225" en vez de "22.5", o la T. Húmeda
-mayor que la T. Seca — eso no puede pasar físicamente). Si te aparece un
-cartel de error al guardar, **revisá el número que escribiste** antes de
-insistir.
+(por ejemplo, una temperatura de "225" en vez de "22.5", o la T. Bulbo
+Húmedo mayor que la T. Bulbo Seco — eso no puede pasar físicamente). Si te
+aparece un cartel de error al guardar, **revisá el número que escribiste**
+antes de insistir.
 
 ## Ver el histórico
 

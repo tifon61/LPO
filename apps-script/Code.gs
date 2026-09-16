@@ -50,13 +50,13 @@ var COLUMNAS = [
   { key: "fecha", header: "Fecha" },
   { key: "hora", header: "Hora" },
   { key: "observador", header: "Observador" },
-  { key: "tSeca", header: "T. Seca" },
-  { key: "tHumeda", header: "T. Húmeda" },
+  { key: "tSeca", header: "T. Bulbo Seco" },
+  { key: "tHumeda", header: "T. Bulbo Húmedo" },
   { key: "tMax", header: "T. Máx" },
   { key: "tMin", header: "T. Mín" },
   { key: "tAdjunto", header: "T. Adjunto" },
   { key: "barometro", header: "Barómetro" },
-  { key: "tSeca12hAntes", header: "T. Seca (12hs antes)" },
+  { key: "tSeca12hAntes", header: "T. Bulbo Seco (12hs antes)" },
   { key: "pEstMmhg", header: "P. Estación (mmHg)" },
   { key: "pEstHpa", header: "P. Estación (hPa)" },
   { key: "pnmMmhg", header: "P. Nivel Mar (mmHg)" },
@@ -137,15 +137,19 @@ function correccionD4_(tPromedio, pEstMmhg) {
 // tipeo, no para rechazar lecturas reales raras. Mismos límites que
 // observaciones/calculos.js y programa/calculos.py.
 var RANGOS = {
-  tSeca: { min: -15, max: 45, etiqueta: "T. Seca" },
-  tHumeda: { min: -15, max: 45, etiqueta: "T. Húmeda" },
+  tSeca: { min: -15, max: 45, etiqueta: "T. Bulbo Seco" },
+  tHumeda: { min: -15, max: 45, etiqueta: "T. Bulbo Húmedo" },
   tMax: { min: -15, max: 45, etiqueta: "T. Máx" },
   tMin: { min: -15, max: 45, etiqueta: "T. Mín" },
   tAdjunto: { min: -15, max: 45, etiqueta: "T. Adjunto" },
-  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Seca 12hs antes" },
+  tSeca12hAntes: { min: -15, max: 45, etiqueta: "T. Bulbo Seco 12hs antes" },
   barometro: { min: 700, max: 800, etiqueta: "Barómetro" },
   lluvia: { min: 0, max: 500, etiqueta: "Lluvia" },
 };
+
+// Esta estación solo toma observaciones a las tres horas sinópticas
+// (12, 18 y 00 UTC), en hora local de Argentina (UTC-3).
+var HORAS_VALIDAS = ["09:00", "15:00", "21:00"];
 
 function validarObservacion_(input) {
   var errores = [];
@@ -162,13 +166,16 @@ function validarObservacion_(input) {
     }
   }
   if (typeof input.tSeca === "number" && typeof input.tHumeda === "number" && input.tHumeda > input.tSeca + 0.05) {
-    errores.push("La T. Húmeda no puede ser mayor que la T. Seca.");
+    errores.push("La T. Bulbo Húmedo no puede ser mayor que la T. Bulbo Seco.");
   }
   if (typeof input.tSeca === "number" && typeof input.tMax === "number" && input.tMax < input.tSeca - 0.05) {
-    errores.push("La T. Máx no puede ser menor que la T. Seca actual.");
+    errores.push("La T. Máx no puede ser menor que la T. Bulbo Seco actual.");
   }
   if (typeof input.tSeca === "number" && typeof input.tMin === "number" && input.tMin > input.tSeca + 0.05) {
-    errores.push("La T. Mín no puede ser mayor que la T. Seca actual.");
+    errores.push("La T. Mín no puede ser mayor que la T. Bulbo Seco actual.");
+  }
+  if (input.hora && HORAS_VALIDAS.indexOf(input.hora) === -1) {
+    errores.push("La hora debe ser una de las tres observaciones sinópticas: " + HORAS_VALIDAS.join(", ") + ".");
   }
   return errores;
 }
@@ -300,7 +307,7 @@ function doPost(e) {
       tSeca12hAntes: numOrNull(body.tSeca12hAntes),
     };
     if ([input.tSeca, input.tHumeda, input.tAdjunto, input.barometro].some(isNaN)) {
-      return jsonOut_({ ok: false, error: "Faltan datos obligatorios (T. Seca, T. Húmeda, T. Adjunto, Barómetro)." });
+      return jsonOut_({ ok: false, error: "Faltan datos obligatorios (T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro)." });
     }
 
     var tMax = numOrNull(body.tMax);

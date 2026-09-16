@@ -46,8 +46,9 @@ tocar `sync.py` o `db.py`.
 
 `calculos.py` (y sus equivalentes `observaciones/calculos.js` y
 `apps-script/Code.gs`) valida cada observación antes de calcularla/guardarla:
-rangos razonables por campo (`RANGOS`) y chequeos cruzados (T. Húmeda no
-puede superar a T. Seca, etc.) — pensado para atajar errores de tipeo, no
+rangos razonables por campo (`RANGOS`), chequeos cruzados (T. Bulbo Húmedo
+no puede superar a T. Bulbo Seco, etc.) y que la hora sea una de las tres
+sinópticas (09:00, 15:00, 21:00) — pensado para atajar errores de tipeo, no
 para rechazar lecturas reales extremas. Se aplica en los tres lugares
 (formulario web, programa de escritorio, y el propio Apps Script como
 última línea de defensa). Si cambiás los rangos, replicalo en los tres.

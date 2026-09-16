@@ -58,7 +58,9 @@
                 Ante un error de "valor fuera de rango", verificar primero que no se trate de un error de tipeo.
             </p>
             <p class="text-xs text-slate-400">
-                Campos obligatorios: Hora, T. Seca, T. Húmeda, T. Adjunto y Barómetro. Los restantes son opcionales.
+                Campos obligatorios: Hora, T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto y Barómetro. Los restantes son opcionales.
+                La estación toma observaciones a las 09:00, 15:00 y 21:00 (hora local) — las tres horas sinópticas
+                (12, 18 y 00 UTC).
             </p>
         </div>
 
@@ -117,7 +119,7 @@
                 e (hPa) = es_húmeda − 0.0008 × P_estación(hPa) × (T_s − T_h)
             </div>
             <p class="text-xs text-slate-400">
-                <span class="var">T_s</span>: temperatura seca (°C) · <span class="var">T_h</span>: temperatura húmeda (°C)
+                <span class="var">T_s</span>: temperatura termómetro seco (°C) · <span class="var">T_h</span>: temperatura termómetro de bulbo húmedo (°C)
             </p>
         </div>
 
@@ -181,7 +183,7 @@
                 <table class="w-full text-xs text-center border-collapse">
                     <thead>
                         <tr class="text-slate-500">
-                            <th class="p-1 text-left">T. Seca promedio (°C)</th>
+                            <th class="p-1 text-left">T. Bulbo Seco promedio (°C)</th>
                             <th class="p-1">730,00 a 759,99 mmHg</th>
                             <th class="p-1">760,00 a 789,99 mmHg</th>
                         </tr>
@@ -190,7 +192,7 @@
                 </table>
             </div>
             <p class="text-xs text-slate-400">
-                Si no se cargó la T. Seca de 12 h antes, se aproxima con la T. Seca actual.
+                Si no se cargó la T. Bulbo Seco de 12 h antes, se aproxima con la T. Bulbo Seco actual.
                 Fuera de estos rangos de temperatura o presión, se utiliza la fila o columna más cercana.
             </p>
             <figure class="max-w-xs">
