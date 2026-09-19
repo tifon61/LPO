@@ -273,6 +273,60 @@ function marcarDescarte_(body) {
   };
 }
 
+// ---- Migración manual (ejecutar UNA SOLA VEZ desde el editor de Apps Script) ----
+//
+// Corrige la Sheet después de haber agregado la columna "Observador": el
+// encabezado (fila 1) nunca se actualizó solo, porque getSheet_() sólo
+// escribe encabezados cuando crea la hoja desde cero, no cuando ya existe.
+// Entonces las filas cargadas ANTES de agregar "Observador" quedaron con
+// los datos corridos una columna a la izquierda respecto del encabezado
+// actual (ej: el nombre del observador de una fila nueva cae bajo la
+// columna que dice "T. Bulbo Seco").
+//
+// Esta función:
+//   1) Reescribe la fila 1 con los encabezados actuales de COLUMNAS.
+//   2) Detecta las filas viejas (la columna "Observador" tiene un número
+//      en vez de texto/vacío -> ahí sigue estando la T. Bulbo Seco vieja)
+//      y las corre una columna a la derecha, dejando "Observador" vacío.
+//   3) NO toca las columnas de descarte (Descartada / Motivo / Descartado
+//      por): marcarDescarte_ siempre escribe en la posición NUEVA de esas
+//      columnas, incluso sobre una fila vieja, así que ya están donde
+//      corresponde y hay que preservarlas tal cual.
+//
+// Hacé una copia de la Sheet antes de correrla. Se ejecuta a mano una sola
+// vez desde el desplegable de funciones del editor de Apps Script — no la
+// llama nada más del sistema.
+function repararEncabezadosYFilasViejas() {
+  var sheet = getSheet_();
+  var encabezados = COLUMNAS.map(function (c) { return c.header; });
+  sheet.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
+
+  var colObservador = COLUMNAS.findIndex(function (c) { return c.key === "observador"; });
+  var CAMPOS_ESQUEMA_VIEJO = 18; // fecha..cargadoEl, antes de agregar "Observador"
+
+  var valores = sheet.getDataRange().getValues();
+  var filasCorregidas = 0;
+
+  for (var i = 1; i < valores.length; i++) {
+    var fila = valores[i];
+    if (typeof fila[colObservador] !== "number") continue; // ya está en el layout nuevo
+
+    var core = fila.slice(0, CAMPOS_ESQUEMA_VIEJO); // fecha, hora, tSeca..cargadoEl (18 campos)
+    var descarteExtra = fila.slice(CAMPOS_ESQUEMA_VIEJO); // lo que haya de ahí en más (columna vieja sin usar + descarte)
+    var filaNueva = [core[0], core[1], ""]
+      .concat(core.slice(2))
+      .concat(descarteExtra.slice(1)); // descarta la columna vieja sin usar, conserva descarte tal cual
+
+    while (filaNueva.length < COLUMNAS.length) filaNueva.push("");
+
+    sheet.getRange(i + 1, 1, 1, COLUMNAS.length).setValues([filaNueva.slice(0, COLUMNAS.length)]);
+    filasCorregidas++;
+  }
+
+  Logger.log("Encabezado reescrito. Filas corregidas: " + filasCorregidas);
+  return { ok: true, filasCorregidas: filasCorregidas };
+}
+
 function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
