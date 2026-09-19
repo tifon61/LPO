@@ -241,6 +241,31 @@ function buscarFilaPorClave_(sheet, fecha, hora) {
   return -1;
 }
 
+// Reordena las filas de datos (todo menos el encabezado) por fecha+hora
+// ascendente. Se llama después de cada carga nueva para que la planilla
+// siempre quede prolija, incluso si se cargó una observación "atrasada"
+// (ej. la de las 09:00 después de la de las 15:00).
+function ordenarSheetPorFechaHora_(sheet) {
+  var ultimaFila = sheet.getLastRow();
+  if (ultimaFila < 3) return; // encabezado + 0 o 1 fila de datos: nada para ordenar
+
+  var rango = sheet.getRange(2, 1, ultimaFila - 1, COLUMNAS.length);
+  var valores = rango.getValues();
+
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; });
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; });
+
+  valores.sort(function (a, b) {
+    var claveA = formatearFecha_(a[colFecha]) + " " + formatearHora_(a[colHora]);
+    var claveB = formatearFecha_(b[colFecha]) + " " + formatearHora_(b[colHora]);
+    if (claveA < claveB) return -1;
+    if (claveA > claveB) return 1;
+    return 0;
+  });
+
+  rango.setValues(valores);
+}
+
 function marcarDescarte_(body) {
   if (!body.fecha || !body.hora) {
     return { ok: false, error: "Faltan fecha y hora para identificar la observación." };
@@ -412,6 +437,7 @@ function doPost(e) {
 
     var sheet = getSheet_();
     sheet.appendRow(COLUMNAS.map(function (c) { return fila[c.key]; }));
+    ordenarSheetPorFechaHora_(sheet);
 
     return jsonOut_({ ok: true, fila: fila });
   } catch (err) {
