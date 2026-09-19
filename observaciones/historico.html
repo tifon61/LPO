@@ -337,7 +337,15 @@
                 }
                 const data = await cargarHistorico();
                 if (!data.ok) throw new Error(data.error || "Error desconocido");
-                const filas = data.filas || [];
+                // La Sheet guarda las filas en el orden en que se cargaron, no en
+                // orden cronológico de la observación (si se carga una hora tarde,
+                // queda al final). Se ordena acá por fecha+hora para que el gráfico
+                // y la tabla siempre respeten la línea de tiempo real.
+                const filas = (data.filas || []).sort((a, b) => {
+                    const claveA = `${a.fecha || ""} ${a.hora || ""}`;
+                    const claveB = `${b.fecha || ""} ${b.hora || ""}`;
+                    return claveA < claveB ? -1 : claveA > claveB ? 1 : 0;
+                });
                 document.getElementById("estado").classList.add("hidden");
                 document.getElementById("contenido").classList.remove("hidden");
 
