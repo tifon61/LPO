@@ -428,7 +428,7 @@ function doPost(e) {
       tensionVapor: calculado.tensionVapor,
       puntoRocio: calculado.puntoRocio,
       humedadRelativa: calculado.humedadRelativa,
-      lluvia: lluvia === null ? "" : lluvia,
+      lluvia: lluvia === null ? 0 : lluvia,
       cargadoEl: new Date().toISOString(),
       descartada: false,
       motivoDescarte: "",

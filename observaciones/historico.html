@@ -305,7 +305,13 @@
         function pintarChart(filas, variable) {
             const ctx = document.getElementById("chartVariable");
             const labels = filas.map((f) => `${f.fecha} ${f.hora}`);
-            const datos = filas.map((f) => (typeof f[variable] === "number" ? f[variable] : null));
+            const datos = filas.map((f) => {
+                if (variable === "lluvia") {
+                    // Sin dato de lluvia = no llovió (0); nunca se muestran negativos.
+                    return typeof f.lluvia === "number" ? Math.max(0, f.lluvia) : 0;
+                }
+                return typeof f[variable] === "number" ? f[variable] : null;
+            });
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: "line",
@@ -325,7 +331,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: { x: { ticks: { maxTicksLimit: 10 } } },
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 10 } },
+                        y: variable === "lluvia" ? { min: 0 } : {},
+                    },
                 },
             });
         }

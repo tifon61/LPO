@@ -307,15 +307,23 @@ class App(ttk.Window):
         datos = self._filtrar_por_periodo(db.listar_para_grafico())
 
         self.ejes.clear()
-        puntos = [
-            (f"{f['fecha']} {f['hora']}", f[clave])
-            for f in datos
-            if f.get(clave) is not None and not f.get("descartada")
-        ]
+        puntos = []
+        for f in datos:
+            if f.get("descartada"):
+                continue
+            valor = f.get(clave)
+            if clave == "lluvia":
+                # Sin dato de lluvia = no llovió (0); nunca se muestran negativos.
+                valor = max(0, valor) if valor is not None else 0
+            elif valor is None:
+                continue
+            puntos.append((f"{f['fecha']} {f['hora']}", valor))
         if puntos:
             etiquetas_x = [p[0] for p in puntos]
             valores_y = [p[1] for p in puntos]
             self.ejes.plot(etiquetas_x, valores_y, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
+            if clave == "lluvia":
+                self.ejes.set_ylim(bottom=0)
             # No saturar el eje X de etiquetas si hay muchas observaciones.
             paso = max(1, len(etiquetas_x) // 10)
             self.ejes.set_xticks(etiquetas_x[::paso])
@@ -629,6 +637,9 @@ class App(ttk.Window):
             if clave in ("fecha", "hora", "observador"):
                 continue
             datos[clave] = self._leer_entrada(clave)
+        # Si no se cargó lluvia, se asume que no llovió (0), no que falta el dato.
+        if datos.get("lluvia") is None:
+            datos["lluvia"] = 0.0
         return datos
 
     def _recalcular(self):
