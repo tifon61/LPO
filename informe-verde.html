@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio de Análisis: EMA Verde vs Campbell vs Daza - UNLP</title>
+    <title>Laboratorio de Análisis: EMAs FCAG - UNLP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <!-- Dependencias para el Zoom (Hammer.js para táctil y el plugin de zoom de Chart.js) -->
@@ -12,6 +12,8 @@
     <!-- Librería para exportar a PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Config del backend de QC (opcional — ver apps-script-qc/README.md) -->
+    <script src="apps-script-qc/qc-config.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
@@ -48,10 +50,12 @@
         .pill-mid { background: rgba(234,179,8,0.15); color: #facc15; }
         .pill-bad { background: rgba(239,68,68,0.15); color: #f87171; }
 
-        input[type="datetime-local"], select { 
-            filter: invert(0); 
-            cursor: pointer; 
+        input[type="datetime-local"], select {
+            filter: invert(0);
+            cursor: pointer;
         }
+
+        .btn-mini { font-size: 0.7rem; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 700; white-space: nowrap; }
 
         #loadingBox { display: none; }
         #reportBody { display: none; }
@@ -71,10 +75,17 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 no-print">
                 <a href="comparacionemas.html" class="text-sm font-bold text-sky-400 hover:text-sky-300"><i class="fa-solid fa-arrow-left mr-1"></i> Volver a Comparación de EMAs</a>
             </div>
-            <h1 class="text-3xl font-black text-white">Laboratorio de Análisis: EMA Verde</h1>
-            <p class="text-slate-400 mt-1">Calibración y contraste estadístico vs Campbell y Daza (Predio FCAG)</p>
+            <h1 class="text-3xl font-black text-white" id="tituloInforme">Laboratorio de Análisis de EMAs</h1>
+            <p class="text-slate-400 mt-1" id="subtituloInforme">Calibración y contraste estadístico vs Campbell y Daza (Predio FCAG)</p>
 
             <div class="glass p-4 rounded-2xl flex flex-col md:flex-row items-center gap-4 mt-6 no-print flex-wrap">
+                <div class="flex items-center gap-2">
+                    <label class="font-medium text-xs text-slate-400 uppercase tracking-wide">Estación bajo prueba</label>
+                    <select id="estacionPruebaSelect" class="bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none focus:border-sky-500">
+                        <option value="verde">EMA Verde</option>
+                        <option value="blanca">EMA Blanca</option>
+                    </select>
+                </div>
                 <div class="flex items-center gap-2">
                     <label class="font-medium text-xs text-slate-400 uppercase tracking-wide">Resolución</label>
                     <select id="dataResolution" class="bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none focus:border-sky-500">
@@ -91,7 +102,7 @@
                     <label class="font-medium text-xs text-slate-400 uppercase tracking-wide">Hasta</label>
                     <input type="datetime-local" id="endDatetime" class="bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none focus:border-sky-500">
                 </div>
-                
+
                 <div class="flex items-center gap-2 w-full md:w-auto ml-auto">
                     <button onclick="generarInforme()" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2 rounded-lg transition-all font-bold shadow-lg flex-1">
                         <i class="fa-solid fa-flask mr-2"></i>Analizar
@@ -111,20 +122,25 @@
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Consultando bases de datos y procesando estructuras matemáticas...
         </div>
 
+        <!-- Aviso si el backend de QC no está configurado -->
+        <div id="qcNoConfigurado" class="glass p-4 rounded-2xl mb-8 border-l-4 border-amber-500 text-sm text-amber-300 no-print" style="display:none;">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i> El Control de Calidad (marcar/excluir lecturas anómalas) todavía no está configurado — ver <code>apps-script-qc/README.md</code>. El resto del informe funciona igual.
+        </div>
+
         <!-- Ficha técnica de estaciones -->
         <div class="glass p-6 rounded-2xl mb-8">
             <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide mb-4"><i class="fa-solid fa-id-card mr-1"></i>Instrumental Bajo Análisis</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div class="border-l-4 border-emerald-500 pl-3">
-                    <p class="font-bold text-white">EMA Verde</p>
-                    <p class="text-slate-400">Canal TS: 2218686. Pluviómetro: 0.816 mm/pulso.</p>
+                    <p class="font-bold text-white" id="fichaPruebaNombre">EMA Verde</p>
+                    <p class="text-slate-400" id="fichaPruebaDesc">Canal TS: 2218686. Pluviómetro: 0.816 mm/pulso.</p>
                 </div>
                 <div class="border-l-4 border-sky-500 pl-3">
-                    <p class="font-bold text-white">Campbell (Referencia)</p>
+                    <p class="font-bold text-white">Campbell (Referencia primaria)</p>
                     <p class="text-slate-400">Canal TS: 2823820.</p>
                 </div>
                 <div class="border-l-4 border-red-500 pl-3">
-                    <p class="font-bold text-white">Daza / Wunderground</p>
+                    <p class="font-bold text-white">Daza / Wunderground (Referencia secundaria)</p>
                     <p class="text-slate-400">ID: ILAPLA66. Predio FCAGLP.</p>
                 </div>
             </div>
@@ -150,23 +166,31 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-300">
                     <div>
                         <p class="font-bold text-white mb-1">Bias (Sesgo Medio)</p>
-                        <p class="mb-2">Evalúa si la EMA Verde subestima o sobreestima sistemáticamente frente a la referencia. Un Bias positivo indica que Verde mide valores más altos en promedio.</p>
-                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">Bias = (1/N) * Σ(Verde_i - Ref_i)</p>
+                        <p class="mb-2">Evalúa si la estación bajo prueba subestima o sobreestima sistemáticamente frente a la referencia. Un Bias positivo indica que mide valores más altos en promedio.</p>
+                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">Bias = (1/N) * Σ(Prueba_i - Ref_i)</p>
                     </div>
                     <div>
                         <p class="font-bold text-white mb-1">MAE (Error Absoluto Medio)</p>
                         <p class="mb-2">Es la magnitud promedio del error entre el sensor evaluado y la referencia, sin importar si el error fue por exceso o por defecto.</p>
-                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">MAE = (1/N) * Σ|Verde_i - Ref_i|</p>
+                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">MAE = (1/N) * Σ|Prueba_i - Ref_i|</p>
                     </div>
                     <div>
                         <p class="font-bold text-white mb-1">RMSE (Raíz del Error Cuadrático Medio)</p>
                         <p class="mb-2">Similar al MAE, pero al elevar las diferencias al cuadrado antes de promediarlas, penaliza severamente los errores grandes o atípicos (espurios del sensor).</p>
-                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">RMSE = √[ (1/N) * Σ(Verde_i - Ref_i)² ]</p>
+                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">RMSE = √[ (1/N) * Σ(Prueba_i - Ref_i)² ]</p>
                     </div>
                     <div>
                         <p class="font-bold text-white mb-1">Correlación (r de Pearson)</p>
                         <p class="mb-2">Con rigurosidad, es una medida de sincronía matemática. Evalúa cómo co-varían ambas series con un espacio de tiempo o rezago definido, sin que esto implique una influencia directa o relación causal entre los sensores.</p>
-                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">r = Cov(Verde, Ref) / (σ_Verde * σ_Ref)</p>
+                        <p class="font-mono text-xs bg-slate-800 p-2 rounded">r = Cov(Prueba, Ref) / (σ_Prueba * σ_Ref)</p>
+                    </div>
+                    <div class="md:col-span-2 border-t border-white/10 pt-4">
+                        <p class="font-bold text-white mb-1">Separación diurna/nocturna (solo Temperatura)</p>
+                        <p>Se promedian por separado las lecturas de horas de radiación solar máxima (11-17h) y de noche (23-05h). Si el sesgo de la estación bajo prueba es notablemente mayor de día que de noche, suele apuntar a sobrecalentamiento por ventilación o protección solar insuficiente en la garita, más que a un desvío general del sensor.</p>
+                    </div>
+                    <div class="md:col-span-2 border-t border-white/10 pt-4">
+                        <p class="font-bold text-white mb-1">Sugerencias de Control de Calidad (QC)</p>
+                        <p>Por cada variable continua se listan los puntos cuyo residuo contra Campbell se aparta más de 2.5 desvíos estándar del resto — una sugerencia estadística de posibles errores puntuales del sensor (spikes, desconexiones), no un veredicto automático. Marcar un punto lo excluye de <strong>todos</strong> los análisis futuros (cualquier resolución), hasta que se desmarque.</p>
                     </div>
                 </div>
             </div>
@@ -174,7 +198,14 @@
     </div>
 
 <script>
-    const V_VERDE = { id: "2218686", api: "O85A0DJ31L8MQZ6F", mult: 1.0, field: 4 };
+    const STATIONS_PRUEBA = {
+        verde:  { label: 'EMA Verde',  id: "2218686", api: "O85A0DJ31L8MQZ6F", mult: 1.0,
+                  desc: 'Canal TS: 2218686. Pluviómetro: 0.816 mm/pulso.',
+                  fields: { temp: 1, hum: 2, pres: 6, lluvia: 4 } },
+        blanca: { label: 'EMA Blanca', id: "2218689", api: "ZLNOSLZJPQM3H7SD", mult: 1.0,
+                  desc: 'Canal TS: 2218689 ("EMA BLANCA a PRUEBA en LPO").',
+                  fields: { temp: 1, hum: 2, pres: 6, lluvia: 5 } }
+    };
     const C_STATION = { id: "2823820", api: "FFI1HK80ZKDNS6V8", mult: 1.0, field: 5 };
     const D_ILAPLATA = { stationId: "ILAPLA66", apiKey: "470147c769f6493f8147c769f6693fd9" };
 
@@ -185,16 +216,32 @@
     }
 
     const VARS = {
-        temp:   { label: 'Temperatura',      unit: '°C',  verdeField: 1, campbellField: 1, color: '#f97316', accumulated: false,
+        temp:   { label: 'Temperatura',      unit: '°C',  campbellField: 1, color: '#f97316', accumulated: false,
                   dazaExtract: (o) => (o.metric ? parseDazaNum(o.metric.tempAvg) : null) },
-        hum:    { label: 'Humedad',          unit: '%',   verdeField: 2, campbellField: 4, color: '#0ea5e9', accumulated: false,
+        hum:    { label: 'Humedad',          unit: '%',   campbellField: 4, color: '#0ea5e9', accumulated: false,
                   dazaExtract: (o) => parseDazaNum(o.humidityAvg != null ? o.humidityAvg : o.humidity) },
-        pres:   { label: 'Presión',          unit: 'hPa', verdeField: 6, campbellField: 6, color: '#8b5cf6', accumulated: false,
+        pres:   { label: 'Presión',          unit: 'hPa', campbellField: 6, color: '#8b5cf6', accumulated: false,
                   dazaExtract: (o) => (o.metric ? parseDazaNum(o.metric.pressureMax) : null) },
-        lluvia: { label: 'Lluvia', unit: 'mm',  verdeField: 4, campbellField: 5, color: '#22c55e', accumulated: true,
+        lluvia: { label: 'Lluvia', unit: 'mm',  campbellField: 5, color: '#22c55e', accumulated: true,
                   dazaExtract: (o) => (o.metric ? parseDazaNum(o.metric.precipTotal) : null) }
     };
 
+    // ============================================================
+    // Ficha técnica dinámica según la estación bajo prueba elegida
+    // ============================================================
+    function actualizarFichaPrueba() {
+        const key = document.getElementById('estacionPruebaSelect').value;
+        const st = STATIONS_PRUEBA[key];
+        document.getElementById('fichaPruebaNombre').innerText = st.label;
+        document.getElementById('fichaPruebaDesc').innerText = st.desc;
+        document.getElementById('tituloInforme').innerText = `Laboratorio de Análisis: ${st.label}`;
+        document.getElementById('subtituloInforme').innerText = `Calibración y contraste estadístico vs Campbell y Daza (Predio FCAG)`;
+    }
+    document.getElementById('estacionPruebaSelect').addEventListener('change', actualizarFichaPrueba);
+
+    // ============================================================
+    // Fetch
+    // ============================================================
     async function fetchChannelField(id, apiKey, fieldNum, startStr, endStr) {
         const tsStart = startStr.replace('T', '%20') + ':00';
         const tsEnd = endStr.replace('T', '%20') + ':59';
@@ -209,6 +256,9 @@
         }
     }
 
+    // ============================================================
+    // Bucketing (resolución dinámica)
+    // ============================================================
     function createBuckets(startStr, endStr, resolution) {
         const start = new Date(startStr);
         const end = new Date(endStr);
@@ -235,9 +285,9 @@
             } else {
                 key = `${pad(current.getDate())}/${pad(current.getMonth()+1)} ${pad(current.getHours())}:${pad(current.getMinutes())}`;
             }
-            
+
             buckets.set(key, { sum: 0, count: 0, value: 0 });
-            
+
             if (resolution === 'diario') current.setDate(current.getDate() + 1);
             else if (resolution === 'horario') current.setHours(current.getHours() + 1);
             else current.setMinutes(current.getMinutes() + 15);
@@ -253,16 +303,20 @@
         return `${pad(dateObj.getDate())}/${pad(dateObj.getMonth()+1)} ${pad(dateObj.getHours())}:${pad(m)}`;
     }
 
-    function processContinuousSeries(feeds, fieldNum, startStr, endStr, resolution) {
+    // "excluded" (opcional): Set de timestamps ISO (tal cual vienen del feed/obs
+    // original) marcados por QC — esas lecturas se descartan ANTES de entrar a
+    // cualquier bucket, sin importar la resolución elegida.
+    function processContinuousSeries(feeds, fieldNum, startStr, endStr, resolution, excluded) {
         const { buckets } = createBuckets(startStr, endStr, resolution);
         const fieldKey = "field" + fieldNum;
-        
+
         feeds.forEach(f => {
+            if (excluded && excluded.has(f.created_at)) return;
             const val = parseFloat(f[fieldKey]);
             if (isNaN(val)) return;
             const dateObj = new Date(f.created_at);
             const key = formatKey(dateObj, resolution);
-            
+
             if (buckets.has(key)) {
                 const b = buckets.get(key);
                 b.sum += val;
@@ -278,16 +332,19 @@
         return { labels, chartData };
     }
 
-    function processWUContinuousVariable(observations, extractFn, startStr, endStr, resolution) {
+    function wuTsKey(o) { return o.obsTimeUtc || o.obsTimeLocal; }
+
+    function processWUContinuousVariable(observations, extractFn, startStr, endStr, resolution, excluded) {
         const { buckets } = createBuckets(startStr, endStr, resolution);
-        
+
         observations.forEach(o => {
             if (!o.obsTimeLocal && !o.obsTimeUtc) return;
+            if (excluded && excluded.has(wuTsKey(o))) return;
             const val = extractFn(o);
             if (val == null) return;
             const ts = new Date((o.obsTimeLocal || o.obsTimeUtc).replace(' ', 'T'));
             const key = formatKey(ts, resolution);
-            
+
             if (buckets.has(key)) {
                 const b = buckets.get(key);
                 b.sum += val;
@@ -303,7 +360,7 @@
         return { labels, chartData };
     }
 
-    function processStationData(allFeedsData, mult, startStr, endStr, isCampbell, resolution) {
+    function processStationData(allFeedsData, mult, startStr, endStr, isCampbell, resolution, excluded) {
         const { buckets } = createBuckets(startStr, endStr, resolution);
         let totalPeriod = 0;
         let recordsCount = 0;
@@ -313,12 +370,13 @@
         allFeedsData.forEach(source => {
             const fieldKey = "field" + source.field;
             source.feeds.forEach(f => {
+                if (excluded && excluded.has(f.created_at)) return;
                 const val = parseFloat(f[fieldKey]);
                 if (isNaN(val)) return;
                 const ts = f.created_at;
                 const dateObj = new Date(ts);
                 const key = formatKey(dateObj, resolution);
-                
+
                 if (buckets.has(key)) bucketsWithData.add(key);
 
                 if (val > 0 && !seenTimestamps.has(ts)) {
@@ -338,12 +396,12 @@
         const hasData = labels.map(k => bucketsWithData.has(k));
         const chartData = [];
         let runningSum = 0;
-        
+
         labels.forEach(k => {
             runningSum += buckets.get(k).value;
             chartData.push(runningSum);
         });
-        
+
         return { total: totalPeriod.toFixed(2), chartData, incrementData, labels, recordsCount, hasData };
     }
 
@@ -380,18 +438,19 @@
         return results.flat();
     }
 
-    function processWUData(observations, startStr, endStr, resolution) {
+    function processWUData(observations, startStr, endStr, resolution, excluded) {
         const { buckets } = createBuckets(startStr, endStr, resolution);
         const byDay = new Map();
         const pad = (n) => n.toString().padStart(2, '0');
-        
+
         observations.forEach(o => {
             if (!o.obsTimeLocal && !o.obsTimeUtc) return;
+            if (excluded && excluded.has(wuTsKey(o))) return;
             const ts = new Date((o.obsTimeLocal || o.obsTimeUtc).replace(' ', 'T'));
             const dayKey = `${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}`;
             const precipTotalRaw = o.metric ? o.metric.precipTotal : null;
             const precipTotal = precipTotalRaw != null ? parseFloat(precipTotalRaw) : NaN;
-            
+
             if (isNaN(precipTotal)) return;
             if (!byDay.has(dayKey)) byDay.set(dayKey, []);
             byDay.get(dayKey).push({ ts, precipTotal });
@@ -406,15 +465,15 @@
             if (idx > 0) previousDaysOffset += lastDayTotal;
             const dayObs = byDay.get(dayKey).sort((a, b) => a.ts - b.ts);
             lastDayTotal = 0;
-            
+
             dayObs.forEach(o => {
                 const cumulative = previousDaysOffset + o.precipTotal;
                 lastDayTotal = o.precipTotal;
                 const key = formatKey(o.ts, resolution);
-                
-                if (buckets.has(key)) { 
-                    buckets.get(key).value = cumulative; 
-                    bucketsWithData.add(key); 
+
+                if (buckets.has(key)) {
+                    buckets.get(key).value = cumulative;
+                    bucketsWithData.add(key);
                 }
             });
         });
@@ -423,13 +482,13 @@
         const hasData = labels.map(k => bucketsWithData.has(k));
         const chartData = [];
         let lastKnown = 0;
-        
-        labels.forEach(k => {
+
+        labels.forEach((k, i) => {
             const v = buckets.get(k).value;
-            if (v > 0 || hasData[labels.indexOf(k)]) lastKnown = v;
+            if (v > 0 || hasData[i]) lastKnown = v;
             chartData.push(lastKnown);
         });
-        
+
         return { total: lastKnown.toFixed(2), chartData, labels, hasData };
     }
 
@@ -445,6 +504,9 @@
         return inc.map((v, i) => stationResult.hasData[i] ? v : null);
     }
 
+    // ============================================================
+    // Estadística
+    // ============================================================
     function pairStats(a, b) {
         const xs = [], ys = [];
         for (let i = 0; i < a.length; i++) {
@@ -494,8 +556,8 @@
         return { text: 'baja', cls: 'pill-bad' };
     }
 
-    function rainAnomalyWarning(totals) {
-        const entries = [['Verde', totals.verde], ['Campbell', totals.camp], ['Daza', totals.daza]];
+    function rainAnomalyWarning(totals, pruebaLabel) {
+        const entries = [[pruebaLabel, totals.prueba], ['Campbell', totals.camp], ['Daza', totals.daza]];
         const positive = entries.filter(e => e[1] > 0);
         if (positive.length < 2) return null;
         const max = positive.reduce((a, b) => a[1] > b[1] ? a : b);
@@ -504,8 +566,165 @@
         return `El total de <strong>${max[0]}</strong> (${max[1].toFixed(1)} mm) es marcadamente superior al de <strong>${min[0]}</strong> (${min[1].toFixed(1)} mm). Revisar posibles falsos pulsos mecánicos o limpieza del balancín en el sensor.`;
     }
 
+    // ============================================================
+    // Separación diurna / nocturna (solo temperatura, efecto radiación)
+    // ============================================================
+    const isDayHour = h => h >= 11 && h < 17;   // horas de radiación solar máxima
+    const isNightHour = h => h >= 23 || h < 5;  // horas sin radiación
+
+    function hourlyMean(feeds, fieldNum, hourPredicate, excluded) {
+        const fieldKey = "field" + fieldNum;
+        let sum = 0, n = 0;
+        feeds.forEach(f => {
+            if (excluded && excluded.has(f.created_at)) return;
+            const val = parseFloat(f[fieldKey]);
+            if (isNaN(val)) return;
+            if (hourPredicate(new Date(f.created_at).getHours())) { sum += val; n++; }
+        });
+        return n > 0 ? { mean: +(sum / n).toFixed(2), n } : { mean: null, n: 0 };
+    }
+
+    function hourlyMeanWU(observations, extractFn, hourPredicate, excluded) {
+        let sum = 0, n = 0;
+        observations.forEach(o => {
+            if (!o.obsTimeLocal && !o.obsTimeUtc) return;
+            if (excluded && excluded.has(wuTsKey(o))) return;
+            const val = extractFn(o);
+            if (val == null) return;
+            const ts = new Date((o.obsTimeLocal || o.obsTimeUtc).replace(' ', 'T'));
+            if (hourPredicate(ts.getHours())) { sum += val; n++; }
+        });
+        return n > 0 ? { mean: +(sum / n).toFixed(2), n } : { mean: null, n: 0 };
+    }
+
+    function dayNightBlock(dn, unit, pruebaLabel) {
+        const row = (label, d) => `<tr><td>${label}</td><td class="num">${d.mean != null ? d.mean + ' ' + unit : 's/d'} (n=${d.n})</td></tr>`;
+        return `
+            <div class="mt-4 border-t border-white/10 pt-4">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Promedio por franja horaria (día 11-17h vs noche 23-05h)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <table><tbody>
+                        <tr><td colspan="2" class="font-bold text-slate-300">${pruebaLabel}</td></tr>
+                        ${row('Día', dn.pruebaDay)}${row('Noche', dn.pruebaNight)}
+                    </tbody></table>
+                    <table><tbody>
+                        <tr><td colspan="2" class="font-bold text-slate-300">Campbell</td></tr>
+                        ${row('Día', dn.campDay)}${row('Noche', dn.campNight)}
+                    </tbody></table>
+                    <table><tbody>
+                        <tr><td colspan="2" class="font-bold text-slate-300">Daza</td></tr>
+                        ${row('Día', dn.dazaDay)}${row('Noche', dn.dazaNight)}
+                    </tbody></table>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // Sugerencias de QC: outliers por comparación cruda (sin bucketear)
+    // contra Campbell, emparejando por cercanía temporal.
+    // ============================================================
+    function extractRawPairs(feeds, fieldNum) {
+        const fieldKey = "field" + fieldNum;
+        const out = [];
+        feeds.forEach(f => {
+            const val = parseFloat(f[fieldKey]);
+            if (isNaN(val)) return;
+            out.push({ tsIso: f.created_at, ts: new Date(f.created_at), val });
+        });
+        out.sort((a, b) => a.ts - b.ts);
+        return out;
+    }
+
+    function computeOutliers(pruebaRaw, campRaw, toleranceMin = 10, zThresh = 2.5) {
+        if (pruebaRaw.length === 0 || campRaw.length === 0) return [];
+        const toleranceMs = toleranceMin * 60000;
+        const pares = [];
+
+        pruebaRaw.forEach(p => {
+            // Buscar el punto de Campbell más cercano en el tiempo, dentro de tolerancia.
+            let mejor = null, mejorDist = Infinity;
+            for (const c of campRaw) {
+                const dist = Math.abs(c.ts - p.ts);
+                if (dist < mejorDist) { mejorDist = dist; mejor = c; }
+                if (c.ts > p.ts && dist > mejorDist) break; // campRaw está ordenado, no va a mejorar
+            }
+            if (mejor && mejorDist <= toleranceMs) {
+                pares.push({ prueba: p, camp: mejor, residuo: p.val - mejor.val });
+            }
+        });
+
+        if (pares.length < 5) return []; // muy pocos pares para que un z-score tenga sentido
+
+        const media = pares.reduce((s, p) => s + p.residuo, 0) / pares.length;
+        const varianza = pares.reduce((s, p) => s + (p.residuo - media) ** 2, 0) / pares.length;
+        const desvio = Math.sqrt(varianza);
+        if (desvio === 0) return [];
+
+        return pares
+            .map(p => ({ ...p, z: (p.residuo - media) / desvio }))
+            .filter(p => Math.abs(p.z) > zThresh)
+            .sort((a, b) => Math.abs(b.z) - Math.abs(a.z))
+            .slice(0, 20); // no abrumar la tabla
+    }
+
+    // ============================================================
+    // Backend de QC (opcional)
+    // ============================================================
+    function qcConfigurado() {
+        return typeof QC_APPS_SCRIPT_URL !== 'undefined' && QC_APPS_SCRIPT_URL && !QC_APPS_SCRIPT_URL.includes('PEGAR_URL');
+    }
+
+    function fetchQCFlags() {
+        if (!qcConfigurado()) return Promise.resolve([]);
+        return new Promise((resolve) => {
+            const callbackName = "onQC_" + Date.now();
+            window[callbackName] = (data) => {
+                delete window[callbackName];
+                document.getElementById(callbackName + "_script")?.remove();
+                resolve(data && data.ok ? data.puntos : []);
+            };
+            const script = document.createElement("script");
+            script.id = callbackName + "_script";
+            script.src = QC_APPS_SCRIPT_URL + "?callback=" + callbackName + "&token=" + encodeURIComponent(QC_APPS_SCRIPT_TOKEN);
+            script.onerror = () => { delete window[callbackName]; resolve([]); };
+            document.body.appendChild(script);
+        });
+    }
+
+    function marcarPuntoQC(estacion, variable, tsIso, valor, motivo) {
+        return fetch(QC_APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                accion: "marcar",
+                puntos: [{ estacion, variable, timestampIso: tsIso, valor, motivo }],
+                marcadoPor: "",
+                token: QC_APPS_SCRIPT_TOKEN,
+            }),
+        }).then(r => r.json());
+    }
+
+    // Set de tsIso excluidos, por estación, para la variable actual.
+    // qcFlagsPorVariable[varKey] = { prueba: Set, camp: Set, daza: Set }
+    let qcFlagsPorVariable = {};
+
+    function construirExclusionSets(puntosQC) {
+        const porVar = {};
+        Object.keys(VARS).forEach(v => { porVar[v] = { prueba: new Set(), camp: new Set(), daza: new Set() }; });
+        puntosQC.forEach(p => {
+            if (!porVar[p.variable]) return;
+            const grupo = p.estacion === 'campbell' ? 'camp' : (p.estacion === 'daza' ? 'daza' : 'prueba');
+            porVar[p.variable][grupo].add(p.timestampIso);
+        });
+        return porVar;
+    }
+
+    // ============================================================
+    // Orquestación
+    // ============================================================
     let lastReport = null;
-    let chartInstances = {}; // Modificado a objeto para acceder fácilmente al hacer reset
+    let chartInstances = {};
 
     function resetChartZoom(varKey) {
         if (chartInstances[varKey]) {
@@ -523,12 +742,16 @@
         const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // Default a últimos 7 días
         document.getElementById('startDatetime').value = toInputValue(start);
         document.getElementById('endDatetime').value = toInputValue(now);
+        actualizarFichaPrueba();
+        if (!qcConfigurado()) document.getElementById('qcNoConfigurado').style.display = 'block';
     });
 
     async function generarInforme() {
         const startStr = document.getElementById('startDatetime').value;
         const endStr = document.getElementById('endDatetime').value;
         const res = document.getElementById('dataResolution').value;
+        const estacionKey = document.getElementById('estacionPruebaSelect').value;
+        const estacionPrueba = STATIONS_PRUEBA[estacionKey];
 
         if (!startStr || !endStr) { alert('Definí un rango de fechas.'); return; }
 
@@ -537,40 +760,59 @@
         document.getElementById('btnCSV').disabled = true;
         document.getElementById('btnPDF').disabled = true;
 
-        const report = { startStr, endStr, res, variables: {} };
+        const puntosQC = await fetchQCFlags();
+        qcFlagsPorVariable = construirExclusionSets(puntosQC);
+
+        const report = { startStr, endStr, res, estacionKey, pruebaLabel: estacionPrueba.label, variables: {} };
 
         for (const varKey of Object.keys(VARS)) {
             const cfg = VARS[varKey];
-            const [feedsVerde, feedsCampbell, wuObservations] = await Promise.all([
-                fetchChannelField(V_VERDE.id, V_VERDE.api, cfg.verdeField, startStr, endStr),
+            const excl = qcFlagsPorVariable[varKey];
+            const [feedsPrueba, feedsCampbell, wuObservations] = await Promise.all([
+                fetchChannelField(estacionPrueba.id, estacionPrueba.api, estacionPrueba.fields[varKey], startStr, endStr),
                 fetchChannelField(C_STATION.id, C_STATION.api, cfg.campbellField, startStr, endStr),
                 fetchWURangeData(D_ILAPLATA.stationId, D_ILAPLATA.apiKey, startStr, endStr)
             ]);
 
-            let verdeSeries, campSeries, dazaSeries, labels, totals = null;
+            let pruebaSeries, campSeries, dazaSeries, labels, totals = null, dayNight = null, outliers = [];
 
             if (cfg.accumulated) {
-                const verdeResult = processStationData([feedsVerde], V_VERDE.mult, startStr, endStr, true, res);
-                const campResult = processStationData([feedsCampbell], 1.0, startStr, endStr, true, res);
-                const dazaResult = processWUData(wuObservations, startStr, endStr, res);
-                
-                labels = verdeResult.labels;
-                verdeSeries = getIncrementSeriesMasked(verdeResult);
+                const pruebaResult = processStationData([feedsPrueba], estacionPrueba.mult, startStr, endStr, true, res, excl.prueba);
+                const campResult = processStationData([feedsCampbell], 1.0, startStr, endStr, true, res, excl.camp);
+                const dazaResult = processWUData(wuObservations, startStr, endStr, res, excl.daza);
+
+                labels = pruebaResult.labels;
+                pruebaSeries = getIncrementSeriesMasked(pruebaResult);
                 campSeries = getIncrementSeriesMasked(campResult);
                 dazaSeries = getIncrementSeriesMasked(dazaResult);
-                totals = { verde: parseFloat(verdeResult.total), camp: parseFloat(campResult.total), daza: parseFloat(dazaResult.total) };
+                totals = { prueba: parseFloat(pruebaResult.total), camp: parseFloat(campResult.total), daza: parseFloat(dazaResult.total) };
             } else {
-                const verdeResult = processContinuousSeries(feedsVerde.feeds, cfg.verdeField, startStr, endStr, res);
-                const campResult = processContinuousSeries(feedsCampbell.feeds, cfg.campbellField, startStr, endStr, res);
-                const dazaResult = processWUContinuousVariable(wuObservations, cfg.dazaExtract, startStr, endStr, res);
-                
-                labels = verdeResult.labels;
-                verdeSeries = verdeResult.chartData;
+                const pruebaResult = processContinuousSeries(feedsPrueba.feeds, estacionPrueba.fields[varKey], startStr, endStr, res, excl.prueba);
+                const campResult = processContinuousSeries(feedsCampbell.feeds, cfg.campbellField, startStr, endStr, res, excl.camp);
+                const dazaResult = processWUContinuousVariable(wuObservations, cfg.dazaExtract, startStr, endStr, res, excl.daza);
+
+                labels = pruebaResult.labels;
+                pruebaSeries = pruebaResult.chartData;
                 campSeries = campResult.chartData;
                 dazaSeries = dazaResult.chartData;
+
+                if (varKey === 'temp') {
+                    dayNight = {
+                        pruebaDay: hourlyMean(feedsPrueba.feeds, estacionPrueba.fields[varKey], isDayHour, excl.prueba),
+                        pruebaNight: hourlyMean(feedsPrueba.feeds, estacionPrueba.fields[varKey], isNightHour, excl.prueba),
+                        campDay: hourlyMean(feedsCampbell.feeds, cfg.campbellField, isDayHour, excl.camp),
+                        campNight: hourlyMean(feedsCampbell.feeds, cfg.campbellField, isNightHour, excl.camp),
+                        dazaDay: hourlyMeanWU(wuObservations, cfg.dazaExtract, isDayHour, excl.daza),
+                        dazaNight: hourlyMeanWU(wuObservations, cfg.dazaExtract, isNightHour, excl.daza)
+                    };
+                }
+
+                const pruebaRaw = extractRawPairs(feedsPrueba.feeds, estacionPrueba.fields[varKey]).filter(p => !excl.prueba.has(p.tsIso));
+                const campRaw = extractRawPairs(feedsCampbell.feeds, cfg.campbellField).filter(p => !excl.camp.has(p.tsIso));
+                outliers = computeOutliers(pruebaRaw, campRaw);
             }
 
-            report.variables[varKey] = { cfg, labels, verde: verdeSeries, camp: campSeries, daza: dazaSeries, totals };
+            report.variables[varKey] = { cfg, labels, prueba: pruebaSeries, camp: campSeries, daza: dazaSeries, totals, dayNight, outliers, excludedCount: { prueba: excl.prueba.size, camp: excl.camp.size, daza: excl.daza.size } };
         }
 
         lastReport = report;
@@ -581,8 +823,56 @@
         document.getElementById('btnPDF').disabled = false;
     }
 
+    function outlierTableHtml(varKey, outliers, unit, pruebaLabel) {
+        if (outliers.length === 0) {
+            return `<p class="text-xs text-slate-500 mt-4">Sin puntos sospechosos detectados (residuo &gt; 2.5σ) en este período.</p>`;
+        }
+        const configurado = qcConfigurado();
+        const filas = outliers.map((o, i) => {
+            const fecha = o.prueba.ts.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            const acciones = configurado
+                ? `<button class="btn-mini bg-emerald-700 hover:bg-emerald-600 text-white" onclick="marcarOutlier('${varKey}', ${i}, 'prueba')">Marcar ${pruebaLabel}</button>
+                   <button class="btn-mini bg-sky-700 hover:bg-sky-600 text-white" onclick="marcarOutlier('${varKey}', ${i}, 'campbell')">Marcar Campbell</button>`
+                : `<span class="text-xs text-slate-500">QC no configurado</span>`;
+            return `
+                <tr id="qc-row-${varKey}-${i}">
+                    <td>${fecha}</td>
+                    <td class="num">${o.prueba.val.toFixed(2)} ${unit}</td>
+                    <td class="num">${o.camp.val.toFixed(2)} ${unit}</td>
+                    <td class="num">${o.residuo > 0 ? '+' : ''}${o.residuo.toFixed(2)} (z=${o.z.toFixed(1)})</td>
+                    <td class="flex gap-1 flex-wrap">${acciones}</td>
+                </tr>`;
+        }).join('');
+        return `
+            <div class="mt-4 border-t border-white/10 pt-4">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide mb-2"><i class="fa-solid fa-magnifying-glass mr-1"></i>Sugerencias de QC (posibles lecturas anómalas)</h4>
+                <div class="overflow-x-auto">
+                <table>
+                    <thead><tr><th>Fecha/Hora</th><th>${pruebaLabel}</th><th>Campbell</th><th>Residuo</th><th>Acción</th></tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+                </div>
+            </div>
+        `;
+    }
+
+    async function marcarOutlier(varKey, idx, cual) {
+        const outlier = lastReport.variables[varKey].outliers[idx];
+        const row = document.getElementById(`qc-row-${varKey}-${idx}`);
+        const punto = cual === 'prueba' ? outlier.prueba : outlier.camp;
+        const estacion = cual === 'prueba' ? lastReport.estacionKey : 'campbell';
+        const motivo = prompt(`Motivo para marcar este punto de ${cual === 'prueba' ? lastReport.pruebaLabel : 'Campbell'} como anómalo (opcional):`, 'Spike / lectura espuria');
+        if (motivo === null) return; // canceló
+
+        const resp = await marcarPuntoQC(estacion, varKey, punto.tsIso, punto.val, motivo);
+        if (resp && resp.ok) {
+            if (row) row.innerHTML = `<td colspan="5" class="text-emerald-400"><i class="fa-solid fa-check mr-1"></i>Marcado — se va a excluir la próxima vez que generes el informe.</td>`;
+        } else {
+            alert('No se pudo marcar el punto: ' + (resp && resp.error ? resp.error : 'error desconocido'));
+        }
+    }
+
     function renderReport(report) {
-        // Destruir gráficos anteriores
         Object.values(chartInstances).forEach(c => c.destroy());
         chartInstances = {};
 
@@ -591,28 +881,48 @@
 
         const resumen = [];
         const recomendaciones = [];
+        const pruebaLabel = report.pruebaLabel;
         const rangeLabel = `${report.startStr.replace('T', ' ')} → ${report.endStr.replace('T', ' ')}`;
-        resumen.push(`Período de integración: ${rangeLabel}. Base de estructuración matemática: ${report.res}.`);
+        resumen.push(`Estación bajo prueba: <strong>${pruebaLabel}</strong>. Período de integración: ${rangeLabel}. Base de estructuración matemática: ${report.res}.`);
 
         Object.entries(report.variables).forEach(([varKey, v]) => {
-            const statsCamp = pairStats(v.verde, v.camp);
-            const statsDaza = pairStats(v.verde, v.daza);
-            const compVerde = completeness(v.verde);
+            const statsCamp = pairStats(v.prueba, v.camp);
+            const statsDaza = pairStats(v.prueba, v.daza);
+            const compPrueba = completeness(v.prueba);
             const compCamp = completeness(v.camp);
             const compDaza = completeness(v.daza);
 
             let rainWarning = null;
             if (v.cfg.accumulated && v.totals) {
-                resumen.push(`Registro hidrométrico: Verde ${v.totals.verde.toFixed(1)} mm | Campbell ${v.totals.camp.toFixed(1)} mm | Daza ${v.totals.daza.toFixed(1)} mm.`);
-                rainWarning = rainAnomalyWarning(v.totals);
+                resumen.push(`Registro hidrométrico: ${pruebaLabel} ${v.totals.prueba.toFixed(1)} mm | Campbell ${v.totals.camp.toFixed(1)} mm | Daza ${v.totals.daza.toFixed(1)} mm.`);
+                rainWarning = rainAnomalyWarning(v.totals, pruebaLabel);
                 if (rainWarning) recomendaciones.push(`Pluviometría: ${rainWarning}`);
             } else {
                 const lc = rLabel(statsCamp.r);
                 const sesgoTxt = statsCamp.bias != null
-                    ? `${v.cfg.label}: EMA Verde reporta un bias de ${statsCamp.bias > 0 ? '+' : ''}${statsCamp.bias} ${v.cfg.unit} respecto a Campbell. r(Pearson) = ${statsCamp.r}.`
+                    ? `${v.cfg.label}: ${pruebaLabel} reporta un bias de ${statsCamp.bias > 0 ? '+' : ''}${statsCamp.bias} ${v.cfg.unit} respecto a Campbell. r(Pearson) = ${statsCamp.r}.`
                     : `${v.cfg.label}: Capacidad de cruce insuficiente para la estadística paramétrica.`;
                 resumen.push(sesgoTxt);
+
+                if (v.outliers && v.outliers.length > 0) {
+                    recomendaciones.push(`${v.cfg.label}: se detectaron ${v.outliers.length} punto(s) con residuo &gt;2.5σ respecto a Campbell — revisar la tabla de sugerencias de QC en esta sección.`);
+                }
             }
+
+            if (varKey === 'temp' && v.dayNight) {
+                const dn = v.dayNight;
+                if (dn.pruebaDay.mean != null && dn.campDay.mean != null && dn.pruebaNight.mean != null && dn.campNight.mean != null) {
+                    const biasDay = +(dn.pruebaDay.mean - dn.campDay.mean).toFixed(2);
+                    const biasNight = +(dn.pruebaNight.mean - dn.campNight.mean).toFixed(2);
+                    if (Math.sign(biasDay) === Math.sign(biasNight) && Math.abs(biasDay) - Math.abs(biasNight) > 0.3) {
+                        recomendaciones.push(`Temperatura: el sesgo de ${pruebaLabel} vs Campbell es notablemente mayor en horas de radiación solar máxima (11-17h: ${biasDay > 0 ? '+' : ''}${biasDay} °C) que de noche (23-05h: ${biasNight > 0 ? '+' : ''}${biasNight} °C) — sugiere sobrecalentamiento por ventilación/protección solar insuficiente en la garita.`);
+                    }
+                }
+            }
+
+            const excluidosTxt = (v.excludedCount.prueba + v.excludedCount.camp + v.excludedCount.daza) > 0
+                ? `<p class="text-xs text-slate-500 mt-2">QC: ${v.excludedCount.prueba} lectura(s) de ${pruebaLabel}, ${v.excludedCount.camp} de Campbell y ${v.excludedCount.daza} de Daza excluidas por marcado previo.</p>`
+                : '';
 
             const sectionEl = document.createElement('div');
             sectionEl.className = 'glass p-6 rounded-2xl';
@@ -626,57 +936,52 @@
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Verde vs Campbell</h4>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">${pruebaLabel} vs Campbell</h4>
                         ${statsTable(statsCamp, v.cfg.unit)}
                     </div>
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Verde vs Daza</h4>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">${pruebaLabel} vs Daza</h4>
                         ${statsTable(statsDaza, v.cfg.unit)}
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4 mt-4 text-center border-t border-white/10 pt-4">
-                    <div><p class="card-title">Cobertura Verde</p><p class="text-xl font-bold text-emerald-400">${compVerde}%</p></div>
+                    <div><p class="card-title">Cobertura ${pruebaLabel}</p><p class="text-xl font-bold text-emerald-400">${compPrueba}%</p></div>
                     <div><p class="card-title">Cobertura Campbell</p><p class="text-xl font-bold text-sky-400">${compCamp}%</p></div>
                     <div><p class="card-title">Cobertura Daza</p><p class="text-xl font-bold text-red-400">${compDaza}%</p></div>
                 </div>
+                ${excluidosTxt}
                 ${v.cfg.accumulated && v.totals ? `
                 <div class="grid grid-cols-3 gap-4 mt-4 text-center border-t border-white/10 pt-4">
-                    <div><p class="card-title">Total Verde</p><p class="text-xl font-bold text-emerald-400">${v.totals.verde.toFixed(1)} mm</p></div>
+                    <div><p class="card-title">Total ${pruebaLabel}</p><p class="text-xl font-bold text-emerald-400">${v.totals.prueba.toFixed(1)} mm</p></div>
                     <div><p class="card-title">Total Campbell</p><p class="text-xl font-bold text-sky-400">${v.totals.camp.toFixed(1)} mm</p></div>
                     <div><p class="card-title">Total Daza</p><p class="text-xl font-bold text-red-400">${v.totals.daza.toFixed(1)} mm</p></div>
                 </div>` : ''}
+                ${rainWarning ? `<div class="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${rainWarning}</div>` : ''}
+                ${varKey === 'temp' && v.dayNight ? dayNightBlock(v.dayNight, v.cfg.unit, pruebaLabel) : ''}
+                ${!v.cfg.accumulated ? outlierTableHtml(varKey, v.outliers, v.cfg.unit, pruebaLabel) : ''}
             `;
             container.appendChild(sectionEl);
 
             const ctx = document.getElementById(`chart-line-${varKey}`).getContext('2d');
-            
-            // Configuración del gráfico con el plugin de zoom activado
+
             chartInstances[varKey] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: v.labels,
                     datasets: [
-                        { label: 'EMA Verde', data: v.verde, borderColor: '#22c55e', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 },
+                        { label: pruebaLabel, data: v.prueba, borderColor: '#22c55e', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 },
                         { label: 'Campbell', data: v.camp, borderColor: '#0ea5e9', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 },
                         { label: 'Daza', data: v.daza, borderColor: '#ef4444', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 }
                     ]
                 },
                 options: {
-                    responsive: true, 
+                    responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
+                    plugins: {
                         legend: { labels: { color: '#cbd5e1' } },
                         zoom: {
-                            pan: {
-                                enabled: true,
-                                mode: 'x',
-                                modifierKey: 'ctrl', // Opcional: requiere apretar ctrl, lo dejo libre abajo
-                            },
-                            zoom: {
-                                wheel: { enabled: true },
-                                pinch: { enabled: true },
-                                mode: 'x',
-                            }
+                            pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
                         }
                     },
                     scales: {
@@ -718,35 +1023,35 @@
 
     function descargarCSV() {
         if (!lastReport) return;
-        const rows = [['Fecha', 'Resolucion', 'Variable', 'Verde', 'Campbell', 'Daza']];
+        const rows = [['Fecha', 'Resolucion', 'Variable', lastReport.pruebaLabel, 'Campbell', 'Daza']];
         Object.entries(lastReport.variables).forEach(([varKey, v]) => {
             v.labels.forEach((label, i) => {
-                rows.push([label, lastReport.res, v.cfg.label, v.verde[i] ?? '', v.camp[i] ?? '', v.daza[i] ?? '']);
+                rows.push([label, lastReport.res, v.cfg.label, v.prueba[i] ?? '', v.camp[i] ?? '', v.daza[i] ?? '']);
             });
         });
         const csv = rows.map(row => row.map(toCSVValue).join(';')).join('\r\n');
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `FCAG_Laboratorio_Verde_${lastReport.res}_${lastReport.startStr.slice(0,10)}.csv`;
+        a.download = `FCAG_Laboratorio_${lastReport.estacionKey}_${lastReport.res}_${lastReport.startStr.slice(0,10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     }
 
     function descargarPDF() {
         const elemento = document.getElementById('laboratorio-container');
-        
+
         const opt = {
             margin:       10,
-            filename:     `Informe_Laboratorio_Verde_${new Date().toISOString().slice(0,10)}.pdf`,
+            filename:     `Informe_Laboratorio_${lastReport ? lastReport.estacionKey : 'EMA'}_${new Date().toISOString().slice(0,10)}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, logging: false },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         elemento.classList.add('pdf-export-mode');
-        
+
         html2pdf().set(opt).from(elemento).save().then(() => {
             elemento.classList.remove('pdf-export-mode');
         });
