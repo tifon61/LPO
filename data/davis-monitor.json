@@ -3,8 +3,8 @@
   "current_status": "up",
   "current_reason": null,
   "down_since": null,
-  "last_data_timestamp": "2026-09-22T10:10:00+00:00",
-  "last_check": "2026-09-22T10:19:16.011324+00:00",
+  "last_data_timestamp": "2026-09-22T14:55:00+00:00",
+  "last_check": "2026-09-22T15:04:34.483404+00:00",
   "current_issue_number": 6,
   "incidents": [
     {
