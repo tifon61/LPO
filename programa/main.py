@@ -358,7 +358,7 @@ class App(ttk.Window):
             def _dia_siguiente(dia_a, dia_b):
                 return (date.fromisoformat(dia_b) - date.fromisoformat(dia_a)).days == 1
 
-            alphas_dia = [0.04, 0.1]
+            alphas_dia = [0.07, 0.16]
             for idx, seg in enumerate(segmentos):
                 anterior = segmentos[idx - 1] if idx > 0 else None
                 siguiente = segmentos[idx + 1] if idx + 1 < len(segmentos) else None
