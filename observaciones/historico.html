@@ -93,7 +93,7 @@
                         <option value="pEstHpa">P. Estación (hPa)</option>
                         <option value="pnmHpa">P. Nivel del Mar (hPa)</option>
                         <option value="tensionVapor">Tensión de Vapor (hPa)</option>
-                        <option value="lluvia">Lluvia (mm)</option>
+                        <option value="lluvia">Lluvia acumulada (mm)</option>
                     </select>
                 </div>
                 <div class="relative w-full h-[280px]">
@@ -305,10 +305,15 @@
         function pintarChart(filas, variable) {
             const ctx = document.getElementById("chartVariable");
             const labels = filas.map((f) => `${f.fecha} ${f.hora}`);
+            // La lluvia se carga como milímetros caídos desde la última lectura
+            // (no como total acumulado del instrumento), así que para mostrar el
+            // acumulado hay que ir sumando cada observación de la serie.
+            let acumuladoLluvia = 0;
             const datos = filas.map((f) => {
                 if (variable === "lluvia") {
-                    // Sin dato de lluvia = no llovió (0); nunca se muestran negativos.
-                    return typeof f.lluvia === "number" ? Math.max(0, f.lluvia) : 0;
+                    const v = typeof f.lluvia === "number" ? Math.max(0, f.lluvia) : 0;
+                    acumuladoLluvia += v;
+                    return acumuladoLluvia;
                 }
                 return typeof f[variable] === "number" ? f[variable] : null;
             });
@@ -319,12 +324,16 @@
                     labels,
                     datasets: [
                         {
-                            label: document.getElementById("selectVariable").selectedOptions[0].textContent,
+                            label: variable === "lluvia"
+                                ? "Lluvia acumulada (mm)"
+                                : document.getElementById("selectVariable").selectedOptions[0].textContent,
                             data: datos,
                             borderColor: "#1e3a8a",
                             backgroundColor: "rgba(30,58,138,0.12)",
                             tension: 0.25,
                             spanGaps: true,
+                            fill: variable === "lluvia",
+                            stepped: variable === "lluvia" ? "before" : false,
                         },
                     ],
                 },

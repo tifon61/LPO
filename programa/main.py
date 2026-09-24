@@ -46,7 +46,7 @@ VARIABLES_GRAFICO = [
     ("p_est_hpa", "P. Estación (hPa)"),
     ("pnm_hpa", "P. Nivel del Mar (hPa)"),
     ("tension_vapor", "Tensión de Vapor (hPa)"),
-    ("lluvia", "Lluvia (mm)"),
+    ("lluvia", "Lluvia acumulada (mm)"),
 ]
 
 FUENTE_FORMULA = ("Consolas", 9)
@@ -308,22 +308,31 @@ class App(ttk.Window):
 
         self.ejes.clear()
         puntos = []
+        acumulado_lluvia = 0
         for f in datos:
             if f.get("descartada"):
                 continue
             valor = f.get(clave)
             if clave == "lluvia":
-                # Sin dato de lluvia = no llovió (0); nunca se muestran negativos.
+                # La lluvia se carga como mm caídos desde la última lectura, no
+                # como total del instrumento, así que el acumulado se arma
+                # sumando cada observación de la serie. Nunca se muestran
+                # negativos.
                 valor = max(0, valor) if valor is not None else 0
+                acumulado_lluvia += valor
+                valor = acumulado_lluvia
             elif valor is None:
                 continue
             puntos.append((f"{f['fecha']} {f['hora']}", valor))
         if puntos:
             etiquetas_x = [p[0] for p in puntos]
             valores_y = [p[1] for p in puntos]
-            self.ejes.plot(etiquetas_x, valores_y, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
             if clave == "lluvia":
+                self.ejes.step(etiquetas_x, valores_y, where="post", color=COLOR_ACENTO, linewidth=1.5)
+                self.ejes.fill_between(etiquetas_x, valores_y, step="post", color=COLOR_ACENTO, alpha=0.15)
                 self.ejes.set_ylim(bottom=0)
+            else:
+                self.ejes.plot(etiquetas_x, valores_y, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
             # No saturar el eje X de etiquetas si hay muchas observaciones.
             paso = max(1, len(etiquetas_x) // 10)
             self.ejes.set_xticks(etiquetas_x[::paso])

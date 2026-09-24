@@ -346,6 +346,26 @@
             }, 5000);
         }
 
+        // Atajo de teclado: Enter pasa a la siguiente casilla en vez de enviar
+        // el formulario de golpe. En la última casilla, Enter guarda.
+        const ORDEN_CAMPOS = [
+            "fecha", "hora", "observador", "tSeca", "tHumeda", "tMax", "tMin",
+            "tAdjunto", "barometro", "tSeca12hAntes", "lluvia",
+        ];
+        form.addEventListener("keydown", (ev) => {
+            if (ev.key !== "Enter") return;
+            const idx = ORDEN_CAMPOS.indexOf(ev.target.id);
+            if (idx === -1) return;
+            ev.preventDefault();
+            if (idx < ORDEN_CAMPOS.length - 1) {
+                const siguiente = document.getElementById(ORDEN_CAMPOS[idx + 1]);
+                siguiente.focus();
+                if (typeof siguiente.select === "function") siguiente.select();
+            } else {
+                document.getElementById("btnGuardar").click();
+            }
+        });
+
         form.addEventListener("submit", async (ev) => {
             ev.preventDefault();
             const input = leerInputs();
