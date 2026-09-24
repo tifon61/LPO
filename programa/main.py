@@ -309,6 +309,7 @@ class App(ttk.Window):
         self.ejes.clear()
         puntos = []
         acumulado_lluvia = 0
+        hay_algun_valor = False
         for f in datos:
             if f.get("descartada"):
                 continue
@@ -321,10 +322,16 @@ class App(ttk.Window):
                 valor = max(0, valor) if valor is not None else 0
                 acumulado_lluvia += valor
                 valor = acumulado_lluvia
+                hay_algun_valor = True
             elif valor is None:
-                continue
+                # No se deja afuera del gráfico: se deja como hueco (NaN), así
+                # la línea se corta ahí en vez de "pegar" el punto anterior
+                # con el siguiente como si fueran continuos.
+                valor = float("nan")
+            else:
+                hay_algun_valor = True
             puntos.append((f"{f['fecha']} {f['hora']}", valor))
-        if puntos:
+        if puntos and hay_algun_valor:
             etiquetas_x = [p[0] for p in puntos]
             valores_y = [p[1] for p in puntos]
             if clave == "lluvia":
