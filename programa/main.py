@@ -52,6 +52,12 @@ VARIABLES_GRAFICO = [
 FUENTE_FORMULA = ("Consolas", 9)
 
 
+def _fecha_ddmmaaaa(fecha_iso):
+    """'2026-09-20' -> '20/09/2026', para mostrar en el eje del gráfico."""
+    anio, mes, dia = fecha_iso.split("-")
+    return f"{dia}/{mes}/{anio}"
+
+
 class MarcoDesplazable(ttk.Frame):
     """Un frame con scroll vertical, para meter adentro contenido más
     largo que la ventana (usado en la pestaña Fórmulas)."""
@@ -330,28 +336,40 @@ class App(ttk.Window):
                 valor = float("nan")
             else:
                 hay_algun_valor = True
-            puntos.append((f"{f['fecha']} {f['hora']}", valor))
+            etiqueta_x = f"{_fecha_ddmmaaaa(f['fecha'])} {f['hora']}"
+            puntos.append((etiqueta_x, f["fecha"], valor))
         if puntos and hay_algun_valor:
             etiquetas_x = [p[0] for p in puntos]
-            valores_y = [p[1] for p in puntos]
+            fechas_iso = [p[1] for p in puntos]
+            valores_y = [p[2] for p in puntos]
 
             # Franjas de fondo alternadas por día, para distinguir a simple
-            # vista dónde termina un día y empieza el siguiente.
+            # vista dónde termina un día y empieza el siguiente. Si entre dos
+            # observaciones hay uno o más días completos sin datos, esa zona
+            # queda en blanco en vez de "pegar" los días que sí tienen datos.
+            n = len(etiquetas_x)
+            segmentos = []
+            for i, dia in enumerate(fechas_iso):
+                if not segmentos or segmentos[-1]["dia"] != dia:
+                    segmentos.append({"dia": dia, "inicio": i, "fin": i})
+                else:
+                    segmentos[-1]["fin"] = i
+
+            def _dia_siguiente(dia_a, dia_b):
+                return (date.fromisoformat(dia_b) - date.fromisoformat(dia_a)).days == 1
+
             alphas_dia = [0.04, 0.1]
-            dia_actual = None
-            inicio_idx = 0
-            color_idx = -1
-            for i, etiqueta in enumerate(etiquetas_x + [None]):
-                dia = etiqueta[:10] if etiqueta is not None else None
-                if dia != dia_actual:
-                    if dia_actual is not None:
-                        color_idx += 1
-                        self.ejes.axvspan(
-                            inicio_idx - 0.5, i - 0.5,
-                            facecolor=COLOR_ACENTO, alpha=alphas_dia[color_idx % 2], zorder=0,
-                        )
-                    dia_actual = dia
-                    inicio_idx = i
+            for idx, seg in enumerate(segmentos):
+                anterior = segmentos[idx - 1] if idx > 0 else None
+                siguiente = segmentos[idx + 1] if idx + 1 < len(segmentos) else None
+                toca_antes = anterior is not None and _dia_siguiente(anterior["dia"], seg["dia"])
+                toca_despues = siguiente is not None and _dia_siguiente(seg["dia"], siguiente["dia"])
+
+                x_inicio = seg["inicio"] - 0.5 if (seg["inicio"] == 0 or toca_antes) else seg["inicio"]
+                x_fin = seg["fin"] + 0.5 if (seg["fin"] == n - 1 or toca_despues) else seg["fin"]
+                self.ejes.axvspan(
+                    x_inicio, x_fin, facecolor=COLOR_ACENTO, alpha=alphas_dia[idx % 2], zorder=0,
+                )
 
             if clave == "lluvia":
                 self.ejes.step(etiquetas_x, valores_y, where="post", color=COLOR_ACENTO, linewidth=1.5)
