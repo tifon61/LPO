@@ -334,6 +334,25 @@ class App(ttk.Window):
         if puntos and hay_algun_valor:
             etiquetas_x = [p[0] for p in puntos]
             valores_y = [p[1] for p in puntos]
+
+            # Franjas de fondo alternadas por día, para distinguir a simple
+            # vista dónde termina un día y empieza el siguiente.
+            alphas_dia = [0.04, 0.1]
+            dia_actual = None
+            inicio_idx = 0
+            color_idx = -1
+            for i, etiqueta in enumerate(etiquetas_x + [None]):
+                dia = etiqueta[:10] if etiqueta is not None else None
+                if dia != dia_actual:
+                    if dia_actual is not None:
+                        color_idx += 1
+                        self.ejes.axvspan(
+                            inicio_idx - 0.5, i - 0.5,
+                            facecolor=COLOR_ACENTO, alpha=alphas_dia[color_idx % 2], zorder=0,
+                        )
+                    dia_actual = dia
+                    inicio_idx = i
+
             if clave == "lluvia":
                 self.ejes.step(etiquetas_x, valores_y, where="post", color=COLOR_ACENTO, linewidth=1.5)
                 self.ejes.fill_between(etiquetas_x, valores_y, step="post", color=COLOR_ACENTO, alpha=0.15)
