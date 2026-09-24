@@ -302,6 +302,15 @@
             return seleccionActual;
         }
 
+        // ¿diaB es exactamente el día calendario siguiente a diaA? (en UTC,
+        // para no depender de la zona horaria del navegador). Se usa tanto
+        // para las franjas de fondo como para cortar la línea del gráfico.
+        function esDiaSiguiente(diaA, diaB) {
+            const a = new Date(diaA + "T00:00:00Z");
+            const b = new Date(diaB + "T00:00:00Z");
+            return b - a === 86400000;
+        }
+
         // Pinta franjas de fondo alternadas por día detrás de la línea, para
         // distinguir a simple vista dónde termina un día y empieza el
         // siguiente. Si entre dos observaciones hay uno o más días sin datos
@@ -328,14 +337,6 @@
                         actual.fin = i;
                     }
                 });
-
-                // ¿diaB es exactamente el día calendario siguiente a diaA? (en
-                // UTC, para no depender de la zona horaria del navegador).
-                const esDiaSiguiente = (diaA, diaB) => {
-                    const a = new Date(diaA + "T00:00:00Z");
-                    const b = new Date(diaB + "T00:00:00Z");
-                    return b - a === 86400000;
-                };
 
                 ctx.save();
                 segmentos.forEach((seg, idx) => {
@@ -402,6 +403,24 @@
                             spanGaps: false,
                             fill: variable === "lluvia",
                             stepped: variable === "lluvia" ? "before" : false,
+                            // Si entre dos observaciones hay uno o más días
+                            // completos sin datos, no se traza la línea (ni el
+                            // relleno) entre esos dos puntos — no sabemos qué
+                            // pasó ese día, así que no corresponde interpolar.
+                            segment: {
+                                borderColor: (c) => {
+                                    const diaA = dias[c.p0DataIndex];
+                                    const diaB = dias[c.p1DataIndex];
+                                    const seguidos = diaA === diaB || esDiaSiguiente(diaA, diaB);
+                                    return seguidos ? undefined : "transparent";
+                                },
+                                backgroundColor: (c) => {
+                                    const diaA = dias[c.p0DataIndex];
+                                    const diaB = dias[c.p1DataIndex];
+                                    const seguidos = diaA === diaB || esDiaSiguiente(diaA, diaB);
+                                    return seguidos ? undefined : "transparent";
+                                },
+                            },
                         },
                     ],
                 },

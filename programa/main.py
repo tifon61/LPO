@@ -342,21 +342,22 @@ class App(ttk.Window):
             etiquetas_x = [p[0] for p in puntos]
             fechas_iso = [p[1] for p in puntos]
             valores_y = [p[2] for p in puntos]
+            n = len(puntos)
+            xs = list(range(n))
+
+            def _dia_siguiente(dia_a, dia_b):
+                return (date.fromisoformat(dia_b) - date.fromisoformat(dia_a)).days == 1
 
             # Franjas de fondo alternadas por día, para distinguir a simple
             # vista dónde termina un día y empieza el siguiente. Si entre dos
             # observaciones hay uno o más días completos sin datos, esa zona
             # queda en blanco en vez de "pegar" los días que sí tienen datos.
-            n = len(etiquetas_x)
             segmentos = []
             for i, dia in enumerate(fechas_iso):
                 if not segmentos or segmentos[-1]["dia"] != dia:
                     segmentos.append({"dia": dia, "inicio": i, "fin": i})
                 else:
                     segmentos[-1]["fin"] = i
-
-            def _dia_siguiente(dia_a, dia_b):
-                return (date.fromisoformat(dia_b) - date.fromisoformat(dia_a)).days == 1
 
             alphas_dia = [0.07, 0.16]
             for idx, seg in enumerate(segmentos):
@@ -371,15 +372,35 @@ class App(ttk.Window):
                     x_inicio, x_fin, facecolor=COLOR_ACENTO, alpha=alphas_dia[idx % 2], zorder=0,
                 )
 
+            # Recorta la línea en tramos separados (sin interpolar) cada vez
+            # que entre dos observaciones hay uno o más días completos sin
+            # datos — no sabemos qué pasó ese día, así que no corresponde
+            # dibujar una línea continua de punta a punta.
+            tramos = []
+            inicio_tramo = 0
+            for i in range(1, n):
+                seguidos = fechas_iso[i] == fechas_iso[i - 1] or _dia_siguiente(fechas_iso[i - 1], fechas_iso[i])
+                if not seguidos:
+                    tramos.append((inicio_tramo, i))
+                    inicio_tramo = i
+            tramos.append((inicio_tramo, n))
+
+            for ini, fin in tramos:
+                xs_tramo = xs[ini:fin]
+                ys_tramo = valores_y[ini:fin]
+                if clave == "lluvia":
+                    self.ejes.step(xs_tramo, ys_tramo, where="post", color=COLOR_ACENTO, linewidth=1.5)
+                    self.ejes.fill_between(xs_tramo, ys_tramo, step="post", color=COLOR_ACENTO, alpha=0.15)
+                else:
+                    self.ejes.plot(xs_tramo, ys_tramo, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
             if clave == "lluvia":
-                self.ejes.step(etiquetas_x, valores_y, where="post", color=COLOR_ACENTO, linewidth=1.5)
-                self.ejes.fill_between(etiquetas_x, valores_y, step="post", color=COLOR_ACENTO, alpha=0.15)
                 self.ejes.set_ylim(bottom=0)
-            else:
-                self.ejes.plot(etiquetas_x, valores_y, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
+
             # No saturar el eje X de etiquetas si hay muchas observaciones.
-            paso = max(1, len(etiquetas_x) // 10)
-            self.ejes.set_xticks(etiquetas_x[::paso])
+            paso = max(1, n // 10)
+            ticks = xs[::paso]
+            self.ejes.set_xticks(ticks)
+            self.ejes.set_xticklabels([etiquetas_x[i] for i in ticks])
             self.figura.autofmt_xdate(rotation=30, ha="right")
         else:
             self.ejes.text(0.5, 0.5, "Sin datos todavía", ha="center", va="center", color="#94a3b8")
