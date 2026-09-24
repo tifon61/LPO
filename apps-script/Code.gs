@@ -222,7 +222,21 @@ function getSheet_() {
     sheet.appendRow(COLUMNAS.map(function (c) { return c.header; }));
     sheet.setFrozenRows(1);
   }
+  asegurarFormatoTexto_(sheet);
   return sheet;
+}
+
+// Fuerza que las columnas Fecha y Hora sean texto plano ("@"), no fecha/hora
+// autodetectada. Si Sheets las autoconvierte, cada lectura+escritura de esa
+// celda (ej. ordenarSheetPorFechaHora_) corre el riesgo de desfasar el valor
+// por cómo Apps Script interpreta la zona horaria al ida y vuelta — mejor
+// que nunca sean un tipo Fecha/Hora dentro de la Sheet.
+function asegurarFormatoTexto_(sheet) {
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; }) + 1;
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; }) + 1;
+  var filas = Math.max(sheet.getMaxRows(), 1000);
+  sheet.getRange(1, colFecha, filas, 1).setNumberFormat("@");
+  sheet.getRange(1, colHora, filas, 1).setNumberFormat("@");
 }
 
 // Busca la fila (1-indexada, incluyendo el encabezado) cuya fecha+hora
@@ -255,9 +269,20 @@ function ordenarSheetPorFechaHora_(sheet) {
   var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; });
   var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; });
 
+  // Normaliza fecha/hora a texto plano ANTES de reordenar. Si Sheets ya
+  // había autoconvertido alguna celda a un valor de Fecha/Hora, reescribir
+  // ese mismo objeto tal cual (sin pasar por esta normalización) corre el
+  // riesgo de desfasarlo unos minutos en cada ida y vuelta por cómo Apps
+  // Script interpreta la zona horaria al leer y volver a escribir un Date —
+  // por eso además de ordenar, esto "sana" el valor a la fecha/hora real.
+  valores.forEach(function (fila) {
+    fila[colFecha] = formatearFecha_(fila[colFecha]);
+    fila[colHora] = formatearHora_(fila[colHora]);
+  });
+
   valores.sort(function (a, b) {
-    var claveA = formatearFecha_(a[colFecha]) + " " + formatearHora_(a[colHora]);
-    var claveB = formatearFecha_(b[colFecha]) + " " + formatearHora_(b[colHora]);
+    var claveA = a[colFecha] + " " + a[colHora];
+    var claveB = b[colFecha] + " " + b[colHora];
     if (claveA < claveB) return -1;
     if (claveA > claveB) return 1;
     return 0;
