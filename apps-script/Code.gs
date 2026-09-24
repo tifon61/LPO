@@ -400,7 +400,7 @@ function doPost(e) {
     var lluvia = numOrNull(body.lluvia);
 
     var errores = validarObservacion_({
-      tSeca: input.tSeca, tHumeda: input.tHumeda, tAdjunto: input.tAdjunto,
+      hora: body.hora, tSeca: input.tSeca, tHumeda: input.tHumeda, tAdjunto: input.tAdjunto,
       barometro: input.barometro, tSeca12hAntes: input.tSeca12hAntes,
       tMax: tMax, tMin: tMin, lluvia: lluvia,
     });
