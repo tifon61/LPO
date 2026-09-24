@@ -315,6 +315,7 @@ class App(ttk.Window):
         self.ejes.clear()
         puntos = []
         acumulado_lluvia = 0
+        dia_acumulado_actual = None
         hay_algun_valor = False
         for f in datos:
             if f.get("descartada"):
@@ -323,8 +324,12 @@ class App(ttk.Window):
             if clave == "lluvia":
                 # La lluvia se carga como mm caídos desde la última lectura, no
                 # como total del instrumento, así que el acumulado se arma
-                # sumando cada observación de la serie. Nunca se muestran
-                # negativos.
+                # sumando cada observación de la serie — pero se reinicia en 0
+                # al empezar cada día (es el acumulado del día, no de todo el
+                # período que se esté mirando). Nunca se muestran negativos.
+                if f["fecha"] != dia_acumulado_actual:
+                    dia_acumulado_actual = f["fecha"]
+                    acumulado_lluvia = 0
                 valor = max(0, valor) if valor is not None else 0
                 acumulado_lluvia += valor
                 valor = acumulado_lluvia

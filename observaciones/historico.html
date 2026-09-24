@@ -376,10 +376,17 @@
             const dias = filas.map((f) => f.fecha);
             // La lluvia se carga como milímetros caídos desde la última lectura
             // (no como total acumulado del instrumento), así que para mostrar el
-            // acumulado hay que ir sumando cada observación de la serie.
+            // acumulado hay que ir sumando cada observación de la serie — pero
+            // reiniciando en 0 al empezar cada día (es el acumulado del día,
+            // no de todo el período que se esté mirando).
             let acumuladoLluvia = 0;
+            let diaAcumuladoActual = null;
             const datos = filas.map((f) => {
                 if (variable === "lluvia") {
+                    if (f.fecha !== diaAcumuladoActual) {
+                        diaAcumuladoActual = f.fecha;
+                        acumuladoLluvia = 0;
+                    }
                     const v = typeof f.lluvia === "number" ? Math.max(0, f.lluvia) : 0;
                     acumuladoLluvia += v;
                     return acumuladoLluvia;
