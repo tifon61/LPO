@@ -302,23 +302,25 @@
             return seleccionActual;
         }
 
-        // Pinta franjas de fondo alternadas por día (labels con formato
-        // "YYYY-MM-DD HH:MM"), para distinguir a simple vista dónde termina
-        // un día y empieza el siguiente en la línea de tiempo.
+        // Pinta franjas de fondo alternadas por día detrás de la línea, para
+        // distinguir a simple vista dónde termina un día y empieza el
+        // siguiente. Si entre dos observaciones hay uno o más días sin datos
+        // (ej. no se cargó nada el día 21), esa zona queda en blanco en vez
+        // de "pegar" las franjas de los días que sí tienen datos. Recibe la
+        // fecha (ISO "YYYY-MM-DD") de cada punto por chart.options.plugins.
         const bandasPorDia = {
             id: "bandasPorDia",
-            beforeDatasetsDraw(chart) {
+            beforeDatasetsDraw(chart, args, opts) {
                 const { ctx, chartArea, scales } = chart;
                 if (!chartArea) return;
-                const labels = chart.data.labels || [];
-                if (labels.length === 0) return;
+                const dias = (opts && opts.dias) || [];
+                if (dias.length === 0) return;
                 const xScale = scales.x;
                 const colores = ["rgba(30, 58, 138, 0.035)", "rgba(30, 58, 138, 0.09)"];
 
                 const segmentos = [];
                 let actual = null;
-                labels.forEach((label, i) => {
-                    const dia = String(label).slice(0, 10);
+                dias.forEach((dia, i) => {
                     if (!actual || actual.dia !== dia) {
                         actual = { dia, inicio: i, fin: i };
                         segmentos.push(actual);
@@ -327,14 +329,32 @@
                     }
                 });
 
+                // ¿diaB es exactamente el día calendario siguiente a diaA? (en
+                // UTC, para no depender de la zona horaria del navegador).
+                const esDiaSiguiente = (diaA, diaB) => {
+                    const a = new Date(diaA + "T00:00:00Z");
+                    const b = new Date(diaB + "T00:00:00Z");
+                    return b - a === 86400000;
+                };
+
                 ctx.save();
                 segmentos.forEach((seg, idx) => {
+                    const anterior = segmentos[idx - 1];
+                    const siguiente = segmentos[idx + 1];
+                    const tocaConAnterior = anterior && esDiaSiguiente(anterior.dia, seg.dia);
+                    const tocaConSiguiente = siguiente && esDiaSiguiente(seg.dia, siguiente.dia);
+
                     const xInicio = seg.inicio === 0
                         ? chartArea.left
-                        : (xScale.getPixelForTick(seg.inicio) + xScale.getPixelForTick(seg.inicio - 1)) / 2;
-                    const xFin = seg.fin === labels.length - 1
+                        : tocaConAnterior
+                            ? (xScale.getPixelForTick(seg.inicio) + xScale.getPixelForTick(seg.inicio - 1)) / 2
+                            : xScale.getPixelForTick(seg.inicio);
+                    const xFin = seg.fin === dias.length - 1
                         ? chartArea.right
-                        : (xScale.getPixelForTick(seg.fin) + xScale.getPixelForTick(seg.fin + 1)) / 2;
+                        : tocaConSiguiente
+                            ? (xScale.getPixelForTick(seg.fin) + xScale.getPixelForTick(seg.fin + 1)) / 2
+                            : xScale.getPixelForTick(seg.fin);
+
                     ctx.fillStyle = colores[idx % 2];
                     ctx.fillRect(xInicio, chartArea.top, xFin - xInicio, chartArea.bottom - chartArea.top);
                 });
@@ -342,9 +362,17 @@
             },
         };
 
+        // "YYYY-MM-DD" (como lo manda el servidor) -> "DD/MM/YYYY" (como se
+        // muestra en el eje del gráfico).
+        function formatearFechaDDMMAAAA(fechaIso) {
+            const [anio, mes, dia] = fechaIso.split("-");
+            return `${dia}/${mes}/${anio}`;
+        }
+
         function pintarChart(filas, variable) {
             const ctx = document.getElementById("chartVariable");
-            const labels = filas.map((f) => `${f.fecha} ${f.hora}`);
+            const labels = filas.map((f) => `${formatearFechaDDMMAAAA(f.fecha)} ${f.hora}`);
+            const dias = filas.map((f) => f.fecha);
             // La lluvia se carga como milímetros caídos desde la última lectura
             // (no como total acumulado del instrumento), así que para mostrar el
             // acumulado hay que ir sumando cada observación de la serie.
@@ -383,6 +411,9 @@
                     scales: {
                         x: { ticks: { maxTicksLimit: 10 } },
                         y: variable === "lluvia" ? { min: 0 } : {},
+                    },
+                    plugins: {
+                        bandasPorDia: { dias },
                     },
                 },
                 plugins: [bandasPorDia],
