@@ -155,7 +155,10 @@ function validarObservacion_(input) {
   var errores = [];
   for (var campo in RANGOS) {
     var valor = input[campo];
-    if (valor === null || valor === undefined || valor === "") continue;
+    if (valor === null || valor === undefined || valor === "") {
+      errores.push("Falta completar " + RANGOS[campo].etiqueta + ".");
+      continue;
+    }
     if (typeof valor !== "number" || isNaN(valor)) {
       errores.push(RANGOS[campo].etiqueta + ": no es un número válido.");
       continue;
@@ -164,6 +167,9 @@ function validarObservacion_(input) {
     if (valor < r.min || valor > r.max) {
       errores.push(r.etiqueta + " fuera de rango razonable (entre " + r.min + " y " + r.max + ").");
     }
+  }
+  if (!input.observador || !String(input.observador).trim()) {
+    errores.push("Falta completar el nombre del observador.");
   }
   if (typeof input.tSeca === "number" && typeof input.tHumeda === "number" && input.tHumeda > input.tSeca + 0.05) {
     errores.push("La T. Bulbo Húmedo no puede ser mayor que la T. Bulbo Seco.");
@@ -425,7 +431,8 @@ function doPost(e) {
     var lluvia = numOrNull(body.lluvia);
 
     var errores = validarObservacion_({
-      hora: body.hora, tSeca: input.tSeca, tHumeda: input.tHumeda, tAdjunto: input.tAdjunto,
+      hora: body.hora, observador: body.observador,
+      tSeca: input.tSeca, tHumeda: input.tHumeda, tAdjunto: input.tAdjunto,
       barometro: input.barometro, tSeca12hAntes: input.tSeca12hAntes,
       tMax: tMax, tMin: tMin, lluvia: lluvia,
     });
@@ -441,11 +448,11 @@ function doPost(e) {
       observador: body.observador || "",
       tSeca: input.tSeca,
       tHumeda: input.tHumeda,
-      tMax: tMax === null ? "" : tMax,
-      tMin: tMin === null ? "" : tMin,
+      tMax: tMax,
+      tMin: tMin,
       tAdjunto: input.tAdjunto,
       barometro: input.barometro,
-      tSeca12hAntes: input.tSeca12hAntes == null ? "" : input.tSeca12hAntes,
+      tSeca12hAntes: input.tSeca12hAntes,
       pEstMmhg: calculado.pEstMmhg,
       pEstHpa: calculado.pEstHpa,
       pnmMmhg: calculado.pnmMmhg,
@@ -453,7 +460,7 @@ function doPost(e) {
       tensionVapor: calculado.tensionVapor,
       puntoRocio: calculado.puntoRocio,
       humedadRelativa: calculado.humedadRelativa,
-      lluvia: lluvia === null ? 0 : lluvia,
+      lluvia: lluvia,
       cargadoEl: new Date().toISOString(),
       descartada: false,
       motivoDescarte: "",

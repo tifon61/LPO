@@ -94,18 +94,22 @@ HORAS_VALIDAS = ("09:00", "15:00", "21:00")
 
 def validar_observacion(entrada):
     """Valida una observación antes de calcular/guardar. entrada: mismas
-    claves que RANGOS (los campos opcionales pueden faltar o venir None).
-    Devuelve una lista de mensajes de error (vacía si está todo bien)."""
+    claves que RANGOS. Devuelve una lista de mensajes de error (vacía si
+    está todo bien)."""
     errores = []
     for campo, (minimo, maximo, etiqueta) in RANGOS.items():
         valor = entrada.get(campo)
         if valor is None:
+            errores.append(f"Falta completar {etiqueta}.")
             continue
         if not isinstance(valor, (int, float)):
             errores.append(f"{etiqueta}: no es un número válido.")
             continue
         if valor < minimo or valor > maximo:
             errores.append(f"{etiqueta} fuera de rango razonable (entre {minimo} y {maximo}). Revisá si hay un error de tipeo.")
+
+    if not entrada.get("observador") or not str(entrada.get("observador")).strip():
+        errores.append("Falta completar el nombre del observador.")
 
     t_seca = entrada.get("t_seca")
     t_humeda = entrada.get("t_humeda")

@@ -28,12 +28,11 @@ local) — las tres horas sinópticas (12, 18 y 00 UTC). Por eso el campo
 "Hora" es un desplegable con esas tres opciones nada más, no un horario
 libre.
 
-## Datos obligatorios vs. opcionales
+## Datos obligatorios
 
-**Obligatorios:** Fecha, Hora, T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro.
-
-**Opcionales:** T. Máx, T. Mín, T. Bulbo Seco 12hs antes (mejora la precisión de
-la presión a nivel del mar, pero si no la tenés a mano no pasa nada), Lluvia.
+Todos los campos son obligatorios: Fecha, Hora, Observador, T. Bulbo Seco,
+T. Bulbo Húmedo, T. Máx, T. Mín, T. Adjunto, Barómetro, T. Bulbo Seco 12hs
+antes y Lluvia. Si no llovió, cargá 0 en "Lluvia".
 
 ## Si el sistema no te deja guardar
 
