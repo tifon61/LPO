@@ -109,7 +109,10 @@ function validarObservacion(input) {
   const errores = [];
   for (const campo in RANGOS) {
     const valor = input[campo];
-    if (valor === null || valor === undefined || valor === "") continue;
+    if (valor === null || valor === undefined || valor === "") {
+      errores.push(`Falta completar ${RANGOS[campo].etiqueta}.`);
+      continue;
+    }
     if (typeof valor !== "number" || Number.isNaN(valor)) {
       errores.push(`${RANGOS[campo].etiqueta}: no es un número válido.`);
       continue;
@@ -118,6 +121,10 @@ function validarObservacion(input) {
     if (valor < min || valor > max) {
       errores.push(`${etiqueta} fuera de rango razonable (entre ${min} y ${max}). Revisá si hay un error de tipeo.`);
     }
+  }
+
+  if (!input.observador || !String(input.observador).trim()) {
+    errores.push("Falta completar el nombre del observador.");
   }
 
   const tSeca = input.tSeca;

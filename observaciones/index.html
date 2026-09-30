@@ -99,8 +99,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="observador" class="input-label">Observador <span class="optional-tag">(Opcional)</span></label>
-                        <input type="text" id="observador" name="observador" maxlength="60" class="input-field">
+                        <label for="observador" class="input-label">Observador</label>
+                        <input type="text" id="observador" name="observador" maxlength="60" required class="input-field">
                     </div>
                 </div>
 
@@ -121,12 +121,12 @@
                 <!-- Fila 3: Extremos -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label for="tMax" class="input-label">T. Máxima (°C) <span class="optional-tag">(Opcional)</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax" class="input-field">
+                        <label for="tMax" class="input-label">T. Máxima (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMax" name="tMax" required class="input-field">
                     </div>
                     <div>
-                        <label for="tMin" class="input-label">T. Mínima (°C) <span class="optional-tag">(Opcional)</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin" class="input-field">
+                        <label for="tMin" class="input-label">T. Mínima (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tMin" name="tMin" required class="input-field">
                     </div>
                 </div>
 
@@ -149,18 +149,18 @@
                 <!-- Fila 5: Otros -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label for="tSeca12hAntes" class="input-label">T. Bulbo Seco 12hs antes (°C) <span class="optional-tag">(Opcional)</span></label>
-                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes" class="input-field">
+                        <label for="tSeca12hAntes" class="input-label">T. Bulbo Seco 12hs antes (°C)</label>
+                        <input type="number" step="0.1" min="-15" max="45" id="tSeca12hAntes" name="tSeca12hAntes" required class="input-field">
                     </div>
                     <div>
-                        <label for="lluvia" class="input-label">Lluvia (mm) <span class="optional-tag">(Opcional)</span></label>
-                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia" class="input-field">
+                        <label for="lluvia" class="input-label">Lluvia (mm)</label>
+                        <input type="number" step="0.1" min="0" max="500" id="lluvia" name="lluvia" required class="input-field">
                     </div>
                 </div>
 
                 <p class="text-xs text-slate-500 flex items-start gap-2 pt-2">
-                    <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i> 
-                    <span>Nota: Si el campo "T. Bulbo Seco 12hs antes" queda vacío, se aproxima con la T. Bulbo Seco actual para el cálculo de la Tabla D-4 (Presión a nivel del mar). La estación toma observaciones a las 09:00, 15:00 y 21:00 (hora local) — las tres horas sinópticas.</span>
+                    <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i>
+                    <span>Nota: la estación toma observaciones a las 09:00, 15:00 y 21:00 (hora local) — las tres horas sinópticas. Si no llovió, cargá 0 en "Lluvia".</span>
                 </p>
 
                 <div class="pt-4">

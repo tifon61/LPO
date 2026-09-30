@@ -25,15 +25,15 @@ COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
 CAMPOS = [
     ("fecha", "Fecha (AAAA-MM-DD)", True),
     ("hora", "Hora (sinóptica)", True),
-    ("observador", "Observador — opcional", False),
+    ("observador", "Observador", True),
     ("t_seca", "T. Bulbo Seco (°C)", True),
     ("t_humeda", "T. Bulbo Húmedo (°C)", True),
-    ("t_max", "T. Máx (°C) — opcional", False),
-    ("t_min", "T. Mín (°C) — opcional", False),
+    ("t_max", "T. Máx (°C)", True),
+    ("t_min", "T. Mín (°C)", True),
     ("t_adjunto", "T. Adjunto (°C)", True),
     ("barometro", "Barómetro (mmHg)", True),
-    ("t_seca_12h_antes", "T. Bulbo Seco 12hs antes (°C) — opcional", False),
-    ("lluvia", "Lluvia (mm) — opcional", False),
+    ("t_seca_12h_antes", "T. Bulbo Seco 12hs antes (°C)", True),
+    ("lluvia", "Lluvia (mm)", True),
 ]
 
 OBLIGATORIOS = ["t_seca", "t_humeda", "t_adjunto", "barometro"]
@@ -557,7 +557,7 @@ class App(ttk.Window):
         ).pack(anchor="w", pady=(0, 4))
         ttk.Label(
             guia,
-            text="Datos obligatorios: Hora, T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro. El resto es opcional.",
+            text="Todos los campos son obligatorios. Si no llovió, cargá 0 en \"Lluvia\".",
             wraplength=580, justify="left", bootstyle="secondary",
         ).pack(anchor="w")
         ttk.Label(
@@ -716,9 +716,6 @@ class App(ttk.Window):
             if clave in ("fecha", "hora", "observador"):
                 continue
             datos[clave] = self._leer_entrada(clave)
-        # Si no se cargó lluvia, se asume que no llovió (0), no que falta el dato.
-        if datos.get("lluvia") is None:
-            datos["lluvia"] = 0.0
         return datos
 
     def _recalcular(self):
