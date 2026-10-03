@@ -453,11 +453,19 @@
                 }
                 const data = await cargarHistorico();
                 if (!data.ok) throw new Error(data.error || "Error desconocido");
+                // Se normaliza la fecha de cada fila a solo "YYYY-MM-DD" (10
+                // caracteres) por si alguna quedó guardada con una hora pegada
+                // (ej. un timestamp completo colado en la celda de la Sheet) —
+                // de ahí en más, todo el resto del código asume ese formato.
+                const filasCrudas = (data.filas || []).map((f) => ({
+                    ...f,
+                    fecha: f.fecha ? String(f.fecha).slice(0, 10) : f.fecha,
+                }));
                 // La Sheet guarda las filas en el orden en que se cargaron, no en
                 // orden cronológico de la observación (si se carga una hora tarde,
                 // queda al final). Se ordena acá por fecha+hora para que el gráfico
                 // y la tabla siempre respeten la línea de tiempo real.
-                const filas = (data.filas || []).sort((a, b) => {
+                const filas = filasCrudas.sort((a, b) => {
                     const claveA = `${a.fecha || ""} ${a.hora || ""}`;
                     const claveB = `${b.fecha || ""} ${b.hora || ""}`;
                     return claveA < claveB ? -1 : claveA > claveB ? 1 : 0;

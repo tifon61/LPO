@@ -54,7 +54,7 @@ FUENTE_FORMULA = ("Consolas", 9)
 
 def _fecha_ddmmaaaa(fecha_iso):
     """'2026-09-20' -> '20/09/2026', para mostrar en el eje del gráfico."""
-    anio, mes, dia = fecha_iso.split("-")
+    anio, mes, dia = fecha_iso[:10].split("-")
     return f"{dia}/{mes}/{anio}"
 
 
@@ -313,6 +313,27 @@ class App(ttk.Window):
         datos = self._filtrar_por_periodo(db.listar_para_grafico())
 
         self.ejes.clear()
+        try:
+            self._dibujar_serie(datos, clave)
+        except Exception:
+            # Nunca debería pasar (los datos ya se validan al guardar), pero si
+            # algún dato viejo/raro de la Sheet rompe el gráfico, que se vea un
+            # aviso en vez de quedar la pantalla "pegada" sin explicación.
+            import traceback
+            traceback.print_exc()
+            self.ejes.clear()
+            self.ejes.text(
+                0.5, 0.5, "No se pudo graficar (ver consola para más detalle)",
+                ha="center", va="center", color="#b91c1c", wrap=True,
+            )
+            self.ejes.set_xticks([])
+        self.ejes.set_title(etiqueta, fontsize=10, color="#334155")
+        self.ejes.tick_params(labelsize=7)
+        self.ejes.grid(True, alpha=0.25)
+        self.figura.tight_layout()
+        self.lienzo_grafico.draw()
+
+    def _dibujar_serie(self, datos, clave):
         puntos = []
         acumulado_lluvia = 0
         dia_acumulado_actual = None
@@ -320,6 +341,10 @@ class App(ttk.Window):
         for f in datos:
             if f.get("descartada"):
                 continue
+            # Solo los primeros 10 caracteres ("YYYY-MM-DD"): por si la fecha
+            # quedó guardada con una hora pegada (ej. un timestamp completo
+            # colado en la celda de la Sheet), nunca debería romper el gráfico.
+            fecha = (f.get("fecha") or "")[:10]
             valor = f.get(clave)
             if clave == "lluvia":
                 # La lluvia se carga como mm caídos desde la última lectura, no
@@ -327,8 +352,8 @@ class App(ttk.Window):
                 # sumando cada observación de la serie — pero se reinicia en 0
                 # al empezar cada día (es el acumulado del día, no de todo el
                 # período que se esté mirando). Nunca se muestran negativos.
-                if f["fecha"] != dia_acumulado_actual:
-                    dia_acumulado_actual = f["fecha"]
+                if fecha != dia_acumulado_actual:
+                    dia_acumulado_actual = fecha
                     acumulado_lluvia = 0
                 valor = max(0, valor) if valor is not None else 0
                 acumulado_lluvia += valor
@@ -341,8 +366,8 @@ class App(ttk.Window):
                 valor = float("nan")
             else:
                 hay_algun_valor = True
-            etiqueta_x = f"{_fecha_ddmmaaaa(f['fecha'])} {f['hora']}"
-            puntos.append((etiqueta_x, f["fecha"], valor))
+            etiqueta_x = f"{_fecha_ddmmaaaa(fecha)} {f['hora']}"
+            puntos.append((etiqueta_x, fecha, valor))
         if puntos and hay_algun_valor:
             etiquetas_x = [p[0] for p in puntos]
             fechas_iso = [p[1] for p in puntos]
@@ -410,13 +435,12 @@ class App(ttk.Window):
         else:
             self.ejes.text(0.5, 0.5, "Sin datos todavía", ha="center", va="center", color="#94a3b8")
             self.ejes.set_xticks([])
-        self.ejes.set_title(etiqueta, fontsize=10, color="#334155")
-        self.ejes.tick_params(labelsize=7)
-        self.ejes.grid(True, alpha=0.25)
-        self.figura.tight_layout()
-        self.lienzo_grafico.draw()
 
     def _clave_periodo(self, fecha_iso, periodo):
+        # Se toman solo los primeros 10 caracteres ("YYYY-MM-DD") por si la
+        # fecha viene con hora pegada (ej. un timestamp completo colado en la
+        # celda) — nunca debería tirar error por eso.
+        fecha_iso = fecha_iso[:10]
         anio, mes, dia = (int(p) for p in fecha_iso.split("-"))
         fecha = date(anio, mes, dia)
         if periodo == "Mensual":
@@ -431,8 +455,9 @@ class App(ttk.Window):
         for f in datos:
             if not f.get("fecha") or f.get("descartada"):
                 continue
-            clave = self._clave_periodo(f["fecha"], periodo)
-            g = grupos.setdefault(clave, {"minimos": [], "maximos": [], "lluvia": 0, "tiene_lluvia": False, "primera_fecha": f["fecha"]})
+            fecha = f["fecha"][:10]
+            clave = self._clave_periodo(fecha, periodo)
+            g = grupos.setdefault(clave, {"minimos": [], "maximos": [], "lluvia": 0, "tiene_lluvia": False, "primera_fecha": fecha})
             if isinstance(f.get("t_seca"), (int, float)):
                 g["minimos"].append(f["t_seca"])
                 g["maximos"].append(f["t_seca"])
@@ -443,8 +468,8 @@ class App(ttk.Window):
             if isinstance(f.get("lluvia"), (int, float)):
                 g["lluvia"] += f["lluvia"]
                 g["tiene_lluvia"] = True
-            if f["fecha"] < g["primera_fecha"]:
-                g["primera_fecha"] = f["fecha"]
+            if fecha < g["primera_fecha"]:
+                g["primera_fecha"] = fecha
 
         filas = []
         for clave, g in grupos.items():
