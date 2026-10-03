@@ -25,8 +25,11 @@ def dir_datos():
     """Carpeta donde guardar archivos que tienen que persistir (config, DB)."""
     if not CONGELADO:
         return DIR_SCRIPT
-    base = os.getenv("APPDATA") or os.path.expanduser("~")
-    carpeta = os.path.join(base, "ObservacionesLPO")
+    appdata = os.getenv("APPDATA")
+    if appdata:
+        carpeta = os.path.join(appdata, "ObservacionesLPO")
+    else:
+        carpeta = os.path.join(os.path.expanduser("~"), ".observaciones-lpo")
     os.makedirs(carpeta, exist_ok=True)
     return carpeta
 

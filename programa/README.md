@@ -56,8 +56,8 @@ para rechazar lecturas reales extremas. Se aplica en los tres lugares
 ## Empaquetarlo como .exe con ícono (para instalar sin tener Python)
 
 Hay que compilarlo en Windows (un .exe se genera corriendo PyInstaller en
-Windows, no en Linux/Mac — si en algún momento alguien lo usa en Mac, se
-compila un binario Mac aparte, en una Mac).
+Windows, no en Linux/Mac — para Linux hay una receta aparte más abajo, y
+si alguien lo usa en Mac, se compila un binario Mac aparte, en una Mac).
 
 ### Paso 1 — Generar el .exe
 
@@ -65,6 +65,7 @@ compila un binario Mac aparte, en una Mac).
 py -3 -m pip install pyinstaller
 py -3 -m PyInstaller --onefile --windowed --name ObservacionesLPO ^
   --icon icono.ico ^
+  --hidden-import PIL._tkinter_finder ^
   --add-data "img;img" --add-data "icono.ico;." ^
   main.py
 ```
@@ -75,6 +76,9 @@ escribí todo en una sola línea sin los `^`). Esto deja el ejecutable en
 termómetro, que corre en cualquier Windows sin tener Python instalado.
 `--add-data` es necesario para que el .exe lleve adentro las fotos de la
 pestaña Fórmulas y el ícono — sin eso, esas imágenes no aparecerían.
+`--hidden-import PIL._tkinter_finder` evita un error típico de PyInstaller
++ Pillow + Tkinter ("No module named 'PIL._tkinter_finder'") que si no se
+agrega, el programa compilado no abre.
 
 Con solo este paso ya podés copiar `ObservacionesLPO.exe` al Escritorio o
 mandarle un acceso directo (click derecho → Enviar a → Escritorio) y va a
@@ -98,6 +102,29 @@ en "Aplicaciones y características":
 4. Queda el instalador en `programa\Output\Instalador_ObservacionesLPO.exe`
    — ese es el archivo que le pasás a cualquier computadora para "instalar"
    el programa como cualquier otro.
+
+## Empaquetarlo para Linux
+
+En Linux no hace falta "instalar" nada — alcanza con tener Python y correr
+`python3 main.py` como en la sección de arriba. Si igual querés un único
+archivo ejecutable (para copiarlo a otra compu sin instalar dependencias):
+
+```bash
+sudo apt install python3-tk   # si no lo tenés ya
+pip install -r requirements.txt pyinstaller
+python3 -m PyInstaller --onefile --windowed --name ObservacionesLPO \
+  --icon icono.png \
+  --hidden-import PIL._tkinter_finder \
+  --add-data "img:img" --add-data "icono.ico:." --add-data "icono.png:." \
+  main.py
+```
+
+(nota el `:` en vez de `;` en `--add-data` — es la sintaxis de Linux/Mac).
+Queda en `dist/ObservacionesLPO`: dale permiso de ejecución una sola vez
+(`chmod +x dist/ObservacionesLPO`) y después se abre con doble click o
+`./ObservacionesLPO`. Al igual que en Windows, la config y la base local
+quedan en la carpeta de datos del usuario (acá, `~/.observaciones-lpo/`),
+no al lado del ejecutable.
 
 ## Estructura
 
