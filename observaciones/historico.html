@@ -453,13 +453,19 @@
                 }
                 const data = await cargarHistorico();
                 if (!data.ok) throw new Error(data.error || "Error desconocido");
-                // Se normaliza la fecha de cada fila a solo "YYYY-MM-DD" (10
-                // caracteres) por si alguna quedó guardada con una hora pegada
-                // (ej. un timestamp completo colado en la celda de la Sheet) —
-                // de ahí en más, todo el resto del código asume ese formato.
+                // Se normaliza fecha y hora de cada fila por si quedaron en un
+                // formato raro en la Sheet (típico de editar la celda a mano,
+                // salteando el desplegable): fecha a solo "YYYY-MM-DD" (por si
+                // trae una hora pegada) y hora con el cero adelante ("9:00" ->
+                // "09:00") — si no, el orden alfabético por fecha+hora queda mal
+                // (un "9:00" sin cero ordena después de "15:00" y "21:00").
                 const filasCrudas = (data.filas || []).map((f) => ({
                     ...f,
                     fecha: f.fecha ? String(f.fecha).slice(0, 10) : f.fecha,
+                    hora: (() => {
+                        const partes = String(f.hora || "").split(":");
+                        return partes.length >= 2 && partes[0].length === 1 ? `0${f.hora}` : f.hora;
+                    })(),
                 }));
                 // La Sheet guarda las filas en el orden en que se cargaron, no en
                 // orden cronológico de la observación (si se carga una hora tarde,

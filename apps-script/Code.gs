@@ -34,6 +34,17 @@ function formatearHora_(valor) {
   if (Object.prototype.toString.call(valor) === "[object Date]") {
     return Utilities.formatDate(valor, ZONA_HORARIA, "HH:mm");
   }
+  // Por si quedó un string sin el cero adelante (ej. "9:00" en vez de
+  // "09:00" — típico de alguien editando la celda a mano, salteando el
+  // desplegable de la web/programa). Se normaliza acá, en el único lugar
+  // que todos los clientes usan para leer la hora, para que el orden
+  // alfabético por hora (fecha+hora como texto) siga siendo correcto.
+  if (typeof valor === "string") {
+    var partes = valor.split(":");
+    if (partes.length >= 2 && partes[0].length === 1) {
+      return "0" + valor;
+    }
+  }
   return valor;
 }
 
