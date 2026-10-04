@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 69.7h",
+      "current_reason": "Sin datos nuevos hace 73.1h",
       "down_since": "2026-10-01T06:14:56.054197+00:00",
       "last_data_timestamp": "2026-10-01T01:20:43+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 23,
       "incidents": [
         {
@@ -145,7 +145,7 @@
           "start": "2026-10-01T06:14:56.054197+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 69.7h"
+          "reason": "Sin datos nuevos hace 73.1h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
@@ -155,8 +155,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:58:57+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:23:56+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -166,8 +166,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:54:40+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:24:05+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -185,7 +185,7 @@
       "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-10-02T19:41:02.541438+00:00",
       "last_data_timestamp": "2026-10-02T14:52:45+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -202,8 +202,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:58:47+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:27:33+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -226,8 +226,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:59:28+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:26:58+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -250,8 +250,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:59:05+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:26:06+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -269,7 +269,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -298,8 +298,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-03T22:56:32+00:00",
-      "last_check": "2026-10-03T22:59:43.495105+00:00",
+      "last_data_timestamp": "2026-10-04T02:26:33+00:00",
+      "last_check": "2026-10-04T02:27:45.630658+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "EP N°23 (Bavío / EMA Violeta) — Pluviómetro"
