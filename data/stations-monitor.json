@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 145.2h",
+      "current_reason": "Sin datos nuevos hace 151.9h",
       "down_since": "2026-10-01T06:14:56.054197+00:00",
       "last_data_timestamp": "2026-10-01T01:20:43+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 23,
       "incidents": [
         {
@@ -145,7 +145,7 @@
           "start": "2026-10-01T06:14:56.054197+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 145.2h"
+          "reason": "Sin datos nuevos hace 151.9h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
@@ -155,8 +155,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:34:02+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:13:55+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -166,8 +166,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:32:12+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:09:26+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -185,7 +185,7 @@
       "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-10-02T19:41:02.541438+00:00",
       "last_data_timestamp": "2026-10-02T14:52:45+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -202,8 +202,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:35:02+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:13:46+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -232,8 +232,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:34:53+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:14:38+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -256,8 +256,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:31:57+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:11:54+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -275,7 +275,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -304,8 +304,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-07T02:31:33+00:00",
-      "last_check": "2026-10-07T02:35:27.837681+00:00",
+      "last_data_timestamp": "2026-10-07T09:11:33+00:00",
+      "last_check": "2026-10-07T09:14:38.761536+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
