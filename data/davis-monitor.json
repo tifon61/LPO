@@ -1,11 +1,11 @@
 {
   "monitoring_since": "2026-08-21T20:43:17.283376+00:00",
-  "current_status": "up",
-  "current_reason": null,
-  "down_since": null,
-  "last_data_timestamp": "2026-10-03T22:50:00+00:00",
-  "last_check": "2026-10-03T22:59:40.983603+00:00",
-  "current_issue_number": 6,
+  "current_status": "down",
+  "current_reason": "Datos desactualizados: último registro hace 3.7h",
+  "down_since": "2026-10-11T22:28:01.589870+00:00",
+  "last_data_timestamp": "2026-10-11T18:45:00+00:00",
+  "last_check": "2026-10-11T22:28:01.589870+00:00",
+  "current_issue_number": 7,
   "incidents": [
     {
       "start": "2026-08-25T15:13:16.783215+00:00",
@@ -42,6 +42,12 @@
       "end": "2026-09-10T17:29:24.926217+00:00",
       "duration_minutes": 211.5,
       "reason": "No se pudo conectar: <urlopen error timed out>"
+    },
+    {
+      "start": "2026-10-11T22:28:01.589870+00:00",
+      "end": null,
+      "duration_minutes": null,
+      "reason": "Datos desactualizados: último registro hace 3.7h"
     }
   ]
 }
