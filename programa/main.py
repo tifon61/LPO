@@ -19,8 +19,21 @@ import db
 import sync
 from rutas import ruta_recurso
 
-TEMA = "flatly"
-COLOR_ACENTO = "#0f766e"  # mismo verde azulado (teal) que usa la página web
+# Mismos colores institucionales que la web (observaciones/estilo.css):
+# azul "brand-800" como color principal, ámbar para avisos.
+ttk.Theme(
+    name="lpo",
+    primary="#1e3a8a",
+    success="#15803d",
+    info="#0369a1",
+    warning="#b45309",
+    danger="#dc2626",
+    neutral="#64748b",
+    light={"background": "#f8fafc", "foreground": "#0f172a"},
+).register()
+
+TEMA = "lpo-light"
+COLOR_ACENTO = "#1e3a8a"  # mismo azul "brand-800" que usa la página web
 
 CAMPOS = [
     ("fecha", "Fecha (AAAA-MM-DD)", True),
@@ -124,16 +137,22 @@ class App(ttk.Window):
     # ---------- Encabezado ----------
 
     def _armar_encabezado(self):
+        # Franja azul arriba de todo, como el borde superior de la web
+        # (border-t-brand-800 en observaciones/estilo.css).
+        ttk.Frame(self, height=4, bootstyle="primary").pack(fill="x", side="top")
+
         frame = ttk.Frame(self)
         frame.pack(fill="x", padx=12, pady=(12, 0))
+        logo_marco = ttk.Frame(frame, bootstyle="light", padding=5)
+        logo_marco.pack(side="left", padx=(0, 10))
         logo = self._cargar_imagen("logo-marca.png", ancho=48)
         if logo:
-            ttk.Label(frame, image=logo).pack(side="left", padx=(0, 10))
+            ttk.Label(logo_marco, image=logo, bootstyle="light").pack()
         titulos = ttk.Frame(frame)
         titulos.pack(side="left")
         ttk.Label(
             titulos, text="Estación Meteorológica — La Plata Observatorio",
-            font=("TkDefaultFont", 13, "bold"),
+            font=("Georgia", 15, "bold"),
         ).pack(anchor="w")
         ttk.Label(titulos, text="FCAG · UNLP", bootstyle="secondary").pack(anchor="w")
 
@@ -157,7 +176,7 @@ class App(ttk.Window):
 
         botones = ttk.Frame(frame)
         botones.grid(row=len(CAMPOS) // 2 + 1, column=0, columnspan=4, pady=(10, 2))
-        ttk.Button(botones, text="Guardar observación", command=self._guardar, bootstyle="success").pack(
+        ttk.Button(botones, text="Guardar observación", command=self._guardar, bootstyle="primary").pack(
             side="left", padx=5
         )
         ttk.Button(botones, text="Limpiar", command=self._limpiar, bootstyle="secondary-outline").pack(
@@ -183,7 +202,7 @@ class App(ttk.Window):
         for i, (clave, etiqueta) in enumerate(etiquetas):
             fila, col = divmod(i, 4)
             ttk.Label(frame, text=etiqueta + ":").grid(row=fila, column=col * 2, sticky="w", padx=6, pady=5)
-            valor = ttk.Label(frame, text="--", font=("TkDefaultFont", 11, "bold"), bootstyle="success")
+            valor = ttk.Label(frame, text="--", font=("TkDefaultFont", 11, "bold"), foreground="#0f172a")
             valor.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
             self.resultado_labels[clave] = valor
 
@@ -567,14 +586,15 @@ class App(ttk.Window):
         scroll.pack(fill="both", expand=True, padx=8, pady=8)
         raiz = scroll.interior
 
-        guia = ttk.Labelframe(raiz, text=" Guía rápida para observadores ", padding=10, bootstyle="success")
+        guia = ttk.Labelframe(raiz, text=" Guía rápida para observadores ", padding=10, bootstyle="info")
         guia.pack(fill="x", padx=12, pady=(14, 7))
         ttk.Label(
             guia,
             text=(
-                "Podés cargar una observación acá o desde la página web — las dos guardan en la "
-                "misma planilla. Usá este programa cuando no tengas internet en el momento: guarda "
-                "local y sincroniza solo apenas vuelve la conexión (mirá el cartel abajo de la ventana). "
+                "Esta es la forma normal de cargar una observación — guarda en la misma planilla que "
+                "la página web. Si en el momento no hay internet en la estación, no pasa nada: la "
+                "observación queda guardada local y se sincroniza sola apenas vuelve la conexión "
+                "(mirá el cartel abajo de la ventana). "
                 "Si al guardar te aparece un error de \"fuera de rango\", revisá si hay un error de "
                 "tipeo antes de insistir."
             ),
