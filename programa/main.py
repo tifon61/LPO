@@ -4,6 +4,8 @@ Funciona sin internet (guarda local en SQLite) y sincroniza con la misma
 Google Sheet que usa la página web cuando hay conexión.
 """
 import os
+import subprocess
+import sys
 import threading
 import tkinter as tk
 from datetime import date, datetime
@@ -17,7 +19,7 @@ from PIL import Image, ImageTk
 import calculos
 import db
 import sync
-from rutas import ruta_recurso
+from rutas import dir_datos, ruta_recurso
 
 # Mismos colores institucionales que la web (observaciones/estilo.css):
 # azul "brand-800" como color principal, ámbar para avisos.
@@ -721,6 +723,30 @@ class App(ttk.Window):
             frame, text="Sincronizar ahora", command=lambda: self._sincronizar(automatico=False),
             bootstyle="info",
         ).pack(side="right")
+        ttk.Button(
+            frame, text="Abrir carpeta de datos", command=self._abrir_carpeta_datos,
+            bootstyle="secondary-outline",
+        ).pack(side="right", padx=(0, 8))
+
+    def _abrir_carpeta_datos(self):
+        """Abre en el explorador de archivos la carpeta donde vive
+        observaciones.db y config.json — para copiarlos, respaldarlos, o
+        mirar el crudo (ej. con un visor de SQLite). Esto es una copia
+        local; lo que realmente manda es la Google Sheet, a la que todo
+        esto termina sincronizando."""
+        carpeta = dir_datos()
+        try:
+            if sys.platform.startswith("win"):
+                os.startfile(carpeta)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", carpeta], check=True)
+            else:
+                subprocess.run(["xdg-open", carpeta], check=True)
+        except Exception as e:
+            messagebox.showerror(
+                "No se pudo abrir la carpeta",
+                f"La carpeta de datos es:\n{carpeta}\n\nPero no se pudo abrir sola: {e}",
+            )
 
     # ---------- Lógica ----------
 
