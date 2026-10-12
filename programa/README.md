@@ -53,6 +53,22 @@ para rechazar lecturas reales extremas. Se aplica en los tres lugares
 (formulario web, programa de escritorio, y el propio Apps Script como
 última línea de defensa). Si cambiás los rangos, replicalo en los tres.
 
+## Aviso de versión nueva
+
+Al arrancar, el programa chequea en segundo plano (sin bloquear nada) si
+`VERSION` (este archivo, en el repo) es más nueva que la propia
+(`VERSION` adentro de `main.py`). Si lo es, muestra un aviso chico y
+clickeable en el encabezado. Si no hay internet para chequear, o GitHub no
+responde, no pasa nada — el aviso simplemente no aparece y el programa
+sigue andando normal; nunca bloquea ni tira error por esto.
+
+**Cada vez que generes un .exe/binario nuevo para repartir**, subí la
+versión en los dos lugares (que coincidan):
+- `VERSION` (este archivo)
+- `VERSION = "..."` al principio de `main.py`
+
+Si no los subís, el aviso nunca va a aparecer (porque remota == local).
+
 ## Empaquetarlo como .exe con ícono (para instalar sin tener Python)
 
 Hay que compilarlo en Windows (un .exe se genera corriendo PyInstaller en

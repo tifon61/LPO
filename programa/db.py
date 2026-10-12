@@ -150,6 +150,17 @@ def listar_para_grafico(limite=500):
         return [dict(r) for r in rows]
 
 
+def listar_todas_para_exportar():
+    """Todas las observaciones, sin límite, en orden cronológico — para
+    exportar a CSV (a diferencia de listar_observaciones/listar_para_grafico,
+    que recortan a las últimas N para no sobrecargar la tabla/el gráfico)."""
+    with conectar() as conn:
+        rows = conn.execute(
+            "SELECT * FROM observaciones ORDER BY fecha ASC, hora ASC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 def contar_pendientes():
     with conectar() as conn:
         row = conn.execute(

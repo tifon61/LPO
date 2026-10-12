@@ -3,14 +3,17 @@ Programa de escritorio para cargar observaciones meteorológicas.
 Funciona sin internet (guarda local en SQLite) y sincroniza con la misma
 Google Sheet que usa la página web cuando hay conexión.
 """
+import csv
 import os
 import subprocess
 import sys
 import threading
 import tkinter as tk
+import webbrowser
 from datetime import date, datetime
-from tkinter import messagebox, simpledialog
+from tkinter import filedialog, messagebox, simpledialog
 
+import requests
 import ttkbootstrap as ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -20,6 +23,12 @@ import calculos
 import db
 import sync
 from rutas import dir_datos, ruta_recurso
+
+# Versión de este build — se compara contra VERSION_URL para avisar si hay
+# una más nueva. Subila (junto con el archivo VERSION del repo) cada vez
+# que generes un .exe/binario nuevo para repartir.
+VERSION = "1.0.0"
+VERSION_URL = "https://raw.githubusercontent.com/tifon61/LPO/main/programa/VERSION"
 
 # Mismos colores institucionales que la web (observaciones/estilo.css):
 # azul "brand-800" como color principal, ámbar para avisos.
@@ -65,6 +74,38 @@ VARIABLES_GRAFICO = [
 ]
 
 FUENTE_FORMULA = ("Consolas", 9)
+
+# Columnas del CSV exportado — mismo orden/nombres que la Google Sheet.
+COLUMNAS_CSV = [
+    ("fecha", "Fecha"), ("hora", "Hora"), ("observador", "Observador"),
+    ("t_seca", "T. Bulbo Seco"), ("t_humeda", "T. Bulbo Húmedo"),
+    ("t_max", "T. Máx"), ("t_min", "T. Mín"), ("t_adjunto", "T. Adjunto"),
+    ("barometro", "Barómetro"), ("t_seca_12h_antes", "T. Bulbo Seco (12hs antes)"),
+    ("p_est_mmhg", "P. Estación (mmHg)"), ("p_est_hpa", "P. Estación (hPa)"),
+    ("pnm_mmhg", "P. Nivel Mar (mmHg)"), ("pnm_hpa", "P. Nivel Mar (hPa)"),
+    ("tension_vapor", "Tensión de Vapor (hPa)"), ("punto_rocio", "Punto de Rocío"),
+    ("humedad_relativa", "Humedad Relativa"), ("lluvia", "Lluvia (mm)"),
+    ("cargado_el", "Cargado el"),
+    ("descartada", "Descartada"), ("motivo_descarte", "Motivo descarte"),
+    ("descartado_por", "Descartado por"),
+]
+
+
+def _valor_csv(fila, clave):
+    valor = fila.get(clave)
+    if clave == "descartada":
+        return "Sí" if valor else "No"
+    return "" if valor is None else valor
+
+
+def _version_mayor(remota, local):
+    """¿La versión `remota` (ej. "1.2.0") es más nueva que `local`?"""
+    def partes(v):
+        return tuple(int(p) for p in v.strip().split(".") if p.isdigit())
+    try:
+        return partes(remota) > partes(local)
+    except Exception:
+        return False
 
 
 def _fecha_ddmmaaaa(fecha_iso):
@@ -135,6 +176,7 @@ class App(ttk.Window):
         self._recalcular()
         self._refrescar_historial()
         self._sincronizar(automatico=True)
+        self._verificar_actualizacion()
 
     # ---------- Encabezado ----------
 
@@ -157,6 +199,12 @@ class App(ttk.Window):
             font=("Georgia", 15, "bold"),
         ).pack(anchor="w")
         ttk.Label(titulos, text="FCAG · UNLP", bootstyle="secondary").pack(anchor="w")
+
+        # Aviso de versión nueva disponible — arranca sin empaquetar (oculto);
+        # _verificar_actualizacion lo muestra solo si encuentra una más nueva.
+        self.aviso_actualizacion = ttk.Label(
+            frame, text="", bootstyle="warning", wraplength=260, justify="right", cursor="hand2",
+        )
 
     # ---------- Pestaña: Cargar ----------
 
@@ -727,6 +775,10 @@ class App(ttk.Window):
             frame, text="Abrir carpeta de datos", command=self._abrir_carpeta_datos,
             bootstyle="secondary-outline",
         ).pack(side="right", padx=(0, 8))
+        ttk.Button(
+            frame, text="Exportar a CSV", command=self._exportar_csv,
+            bootstyle="secondary-outline",
+        ).pack(side="right", padx=(0, 8))
 
     def _abrir_carpeta_datos(self):
         """Abre en el explorador de archivos la carpeta donde vive
@@ -747,6 +799,32 @@ class App(ttk.Window):
                 "No se pudo abrir la carpeta",
                 f"La carpeta de datos es:\n{carpeta}\n\nPero no se pudo abrir sola: {e}",
             )
+
+    def _exportar_csv(self):
+        filas = db.listar_todas_para_exportar()
+        if not filas:
+            messagebox.showinfo("Exportar a CSV", "Todavía no hay observaciones guardadas.")
+            return
+        ruta = filedialog.asksaveasfilename(
+            title="Exportar observaciones a CSV",
+            defaultextension=".csv",
+            initialfile="observaciones_lpo.csv",
+            filetypes=[("CSV (separado por comas)", "*.csv")],
+        )
+        if not ruta:
+            return
+        try:
+            # utf-8-sig (con BOM): para que Excel en Windows abra bien los
+            # acentos sin que haya que importar el CSV a mano.
+            with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
+                escritor = csv.writer(f)
+                escritor.writerow([encabezado for _clave, encabezado in COLUMNAS_CSV])
+                for fila in filas:
+                    escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
+        except Exception as e:
+            messagebox.showerror("No se pudo exportar", str(e))
+            return
+        messagebox.showinfo("Exportar a CSV", f"Se exportaron {len(filas)} observaciones a:\n{ruta}")
 
     # ---------- Lógica ----------
 
@@ -947,6 +1025,32 @@ class App(ttk.Window):
         self.estado_label.config(text=mensaje)
         if error:
             messagebox.showerror("Sincronización", mensaje)
+
+    def _verificar_actualizacion(self):
+        """Avisa si hay una versión más nueva en GitHub, sin interrumpir el
+        uso normal: si falla (sin internet, repo no disponible, lo que sea),
+        no hace nada — el programa sigue andando igual."""
+        def tarea():
+            try:
+                resp = requests.get(VERSION_URL, timeout=4)
+                resp.raise_for_status()
+                remota = resp.text.strip()
+                if _version_mayor(remota, VERSION):
+                    self.after(0, lambda: self._mostrar_aviso_actualizacion(remota))
+            except Exception:
+                pass
+
+        threading.Thread(target=tarea, daemon=True).start()
+
+    def _mostrar_aviso_actualizacion(self, version_nueva):
+        self.aviso_actualizacion.config(
+            text=f"⚠ Hay una versión nueva disponible (v{version_nueva}). Click para más info.",
+        )
+        self.aviso_actualizacion.pack(side="right", padx=(10, 0))
+        self.aviso_actualizacion.bind(
+            "<Button-1>",
+            lambda _e: webbrowser.open("https://github.com/tifon61/LPO/blob/main/programa/README.md"),
+        )
 
 
 if __name__ == "__main__":
