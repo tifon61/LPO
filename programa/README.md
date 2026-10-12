@@ -126,6 +126,22 @@ Queda en `dist/ObservacionesLPO`: dale permiso de ejecución una sola vez
 quedan en la carpeta de datos del usuario (acá, `~/.observaciones-lpo/`),
 no al lado del ejecutable.
 
+### Ícono en el menú de aplicaciones y en el Escritorio
+
+`dist/ObservacionesLPO` solo es el ejecutable suelto. Para que quede como
+un programa instalado (buscable en el menú de aplicaciones y con ícono en
+el Escritorio), corré:
+
+```bash
+./instalar_linux.sh dist/ObservacionesLPO
+```
+
+Copia el ejecutable a `~/.local/share/ObservacionesLPO/`, y crea el ícono
+tanto en `~/.local/share/applications/` (menú de aplicaciones) como en el
+Escritorio del usuario. Si corrés el script desde la carpeta `programa`
+(donde ya está `icono.png`), usa ese ícono; si no lo encuentra, cae a uno
+genérico del sistema.
+
 ## Estructura
 
 - `main.py` — interfaz (ttkbootstrap/Tkinter, tres pestañas: Cargar / Histórico / Fórmulas).
