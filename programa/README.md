@@ -142,6 +142,26 @@ en "Aplicaciones y características":
    — ese es el archivo que le pasás a cualquier computadora para "instalar"
    el programa como cualquier otro.
 
+### Actualizar la estación cuando cambie el código
+
+El programa avisa solo si hay una versión nueva (ver "Aviso de versión
+nueva" más arriba), pero **no se actualiza solo** — avisa, nada más. Para
+instalar esa versión nueva en la compu de la estación, donde Python y las
+dependencias ya están instaladas, hay un acceso directo a los pasos 1 y 2
+de arriba en un solo archivo:
+
+```
+actualizar.bat
+```
+
+Doble clic después de bajar el código actualizado del repositorio (mismo
+lugar de siempre: `programa\`). Regenera `dist\ObservacionesLPO.exe` y
+compila el instalador, y al final te dice dónde quedó
+`Instalador_ObservacionesLPO.exe` — correlo para terminar de actualizar.
+Asume Python 3.10 (`py -3.10`) e Inno Setup instalado en su ubicación
+default; si alguno de los dos cambia de lugar, hay que editar esas dos
+líneas en `actualizar.bat`.
+
 ## Empaquetarlo para Linux
 
 En Linux no hace falta "instalar" nada — alcanza con tener Python y correr
