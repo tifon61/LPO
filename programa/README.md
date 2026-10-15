@@ -96,6 +96,29 @@ pestaña Fórmulas y el ícono — sin eso, esas imágenes no aparecerían.
 + Pillow + Tkinter ("No module named 'PIL._tkinter_finder'") que si no se
 agrega, el programa compilado no abre.
 
+#### Si la compu es de 32 bits (Windows "x86")
+
+La estación (OBSLAPLATA-4906) tiene Windows de 32 bits. En ese caso hay que
+usar versiones específicas, porque `numpy`/`matplotlib`/`kiwisolver` ya no
+publican paquetes precompilados para 32 bits en sus versiones recientes
+(y compilarlos a mano pide Visual C++ Build Tools, que no está instalado
+ahí). La combinación que sí funciona, sin compilar nada:
+
+- **Python 3.10** (32-bit) — ni más nuevo (`ttkbootstrap>=2.0` necesita
+  3.10+) ni más viejo (`numpy`/`matplotlib` de 32 bits dejan de tener
+  paquetes listos a partir de Python 3.11).
+- Al instalar las dependencias, pinchar estas versiones en vez de usar
+  `requirements.txt` directamente:
+  ```
+  py -3.10 -m pip install requests Pillow numpy==1.21.6 matplotlib==3.5.3 kiwisolver==1.4.4 ttkbootstrap==2.2.3 pyinstaller
+  ```
+- Si hay más de una versión de Python instalada (`py -0` las lista todas),
+  usar `py -3.10` en vez de `py -3` en todos los comandos de esta sección,
+  para no terminar usando por error la versión equivocada.
+
+Esto es solo para generar el `.exe` — una vez compilado, el ejecutable
+final no necesita nada de esto instalado para correr en otra compu.
+
 Con solo este paso ya podés copiar `ObservacionesLPO.exe` al Escritorio o
 mandarle un acceso directo (click derecho → Enviar a → Escritorio) y va a
 verse como cualquier otro programa, con su ícono. La primera vez que se
