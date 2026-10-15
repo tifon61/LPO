@@ -30,6 +30,13 @@ from rutas import dir_datos, ruta_recurso
 VERSION = "1.0.0"
 VERSION_URL = "https://raw.githubusercontent.com/tifon61/LPO/main/programa/VERSION"
 
+# Misma Sheet que usa la web (observaciones/historico.html) para el botón
+# "Google Sheet" de la pestaña Histórico.
+GOOGLE_SHEET_URL = (
+    "https://docs.google.com/spreadsheets/d/1fi4lGB_egp8fG7Jx6rjTsqBwpSplznAASDTL3GZeqy0/"
+    "edit?gid=1945947600#gid=1945947600"
+)
+
 # Mismos colores institucionales que la web (observaciones/estilo.css):
 # azul "brand-800" como color principal, ámbar para avisos.
 ttk.Theme(
@@ -112,6 +119,18 @@ def _fecha_ddmmaaaa(fecha_iso):
     """'2026-09-20' -> '20/09/2026', para mostrar en el eje del gráfico."""
     anio, mes, dia = fecha_iso[:10].split("-")
     return f"{dia}/{mes}/{anio}"
+
+
+def _parsear_fecha_usuario(texto):
+    """Acepta 'dd/mm/aaaa' o 'aaaa-mm-dd' (lo que el usuario tipee en 'Ir a
+    fecha') y devuelve 'aaaa-mm-dd', o None si no se pudo interpretar."""
+    texto = texto.strip()
+    for formato in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(texto, formato).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
 
 
 class MarcoDesplazable(ttk.Frame):
@@ -278,6 +297,12 @@ class App(ttk.Window):
         ttk.Button(barra, text="Actualizar", command=self._refrescar_historial, bootstyle="secondary-outline").pack(
             side="right"
         )
+        ttk.Button(
+            barra, text="Planilla local (CSV)", command=self._abrir_planilla_local, bootstyle="secondary-outline",
+        ).pack(side="right", padx=(0, 8))
+        ttk.Button(
+            barra, text="Google Sheet", command=self._abrir_google_sheet, bootstyle="secondary-outline",
+        ).pack(side="right", padx=(0, 8))
 
         marco_grafico = ttk.Frame(contenedor)
         marco_grafico.pack(fill="x", padx=8, pady=4)
@@ -285,6 +310,17 @@ class App(ttk.Window):
         self.ejes = self.figura.add_subplot(111)
         self.lienzo_grafico = FigureCanvasTkAgg(self.figura, master=marco_grafico)
         self.lienzo_grafico.get_tk_widget().pack(fill="both", expand=True)
+
+        # Datos del punto más cercano al cursor, para el tooltip al pasar el
+        # mouse por el gráfico (se repuebla en cada _actualizar_grafico).
+        self._puntos_grafico_actual = []
+        self._etiqueta_grafico_actual = ""
+        self._anotacion_grafico = self.ejes.annotate(
+            "", xy=(0, 0), xytext=(12, 12), textcoords="offset points",
+            bbox=dict(boxstyle="round,pad=0.4", fc="#1e293b", ec="none", alpha=0.95),
+            color="white", fontsize=8, visible=False, zorder=10,
+        )
+        self.lienzo_grafico.mpl_connect("motion_notify_event", self._on_hover_grafico)
 
         self.periodo_especifico_actual = "Todos"
 
@@ -306,10 +342,20 @@ class App(ttk.Window):
             "<<ComboboxSelected>>", lambda _e: self._seleccionar_periodo_especifico(self.periodo_especifico.get())
         )
 
+        ttk.Label(barra_resumen, text="  o ir a fecha:").pack(side="left", padx=(12, 6))
+        self.entrada_fecha_directa = ttk.Entry(barra_resumen, width=12)
+        self.entrada_fecha_directa.pack(side="left")
+        self.entrada_fecha_directa.insert(0, "dd/mm/aaaa")
+        self.entrada_fecha_directa.bind("<FocusIn>", self._limpiar_placeholder_fecha)
+        self.entrada_fecha_directa.bind("<Return>", lambda _e: self._ir_a_fecha())
+        ttk.Button(
+            barra_resumen, text="Ir", command=self._ir_a_fecha, bootstyle="secondary-outline", width=4,
+        ).pack(side="left", padx=(4, 0))
+
         ttk.Label(
             contenedor,
-            text="Elegí un período puntual (o hacé click en una fila) para que el gráfico y la tabla de "
-            "observaciones de abajo muestren solo esos datos.",
+            text="Elegí un período puntual (o hacé click en una fila, o escribí una fecha) para que el "
+            "gráfico y la tabla de observaciones de abajo muestren solo esos datos.",
             bootstyle="secondary",
         ).pack(anchor="w", padx=8, pady=(0, 6))
 
@@ -382,6 +428,8 @@ class App(ttk.Window):
         datos = self._filtrar_por_periodo(db.listar_para_grafico())
 
         self.ejes.clear()
+        self._puntos_grafico_actual = []
+        self._etiqueta_grafico_actual = etiqueta
         try:
             self._dibujar_serie(datos, clave)
         except Exception:
@@ -391,16 +439,52 @@ class App(ttk.Window):
             import traceback
             traceback.print_exc()
             self.ejes.clear()
+            self._puntos_grafico_actual = []
             self.ejes.text(
                 0.5, 0.5, "No se pudo graficar (ver consola para más detalle)",
                 ha="center", va="center", color="#b91c1c", wrap=True,
             )
             self.ejes.set_xticks([])
+        # El clear() de más arriba borra cualquier anotación anterior (vive
+        # en los artists del Axes), así que hay que recrearla en cada dibujo.
+        self._anotacion_grafico = self.ejes.annotate(
+            "", xy=(0, 0), xytext=(12, 12), textcoords="offset points",
+            bbox=dict(boxstyle="round,pad=0.4", fc="#1e293b", ec="none", alpha=0.95),
+            color="white", fontsize=8, visible=False, zorder=10,
+        )
         self.ejes.set_title(etiqueta, fontsize=10, color="#334155")
         self.ejes.tick_params(labelsize=7)
         self.ejes.grid(True, alpha=0.25)
         self.figura.tight_layout()
         self.lienzo_grafico.draw()
+
+    def _on_hover_grafico(self, evento):
+        """Tooltip con fecha+hora y el valor del punto más cercano al mouse,
+        al pasar por el gráfico de la pestaña Histórico."""
+        def ocultar_si_visible():
+            if self._anotacion_grafico.get_visible():
+                self._anotacion_grafico.set_visible(False)
+                self.lienzo_grafico.draw_idle()
+
+        if evento.inaxes != self.ejes or not self._puntos_grafico_actual:
+            ocultar_si_visible()
+            return
+
+        xs_pix = [self.ejes.transData.transform((x, 0))[0] for x, _etq, _val in self._puntos_grafico_actual]
+        idx = min(range(len(xs_pix)), key=lambda i: abs(xs_pix[i] - evento.x))
+        if abs(xs_pix[idx] - evento.x) > 25:
+            ocultar_si_visible()
+            return
+
+        x, etiqueta_x, valor = self._puntos_grafico_actual[idx]
+        if valor != valor:  # NaN: ese punto es un hueco sin dato, no mostrar nada
+            ocultar_si_visible()
+            return
+
+        self._anotacion_grafico.xy = (x, valor)
+        self._anotacion_grafico.set_text(f"{etiqueta_x}\n{self._etiqueta_grafico_actual}: {valor:.1f}")
+        self._anotacion_grafico.set_visible(True)
+        self.lienzo_grafico.draw_idle()
 
     def _dibujar_serie(self, datos, clave):
         puntos = []
@@ -443,6 +527,7 @@ class App(ttk.Window):
             valores_y = [p[2] for p in puntos]
             n = len(puntos)
             xs = list(range(n))
+            self._puntos_grafico_actual = list(zip(xs, etiquetas_x, valores_y))
 
             def _dia_siguiente(dia_a, dia_b):
                 return (date.fromisoformat(dia_b) - date.fromisoformat(dia_a)).days == 1
@@ -596,6 +681,58 @@ class App(ttk.Window):
             return
         valores = self.tabla_resumen.item(seleccion[0], "values")
         self._seleccionar_periodo_especifico(valores[0])
+
+    def _limpiar_placeholder_fecha(self, _evento):
+        if self.entrada_fecha_directa.get() == "dd/mm/aaaa":
+            self.entrada_fecha_directa.delete(0, tk.END)
+
+    def _ir_a_fecha(self):
+        """Salto directo a un día puntual sin tener que desplazarse por el
+        combobox "Ver:" — útil cuando hay meses de historial cargados."""
+        texto = self.entrada_fecha_directa.get().strip()
+        fecha_iso = _parsear_fecha_usuario(texto)
+        if fecha_iso is None:
+            messagebox.showerror("Ir a fecha", "Escribí la fecha como dd/mm/aaaa (ej. 15/10/2026).")
+            return
+        self.periodo_resumen.set("Diario")
+        self._seleccionar_periodo_especifico(fecha_iso)
+        if self.periodo_especifico_actual == "Todos":
+            messagebox.showinfo("Ir a fecha", "No hay observaciones guardadas para esa fecha.")
+
+    def _abrir_google_sheet(self):
+        webbrowser.open(GOOGLE_SHEET_URL)
+
+    def _abrir_planilla_local(self):
+        """Genera (siempre actualizado) un CSV con todo lo que hay en la
+        base local y lo abre con la app de planillas que tenga Windows/Linux
+        por default — mismas columnas que el botón "Google Sheet", para
+        comparar una con la otra."""
+        filas = db.listar_todas_para_exportar()
+        if not filas:
+            messagebox.showinfo("Planilla local", "Todavía no hay observaciones guardadas.")
+            return
+        ruta = os.path.join(dir_datos(), "observaciones_locales.csv")
+        try:
+            with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
+                escritor = csv.writer(f)
+                escritor.writerow([encabezado for _clave, encabezado in COLUMNAS_CSV])
+                for fila in filas:
+                    escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
+        except Exception as e:
+            messagebox.showerror("No se pudo generar la planilla local", str(e))
+            return
+        try:
+            if sys.platform.startswith("win"):
+                os.startfile(ruta)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", ruta], check=True)
+            else:
+                subprocess.run(["xdg-open", ruta], check=True)
+        except Exception as e:
+            messagebox.showerror(
+                "No se pudo abrir la planilla",
+                f"El archivo quedó generado en:\n{ruta}\n\nPero no se pudo abrir solo: {e}",
+            )
 
     # ---------- Pestaña: Fórmulas ----------
 
