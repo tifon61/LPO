@@ -35,6 +35,12 @@ def _a_remoto(fila_local):
 
 def _de_remoto(fila_remota):
     fila_local = {local: fila_remota.get(remoto) for local, remoto in CLAVES_REMOTAS.items()}
+    if fila_local.get("hora"):
+        # Por si la Sheet devuelve la hora sin el cero adelante (ej. "9:00"
+        # en vez de "09:00") — sin esto, una observación que ya estaba local
+        # con la hora bien formateada se duplicaba en vez de reconocerse
+        # como la misma (mismo bug que _fusionar_duplicados... en db.py).
+        fila_local["hora"] = db.normalizar_hora(fila_local["hora"])
     return fila_local
 
 

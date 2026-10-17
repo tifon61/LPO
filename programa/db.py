@@ -44,6 +44,41 @@ def conectar():
     return conn
 
 
+def normalizar_hora(hora):
+    """Le agrega el cero adelante si falta (ej. '9:00' -> '09:00'). Sin esto,
+    una misma hora real escrita de dos formas distintas rompe el UNIQUE
+    (fecha, hora) y la observación queda duplicada en vez de reconocida
+    como la misma — mismo criterio que formatearHora_ en Code.gs."""
+    if not hora:
+        return hora
+    partes = hora.split(":")
+    if len(partes) >= 2 and len(partes[0]) == 1:
+        return "0" + hora
+    return hora
+
+
+def _fusionar_duplicados_hora_sin_normalizar(conn):
+    """Migración única (corre en cada arranque, pero no hace nada si no hay
+    nada que corregir): fusiona observaciones que quedaron duplicadas por
+    un bug viejo de sincronización donde la hora bajaba de la Sheet sin el
+    cero adelante (ej. '9:00' en vez de '09:00'), y el programa las trataba
+    como dos observaciones distintas en vez de la misma."""
+    filas = conn.execute("SELECT id, fecha, hora, sync_status FROM observaciones").fetchall()
+    grupos = {}
+    for fila in filas:
+        clave = (fila["fecha"], normalizar_hora(fila["hora"]))
+        grupos.setdefault(clave, []).append(fila)
+    for (fecha, hora_normalizada), filas_grupo in grupos.items():
+        if len(filas_grupo) < 2:
+            continue
+        sincronizadas = [f for f in filas_grupo if f["sync_status"] == "sincronizado"]
+        sobreviviente = (sincronizadas or filas_grupo)[0]
+        for fila in filas_grupo:
+            if fila["id"] != sobreviviente["id"]:
+                conn.execute("DELETE FROM observaciones WHERE id = ?", (fila["id"],))
+        conn.execute("UPDATE observaciones SET hora = ? WHERE id = ?", (hora_normalizada, sobreviviente["id"]))
+
+
 def inicializar():
     with conectar() as conn:
         conn.execute(
@@ -72,6 +107,7 @@ def inicializar():
         for columna, tipo in MIGRACIONES.items():
             if columna not in columnas_existentes:
                 conn.execute(f"ALTER TABLE observaciones ADD COLUMN {columna} {tipo}")
+        _fusionar_duplicados_hora_sin_normalizar(conn)
         conn.commit()
 
 
@@ -84,7 +120,11 @@ def insertar_observacion(datos, origen="local", sync_status="pendiente"):
         "cargado_el", "origen", "sync_status", "descartada", "motivo_descarte", "descartado_por",
     ]
     valores = [
-        (datos.get(c) or "" if c == "observador" else datos.get(c))
+        (
+            normalizar_hora(datos.get(c)) if c == "hora"
+            else datos.get(c) or "" if c == "observador"
+            else datos.get(c)
+        )
         for c in CAMPOS_ENTRADA + CAMPOS_CALCULADOS
     ]
     valores += [
