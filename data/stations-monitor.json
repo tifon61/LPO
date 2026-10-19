@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 264.2h",
+      "current_reason": "Sin datos nuevos hace 269.3h",
       "down_since": "2026-10-08T07:40:50.775111+00:00",
       "last_data_timestamp": "2026-10-08T01:04:35+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 24,
       "incidents": [
         {
@@ -151,7 +151,7 @@
           "start": "2026-10-08T07:40:50.775111+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 264.2h"
+          "reason": "Sin datos nuevos hace 269.3h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
@@ -161,8 +161,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-19T01:13:51+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_data_timestamp": "2026-10-19T06:23:51+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 0,
       "incidents": [],
       "display_name": "Observatorio (Facultad · Campbell)"
@@ -172,8 +172,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-19T01:12:26+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_data_timestamp": "2026-10-19T06:24:01+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -191,7 +191,7 @@
       "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-10-02T19:41:02.541438+00:00",
       "last_data_timestamp": "2026-10-02T14:52:45+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -208,8 +208,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-19T01:14:58+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_data_timestamp": "2026-10-19T06:24:01+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 6,
       "incidents": [
         {
@@ -256,8 +256,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-19T01:15:09+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_data_timestamp": "2026-10-19T06:24:01+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -278,10 +278,10 @@
     "ema_blanca": {
       "monitoring_since": "2026-08-22T12:27:00.532332+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 43.8h",
+      "current_reason": "Sin datos nuevos hace 49.0h",
       "down_since": "2026-10-17T08:41:52.367030+00:00",
       "last_data_timestamp": "2026-10-17T05:27:25+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -294,7 +294,7 @@
           "start": "2026-10-17T08:41:52.367030+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 43.8h"
+          "reason": "Sin datos nuevos hace 49.0h"
         }
       ],
       "display_name": "EMA Blanca"
@@ -305,7 +305,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -334,8 +334,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-19T01:10:42+00:00",
-      "last_check": "2026-10-19T01:15:34.540095+00:00",
+      "last_data_timestamp": "2026-10-19T06:20:42+00:00",
+      "last_check": "2026-10-19T06:25:24.444192+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
