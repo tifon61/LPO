@@ -105,6 +105,22 @@ def _valor_csv(fila, clave):
     return "" if valor is None else valor
 
 
+def _escribir_csv(ruta, filas):
+    # utf-8-sig (con BOM): para que Excel en Windows abra bien los acentos
+    # sin que haya que importar el CSV a mano. La primera línea "sep=,"
+    # es una directiva que solo entiende Excel: en la configuración
+    # regional de Argentina, Excel espera que las columnas vengan separadas
+    # por punto y coma (no por coma) y si no, mete todo en una sola columna
+    # al abrir el archivo con doble click — esta línea se lo indica
+    # explícitamente, sin importar la configuración regional de la compu.
+    with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
+        f.write("sep=,\n")
+        escritor = csv.writer(f)
+        escritor.writerow([encabezado for _clave, encabezado in COLUMNAS_CSV])
+        for fila in filas:
+            escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
+
+
 def _version_mayor(remota, local):
     """¿La versión `remota` (ej. "1.2.0") es más nueva que `local`?"""
     def partes(v):
@@ -738,11 +754,7 @@ class App(ttk.Window):
             return
         ruta = os.path.join(dir_datos(), "observaciones_locales.csv")
         try:
-            with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
-                escritor = csv.writer(f)
-                escritor.writerow([encabezado for _clave, encabezado in COLUMNAS_CSV])
-                for fila in filas:
-                    escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
+            _escribir_csv(ruta, filas)
         except Exception as e:
             messagebox.showerror("No se pudo generar la planilla local", str(e))
             return
@@ -976,13 +988,7 @@ class App(ttk.Window):
         if not ruta:
             return
         try:
-            # utf-8-sig (con BOM): para que Excel en Windows abra bien los
-            # acentos sin que haya que importar el CSV a mano.
-            with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
-                escritor = csv.writer(f)
-                escritor.writerow([encabezado for _clave, encabezado in COLUMNAS_CSV])
-                for fila in filas:
-                    escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
+            _escribir_csv(ruta, filas)
         except Exception as e:
             messagebox.showerror("No se pudo exportar", str(e))
             return
