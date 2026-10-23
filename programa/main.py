@@ -432,17 +432,19 @@ class App(ttk.Window):
         self._etiqueta_grafico_actual = etiqueta
         try:
             self._dibujar_serie(datos, clave)
-        except Exception:
+        except Exception as err:
             # Nunca debería pasar (los datos ya se validan al guardar), pero si
             # algún dato viejo/raro de la Sheet rompe el gráfico, que se vea un
-            # aviso en vez de quedar la pantalla "pegada" sin explicación.
+            # aviso en vez de quedar la pantalla "pegada" sin explicación. El
+            # build instalado es --windowed (sin consola visible), así que el
+            # detalle del error tiene que mostrarse en la propia ventana.
             import traceback
             traceback.print_exc()
             self.ejes.clear()
             self._puntos_grafico_actual = []
             self.ejes.text(
-                0.5, 0.5, "No se pudo graficar (ver consola para más detalle)",
-                ha="center", va="center", color="#b91c1c", wrap=True,
+                0.5, 0.5, f"No se pudo graficar:\n{err}",
+                ha="center", va="center", color="#b91c1c", wrap=True, fontsize=8,
             )
             self.ejes.set_xticks([])
         # El clear() de más arriba borra cualquier anotación anterior (vive
@@ -466,17 +468,27 @@ class App(ttk.Window):
                 self._anotacion_grafico.set_visible(False)
                 self.lienzo_grafico.draw_idle()
 
-        if evento.inaxes != self.ejes or not self._puntos_grafico_actual:
+        if evento.inaxes != self.ejes or evento.xdata is None or not self._puntos_grafico_actual:
             ocultar_si_visible()
             return
 
-        xs_pix = [self.ejes.transData.transform((x, 0))[0] for x, _etq, _val in self._puntos_grafico_actual]
-        idx = min(range(len(xs_pix)), key=lambda i: abs(xs_pix[i] - evento.x))
-        if abs(xs_pix[idx] - evento.x) > 25:
-            ocultar_si_visible()
-            return
-
+        # Se compara en coordenadas de datos (xdata), no de píxeles de
+        # pantalla: con pantallas de distinto escalado/DPI, el mouse en
+        # píxeles y la posición del punto en píxeles pueden desalinearse y
+        # el tooltip nunca "engancha" con ningún punto. Como los puntos
+        # están en posiciones enteras consecutivas (0, 1, 2, ...), un radio
+        # de 0.5 alcanza para que todo el ancho visual de cada punto lo
+        # muestre (como si el gráfico estuviera dividido en franjas, una
+        # por observación).
+        idx = min(
+            range(len(self._puntos_grafico_actual)),
+            key=lambda i: abs(self._puntos_grafico_actual[i][0] - evento.xdata),
+        )
         x, etiqueta_x, valor = self._puntos_grafico_actual[idx]
+        if abs(x - evento.xdata) > 0.5:
+            ocultar_si_visible()
+            return
+
         if valor != valor:  # NaN: ese punto es un hueco sin dato, no mostrar nada
             ocultar_si_visible()
             return
@@ -508,7 +520,8 @@ class App(ttk.Window):
                 if fecha != dia_acumulado_actual:
                     dia_acumulado_actual = fecha
                     acumulado_lluvia = 0
-                valor = max(0, valor) if valor is not None else 0
+                valor = valor if isinstance(valor, (int, float)) else 0
+                valor = max(0, valor)
                 acumulado_lluvia += valor
                 valor = acumulado_lluvia
                 hay_algun_valor = True
@@ -579,6 +592,18 @@ class App(ttk.Window):
                     self.ejes.plot(xs_tramo, ys_tramo, marker="o", markersize=3, color=COLOR_ACENTO, linewidth=1.5)
             if clave == "lluvia":
                 self.ejes.set_ylim(bottom=0)
+            else:
+                # Ajusta el eje Y al rango real de los valores (en vez de
+                # confiar en el autoescalado por defecto) — con variables
+                # como la presión, cuyos cambios reales son chicos frente a
+                # su valor absoluto (ej. 1005 a 1020 hPa), un autoescalado
+                # que arranque cerca de 0 aplasta la curva y la hace ver
+                # plana aunque haya variación real.
+                valores_validos = [v for v in valores_y if v == v]  # descarta NaN
+                if valores_validos:
+                    v_min, v_max = min(valores_validos), max(valores_validos)
+                    margen = (v_max - v_min) * 0.1 or 1.0
+                    self.ejes.set_ylim(v_min - margen, v_max + margen)
 
             # No saturar el eje X de etiquetas si hay muchas observaciones.
             paso = max(1, n // 10)

@@ -370,6 +370,20 @@
             return `${dia}/${mes}/${anio}`;
         }
 
+        // Ajusta el eje Y al rango real de los valores (en vez de dejar que
+        // Chart.js autoescale por su cuenta) — con variables como la presión,
+        // cuyos cambios reales son chicos frente a su valor absoluto (ej.
+        // 1005 a 1020 hPa), un autoescalado que arranque cerca de 0 aplasta
+        // la curva y la hace ver plana aunque haya variación real.
+        function escalaYAjustada_(datos) {
+            const validos = datos.filter((v) => typeof v === "number");
+            if (!validos.length) return {};
+            const vMin = Math.min(...validos);
+            const vMax = Math.max(...validos);
+            const margen = (vMax - vMin) * 0.1 || 1;
+            return { min: vMin - margen, max: vMax + margen };
+        }
+
         function pintarChart(filas, variable) {
             const ctx = document.getElementById("chartVariable");
             const labels = filas.map((f) => `${formatearFechaDDMMAAAA(f.fecha)} ${f.hora}`);
@@ -436,7 +450,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: { ticks: { maxTicksLimit: 10 } },
-                        y: variable === "lluvia" ? { min: 0 } : {},
+                        y: variable === "lluvia" ? { min: 0 } : escalaYAjustada_(datos),
                     },
                     plugins: {
                         bandasPorDia: { dias },
