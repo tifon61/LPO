@@ -24,11 +24,14 @@ if errorlevel 1 (
 
 echo.
 echo [2/2] Compilando el instalador con Inno Setup...
+rem En Windows de 64 bits Inno Setup queda en "Program Files (x86)"; en
+rem Windows de 32 bits esa carpeta no existe y queda directo en "Program
+rem Files" — se prueban las dos ubicaciones antes de rendirse.
 set ISCC="C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+if not exist %ISCC% set ISCC="C:\Program Files\Inno Setup 6\ISCC.exe"
 if not exist %ISCC% (
     echo.
-    echo No encontre Inno Setup instalado en la ubicacion esperada:
-    echo %ISCC%
+    echo No encontre Inno Setup instalado en ninguna ubicacion conocida.
     echo Abri instalador.iss manualmente con Inno Setup Compiler y apreta F9.
     pause
     exit /b 1
