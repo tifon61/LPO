@@ -109,6 +109,9 @@ function validarObservacion(input) {
   const errores = [];
   for (const campo in RANGOS) {
     const valor = input[campo];
+    // "-" marca a propósito "sin dato" (ej. instrumento roto) — se acepta
+    // tal cual, sin exigir un número ni rechazarlo como inválido.
+    if (valor === "-") continue;
     if (valor === null || valor === undefined || valor === "") {
       errores.push(`Falta completar ${RANGOS[campo].etiqueta}.`);
       continue;
@@ -158,27 +161,46 @@ function redondear1_(n) {
   return Math.round(n * 10) / 10;
 }
 
-function calcularObservacion(input) {
-  const pEstMmhg = presionEstacionMmhg(input.barometro, input.tAdjunto);
-  const pEstHpa = mmhgAHpa(pEstMmhg);
-  const tv = tensionVaporHpa(input.tSeca, input.tHumeda, pEstHpa);
-  const pr = puntoRocio(tv);
-  const hr = humedadRelativa(tv, input.tSeca);
+// Trata cualquier valor que no sea un número (null, "-", texto raro) como
+// "sin dato", para que las cuentas de abajo sepan cuándo tienen que
+// saltearse en vez de calcular con un dato inexistente.
+function _num(v) {
+  return typeof v === "number" && !Number.isNaN(v) ? v : null;
+}
 
-  const tSeca12hAntes = input.tSeca12hAntes != null ? input.tSeca12hAntes : input.tSeca;
-  const tPromedio = (input.tSeca + tSeca12hAntes) / 2;
-  const corrD4 = correccionD4(tPromedio, pEstMmhg);
-  const pnmMmhg = pEstMmhg + corrD4;
-  const pnmHpa = mmhgAHpa(pnmMmhg);
+// Cada variable derivada se calcula solo si TODO lo que necesita está
+// disponible — si algún instrumento se rompió y ese dato quedó marcado
+// "-" (sin dato), la cuenta que dependía de él (y las que dependen de esa
+// cuenta) queda en null, en vez de calcular con un dato inexistente o
+// romper con un error. El resto de las variables que sí tienen todo lo
+// que necesitan se siguen calculando normalmente.
+function calcularObservacion(input) {
+  const barometro = _num(input.barometro);
+  const tAdjunto = _num(input.tAdjunto);
+  const tSeca = _num(input.tSeca);
+  const tHumeda = _num(input.tHumeda);
+
+  const pEstMmhg = barometro != null && tAdjunto != null ? presionEstacionMmhg(barometro, tAdjunto) : null;
+  const pEstHpa = pEstMmhg != null ? mmhgAHpa(pEstMmhg) : null;
+  const tv = tSeca != null && tHumeda != null && pEstHpa != null ? tensionVaporHpa(tSeca, tHumeda, pEstHpa) : null;
+  const pr = tv != null ? puntoRocio(tv) : null;
+  const hr = tv != null && tSeca != null ? humedadRelativa(tv, tSeca) : null;
+
+  const tSeca12hAntesDato = _num(input.tSeca12hAntes);
+  const tSeca12hAntes = tSeca12hAntesDato != null ? tSeca12hAntesDato : tSeca;
+  const tPromedio = tSeca != null && tSeca12hAntes != null ? (tSeca + tSeca12hAntes) / 2 : null;
+  const corrD4 = tPromedio != null && pEstMmhg != null ? correccionD4(tPromedio, pEstMmhg) : null;
+  const pnmMmhg = pEstMmhg != null && corrD4 != null ? pEstMmhg + corrD4 : null;
+  const pnmHpa = pnmMmhg != null ? mmhgAHpa(pnmMmhg) : null;
 
   return {
-    pEstMmhg: redondear1_(pEstMmhg),
-    pEstHpa: redondear1_(pEstHpa),
-    tensionVapor: redondear1_(tv),
-    puntoRocio: redondear1_(pr),
-    humedadRelativa: redondear1_(hr),
-    pnmMmhg: redondear1_(pnmMmhg),
-    pnmHpa: redondear1_(pnmHpa),
+    pEstMmhg: pEstMmhg != null ? redondear1_(pEstMmhg) : null,
+    pEstHpa: pEstHpa != null ? redondear1_(pEstHpa) : null,
+    tensionVapor: tv != null ? redondear1_(tv) : null,
+    puntoRocio: pr != null ? redondear1_(pr) : null,
+    humedadRelativa: hr != null ? redondear1_(hr) : null,
+    pnmMmhg: pnmMmhg != null ? redondear1_(pnmMmhg) : null,
+    pnmHpa: pnmHpa != null ? redondear1_(pnmHpa) : null,
   };
 }
 

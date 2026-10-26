@@ -166,6 +166,9 @@ function validarObservacion_(input) {
   var errores = [];
   for (var campo in RANGOS) {
     var valor = input[campo];
+    // "-" marca a propósito "sin dato" (ej. instrumento roto) — se acepta
+    // tal cual, sin exigir un número ni rechazarlo como inválido.
+    if (valor === "-") continue;
     if (valor === null || valor === undefined || valor === "") {
       errores.push("Falta completar " + RANGOS[campo].etiqueta + ".");
       continue;
@@ -203,27 +206,46 @@ function redondear1_(n) {
   return Math.round(n * 10) / 10;
 }
 
-function calcularObservacion_(input) {
-  var pEstMmhg = presionEstacionMmhg_(input.barometro, input.tAdjunto);
-  var pEstHpa = mmhgAHpa_(pEstMmhg);
-  var tv = tensionVaporHpa_(input.tSeca, input.tHumeda, pEstHpa);
-  var pr = puntoRocio_(tv);
-  var hr = humedadRelativa_(tv, input.tSeca);
+// Trata cualquier valor que no sea un número (null, "-", texto raro) como
+// "sin dato", para que las cuentas de abajo sepan cuándo tienen que
+// saltearse en vez de calcular con un dato inexistente.
+function numDisponible_(v) {
+  return typeof v === "number" && !isNaN(v) ? v : null;
+}
 
-  var tSeca12hAntes = input.tSeca12hAntes != null ? input.tSeca12hAntes : input.tSeca;
-  var tPromedio = (input.tSeca + tSeca12hAntes) / 2;
-  var corrD4 = correccionD4_(tPromedio, pEstMmhg);
-  var pnmMmhg = pEstMmhg + corrD4;
-  var pnmHpa = mmhgAHpa_(pnmMmhg);
+// Cada variable derivada se calcula solo si TODO lo que necesita está
+// disponible — si algún instrumento se rompió y ese dato quedó marcado "-"
+// (sin dato), la cuenta que dependía de él (y las que dependen de esa
+// cuenta) queda en null, en vez de calcular con un dato inexistente o
+// romper con un error. El resto de las variables que sí tienen todo lo que
+// necesitan se siguen calculando normalmente.
+function calcularObservacion_(input) {
+  var barometro = numDisponible_(input.barometro);
+  var tAdjunto = numDisponible_(input.tAdjunto);
+  var tSeca = numDisponible_(input.tSeca);
+  var tHumeda = numDisponible_(input.tHumeda);
+
+  var pEstMmhg = barometro != null && tAdjunto != null ? presionEstacionMmhg_(barometro, tAdjunto) : null;
+  var pEstHpa = pEstMmhg != null ? mmhgAHpa_(pEstMmhg) : null;
+  var tv = tSeca != null && tHumeda != null && pEstHpa != null ? tensionVaporHpa_(tSeca, tHumeda, pEstHpa) : null;
+  var pr = tv != null ? puntoRocio_(tv) : null;
+  var hr = tv != null && tSeca != null ? humedadRelativa_(tv, tSeca) : null;
+
+  var tSeca12hAntesDato = numDisponible_(input.tSeca12hAntes);
+  var tSeca12hAntes = tSeca12hAntesDato != null ? tSeca12hAntesDato : tSeca;
+  var tPromedio = tSeca != null && tSeca12hAntes != null ? (tSeca + tSeca12hAntes) / 2 : null;
+  var corrD4 = tPromedio != null && pEstMmhg != null ? correccionD4_(tPromedio, pEstMmhg) : null;
+  var pnmMmhg = pEstMmhg != null && corrD4 != null ? pEstMmhg + corrD4 : null;
+  var pnmHpa = pnmMmhg != null ? mmhgAHpa_(pnmMmhg) : null;
 
   return {
-    pEstMmhg: redondear1_(pEstMmhg),
-    pEstHpa: redondear1_(pEstHpa),
-    tensionVapor: redondear1_(tv),
-    puntoRocio: redondear1_(pr),
-    humedadRelativa: redondear1_(hr),
-    pnmMmhg: redondear1_(pnmMmhg),
-    pnmHpa: redondear1_(pnmHpa),
+    pEstMmhg: pEstMmhg != null ? redondear1_(pEstMmhg) : null,
+    pEstHpa: pEstHpa != null ? redondear1_(pEstHpa) : null,
+    tensionVapor: tv != null ? redondear1_(tv) : null,
+    puntoRocio: pr != null ? redondear1_(pr) : null,
+    humedadRelativa: hr != null ? redondear1_(hr) : null,
+    pnmMmhg: pnmMmhg != null ? redondear1_(pnmMmhg) : null,
+    pnmHpa: pnmHpa != null ? redondear1_(pnmHpa) : null,
   };
 }
 
@@ -422,24 +444,29 @@ function doPost(e) {
       return jsonOut_(marcarDescarte_(body));
     }
 
-    var numOrNull = function (v) {
-      return v === "" || v == null ? null : Number(v);
+    // "-" marca a propósito "sin dato" (instrumento roto): se deja tal
+    // cual. Un número se convierte a number. Vacío/null queda null (lo
+    // detecta validarObservacion_ como "falta completar"). Cualquier otra
+    // cosa (texto raro) se deja tal cual para que la validación la marque
+    // como "no es un número válido" en vez de perderla silenciosamente.
+    var numOGuion_ = function (v) {
+      if (v === "-") return "-";
+      if (v === "" || v == null) return null;
+      var n = Number(v);
+      return isNaN(n) ? v : n;
     };
 
     var input = {
-      tSeca: Number(body.tSeca),
-      tHumeda: Number(body.tHumeda),
-      tAdjunto: Number(body.tAdjunto),
-      barometro: Number(body.barometro),
-      tSeca12hAntes: numOrNull(body.tSeca12hAntes),
+      tSeca: numOGuion_(body.tSeca),
+      tHumeda: numOGuion_(body.tHumeda),
+      tAdjunto: numOGuion_(body.tAdjunto),
+      barometro: numOGuion_(body.barometro),
+      tSeca12hAntes: numOGuion_(body.tSeca12hAntes),
     };
-    if ([input.tSeca, input.tHumeda, input.tAdjunto, input.barometro].some(isNaN)) {
-      return jsonOut_({ ok: false, error: "Faltan datos obligatorios (T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto, Barómetro)." });
-    }
 
-    var tMax = numOrNull(body.tMax);
-    var tMin = numOrNull(body.tMin);
-    var lluvia = numOrNull(body.lluvia);
+    var tMax = numOGuion_(body.tMax);
+    var tMin = numOGuion_(body.tMin);
+    var lluvia = numOGuion_(body.lluvia);
 
     var errores = validarObservacion_({
       hora: body.hora, observador: body.observador,
@@ -452,6 +479,9 @@ function doPost(e) {
     }
 
     var calculado = calcularObservacion_(input);
+    // Las variables que no se pudieron calcular (porque les faltaba un
+    // dato marcado "-") se guardan también como "-", no en blanco.
+    var aGuion_ = function (v) { return v == null ? "-" : v; };
 
     var fila = {
       fecha: body.fecha || "",
@@ -464,13 +494,13 @@ function doPost(e) {
       tAdjunto: input.tAdjunto,
       barometro: input.barometro,
       tSeca12hAntes: input.tSeca12hAntes,
-      pEstMmhg: calculado.pEstMmhg,
-      pEstHpa: calculado.pEstHpa,
-      pnmMmhg: calculado.pnmMmhg,
-      pnmHpa: calculado.pnmHpa,
-      tensionVapor: calculado.tensionVapor,
-      puntoRocio: calculado.puntoRocio,
-      humedadRelativa: calculado.humedadRelativa,
+      pEstMmhg: aGuion_(calculado.pEstMmhg),
+      pEstHpa: aGuion_(calculado.pEstHpa),
+      pnmMmhg: aGuion_(calculado.pnmMmhg),
+      pnmHpa: aGuion_(calculado.pnmHpa),
+      tensionVapor: aGuion_(calculado.tensionVapor),
+      puntoRocio: aGuion_(calculado.puntoRocio),
+      humedadRelativa: aGuion_(calculado.humedadRelativa),
       lluvia: lluvia,
       cargadoEl: new Date().toISOString(),
       descartada: false,

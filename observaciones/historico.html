@@ -158,7 +158,15 @@
 
     <script src="config.js"></script>
     <script>
-        const fmt = (n, dec = 1) => (typeof n === "number" && Number.isFinite(n) ? n.toFixed(dec) : "");
+        // Si es un número, formatea con los decimales pedidos. Si es texto
+        // (ej. "-", marcando a propósito "instrumento roto / sin dato"), lo
+        // muestra tal cual en vez de dejarlo en blanco — para no perder esa
+        // información. Cualquier otra cosa (null/undefined de datos viejos)
+        // queda en blanco, como antes.
+        const fmt = (n, dec = 1) => {
+            if (typeof n === "number" && Number.isFinite(n)) return n.toFixed(dec);
+            return typeof n === "string" ? n : "";
+        };
 
         function cargarHistorico() {
             return new Promise((resolve, reject) => {

@@ -310,6 +310,11 @@ class App(ttk.Window):
         self.variable_grafico.current(0)
         self.variable_grafico.pack(side="left")
         self.variable_grafico.bind("<<ComboboxSelected>>", lambda _e: self._actualizar_grafico())
+        # Las flechas arriba/abajo mueven el foco a otro control (como Tab),
+        # en vez del comportamiento nativo del combobox de cambiar la
+        # variable seleccionada con esas mismas teclas.
+        self.variable_grafico.bind("<Down>", lambda e: self._flecha_mueve_foco(e, siguiente=True))
+        self.variable_grafico.bind("<Up>", lambda e: self._flecha_mueve_foco(e, siguiente=False))
         ttk.Button(barra, text="Actualizar", command=self._refrescar_historial, bootstyle="secondary-outline").pack(
             side="right"
         )
@@ -541,10 +546,12 @@ class App(ttk.Window):
                 acumulado_lluvia += valor
                 valor = acumulado_lluvia
                 hay_algun_valor = True
-            elif valor is None:
-                # No se deja afuera del gráfico: se deja como hueco (NaN), así
-                # la línea se corta ahí en vez de "pegar" el punto anterior
-                # con el siguiente como si fueran continuos.
+            elif not isinstance(valor, (int, float)):
+                # None, o "-" (instrumento roto / dato no disponible), o
+                # cualquier otro valor no numérico: no se deja afuera del
+                # gráfico, se deja como hueco (NaN), así la línea se corta
+                # ahí en vez de "pegar" el punto anterior con el siguiente
+                # como si fueran continuos.
                 valor = float("nan")
             else:
                 hay_algun_valor = True
@@ -723,6 +730,11 @@ class App(ttk.Window):
         valores = self.tabla_resumen.item(seleccion[0], "values")
         self._seleccionar_periodo_especifico(valores[0])
 
+    def _flecha_mueve_foco(self, evento, siguiente):
+        widget = evento.widget.tk_focusNext() if siguiente else evento.widget.tk_focusPrev()
+        widget.focus_set()
+        return "break"
+
     def _limpiar_placeholder_fecha(self, _evento):
         if self.entrada_fecha_directa.get() == "dd/mm/aaaa":
             self.entrada_fecha_directa.delete(0, tk.END)
@@ -826,7 +838,10 @@ class App(ttk.Window):
         ).pack(anchor="w", pady=(0, 4))
         ttk.Label(
             guia,
-            text="Todos los campos son obligatorios. Si no llovió, cargá 0 en \"Lluvia\".",
+            text="Todos los campos son obligatorios. Si no llovió, cargá 0 en \"Lluvia\". Si algún "
+            "instrumento está roto y no podés tomar esa lectura, escribí \"-\" en ese campo en vez de "
+            "inventar un número — las variables calculadas que dependan de ese dato quedan sin "
+            "calcular, pero el resto de la observación se guarda normal.",
             wraplength=580, justify="left", bootstyle="secondary",
         ).pack(anchor="w")
         ttk.Label(
@@ -1016,12 +1031,17 @@ class App(ttk.Window):
 
     def _leer_entrada(self, clave):
         texto = self.entradas[clave].get().strip()
+        if texto == "-":
+            return "-"  # marca a propósito "sin dato" (instrumento roto)
         if not texto:
             return None
         try:
             return float(texto)
         except ValueError:
-            return None
+            # No es "-" ni un número: se deja el texto tal cual para que
+            # validar_observacion lo marque como error claro ("no es un
+            # número válido") en vez de tratarlo como vacío.
+            return texto
 
     def _leer_formulario(self):
         datos = {
@@ -1037,25 +1057,23 @@ class App(ttk.Window):
 
     def _recalcular(self):
         datos = self._leer_formulario()
-        faltan_obligatorios = any(datos.get(c) is None for c in OBLIGATORIOS)
-        if faltan_obligatorios:
-            for label in self.resultado_labels.values():
-                label.config(text="--")
-            return None
-
+        # calcular_observacion ya es tolerante a datos faltantes ("-", None):
+        # cada variable derivada se calcula si puede, y queda en None si le
+        # falta algo — por eso siempre se puede llamar, sin antes chequear
+        # que estén todos los campos obligatorios completos.
         entrada_calculo = {
             "t_seca": datos["t_seca"], "t_humeda": datos["t_humeda"],
             "t_adjunto": datos["t_adjunto"], "barometro": datos["barometro"],
             "t_seca_12h_antes": datos.get("t_seca_12h_antes"),
         }
         resultado = calculos.calcular_observacion(entrada_calculo)
-        self.resultado_labels["p_est_mmhg"].config(text=f"{resultado['p_est_mmhg']:.1f}")
-        self.resultado_labels["p_est_hpa"].config(text=f"{resultado['p_est_hpa']:.1f}")
-        self.resultado_labels["pnm_mmhg"].config(text=f"{resultado['pnm_mmhg']:.1f}")
-        self.resultado_labels["pnm_hpa"].config(text=f"{resultado['pnm_hpa']:.1f}")
-        self.resultado_labels["tension_vapor"].config(text=f"{resultado['tension_vapor']:.1f}")
-        self.resultado_labels["punto_rocio"].config(text=f"{resultado['punto_rocio']:.1f}")
-        self.resultado_labels["humedad_relativa"].config(text=f"{resultado['humedad_relativa']:.0f}")
+        self.resultado_labels["p_est_mmhg"].config(text=self._fmt_num(resultado["p_est_mmhg"], 1) or "--")
+        self.resultado_labels["p_est_hpa"].config(text=self._fmt_num(resultado["p_est_hpa"], 1) or "--")
+        self.resultado_labels["pnm_mmhg"].config(text=self._fmt_num(resultado["pnm_mmhg"], 1) or "--")
+        self.resultado_labels["pnm_hpa"].config(text=self._fmt_num(resultado["pnm_hpa"], 1) or "--")
+        self.resultado_labels["tension_vapor"].config(text=self._fmt_num(resultado["tension_vapor"], 1) or "--")
+        self.resultado_labels["punto_rocio"].config(text=self._fmt_num(resultado["punto_rocio"], 1) or "--")
+        self.resultado_labels["humedad_relativa"].config(text=self._fmt_num(resultado["humedad_relativa"], 0) or "--")
         return resultado
 
     def _guardar(self):
@@ -1064,11 +1082,6 @@ class App(ttk.Window):
             messagebox.showerror("Faltan datos", "Completá fecha y hora.")
             return
         resultado = self._recalcular()
-        if resultado is None:
-            messagebox.showerror(
-                "Faltan datos", "Completá T. Bulbo Seco, T. Bulbo Húmedo, T. Adjunto y Barómetro (con números válidos)."
-            )
-            return
 
         errores = calculos.validar_observacion(datos)
         if errores:
@@ -1081,7 +1094,11 @@ class App(ttk.Window):
             ):
                 return
 
-        fila = {**datos, **resultado}
+        # Las variables que no se pudieron calcular (porque les faltaba un
+        # dato marcado "-") se guardan también como "-", no en blanco ni
+        # como None — mismo criterio que los campos de entrada.
+        resultado_guardado = {k: ("-" if v is None else v) for k, v in resultado.items()}
+        fila = {**datos, **resultado_guardado}
         insertada = db.insertar_observacion(fila, origen="local", sync_status="pendiente")
         if not insertada:
             messagebox.showwarning("Sin cambios", "Ya existía una observación con esa fecha y hora exactas.")
@@ -1100,6 +1117,12 @@ class App(ttk.Window):
             entrada.delete(0, tk.END)
         self._recalcular()
 
+    def _fmt_num(self, valor, decimales):
+        """Formatea un número calculado con los decimales pedidos, o lo deja
+        tal cual si no es un número (ej. "-" cuando faltó un dato del que
+        dependía esa cuenta) — para no romper con un error de formato."""
+        return f"{valor:.{decimales}f}" if isinstance(valor, (int, float)) else (valor or "")
+
     def _refrescar_tabla_observaciones(self):
         for item in self.tabla.get_children():
             self.tabla.delete(item)
@@ -1116,11 +1139,11 @@ class App(ttk.Window):
                     fila["fecha"], fila["hora"], fila.get("observador") or "",
                     fila["t_seca"], fila["t_humeda"],
                     fila["t_adjunto"], fila["barometro"],
-                    f"{fila['p_est_hpa']:.1f}" if fila["p_est_hpa"] is not None else "",
-                    f"{fila['pnm_hpa']:.1f}" if fila["pnm_hpa"] is not None else "",
-                    f"{fila['tension_vapor']:.1f}" if fila["tension_vapor"] is not None else "",
-                    f"{fila['punto_rocio']:.1f}" if fila["punto_rocio"] is not None else "",
-                    f"{fila['humedad_relativa']:.0f}" if fila["humedad_relativa"] is not None else "",
+                    self._fmt_num(fila["p_est_hpa"], 1),
+                    self._fmt_num(fila["pnm_hpa"], 1),
+                    self._fmt_num(fila["tension_vapor"], 1),
+                    self._fmt_num(fila["punto_rocio"], 1),
+                    self._fmt_num(fila["humedad_relativa"], 0),
                     fila["lluvia"] if fila["lluvia"] is not None else "",
                     "✓ sincronizada" if fila["sync_status"] == "sincronizado" else "pendiente",
                     f"Descartada: {fila.get('motivo_descarte') or ''}" if descartada else "",

@@ -99,6 +99,10 @@ def validar_observacion(entrada):
     errores = []
     for campo, (minimo, maximo, etiqueta) in RANGOS.items():
         valor = entrada.get(campo)
+        # "-" marca a propósito "sin dato" (ej. instrumento roto) — se
+        # acepta tal cual, sin exigir un número ni rechazarlo como inválido.
+        if valor == "-":
+            continue
         if valor is None:
             errores.append(f"Falta completar {etiqueta}.")
             continue
@@ -128,34 +132,55 @@ def validar_observacion(entrada):
     return errores
 
 
+def _num(v):
+    """Trata cualquier valor que no sea un número (None, "-", texto raro)
+    como "sin dato", para que calcular_observacion sepa cuándo saltear una
+    cuenta en vez de calcular con un dato inexistente."""
+    return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+
 def calcular_observacion(entrada):
     """
-    entrada: dict con t_seca, t_humeda, t_adjunto, barometro (obligatorios,
-    números) y opcionalmente t_seca_12h_antes (si falta, se usa t_seca).
-    Devuelve un dict con todas las variables derivadas.
+    entrada: dict con t_seca, t_humeda, t_adjunto, barometro, t_seca_12h_antes
+    (números, o "-"/None si no se pudo tomar esa lectura porque se rompió
+    un instrumento). Cada variable derivada se calcula solo si TODO lo que
+    necesita está disponible — si falta un dato, la cuenta que dependía de
+    él (y las que dependen de esa cuenta) queda en None, en vez de calcular
+    con un dato inexistente o romper con una excepción. El resto de las
+    variables que sí tienen todo lo que necesitan se siguen calculando
+    normalmente. Devuelve un dict con todas las variables derivadas.
     """
-    p_est_mmhg = presion_estacion_mmhg(entrada["barometro"], entrada["t_adjunto"])
-    p_est_hpa = mmhg_a_hpa(p_est_mmhg)
-    tv = tension_vapor_hpa(entrada["t_seca"], entrada["t_humeda"], p_est_hpa)
-    pr = punto_rocio(tv)
-    hr = humedad_relativa(tv, entrada["t_seca"])
+    barometro = _num(entrada.get("barometro"))
+    t_adjunto = _num(entrada.get("t_adjunto"))
+    t_seca = _num(entrada.get("t_seca"))
+    t_humeda = _num(entrada.get("t_humeda"))
 
-    t_seca_12h = entrada.get("t_seca_12h_antes")
+    p_est_mmhg = presion_estacion_mmhg(barometro, t_adjunto) if barometro is not None and t_adjunto is not None else None
+    p_est_hpa = mmhg_a_hpa(p_est_mmhg) if p_est_mmhg is not None else None
+    tv = (
+        tension_vapor_hpa(t_seca, t_humeda, p_est_hpa)
+        if t_seca is not None and t_humeda is not None and p_est_hpa is not None
+        else None
+    )
+    pr = punto_rocio(tv) if tv is not None else None
+    hr = humedad_relativa(tv, t_seca) if tv is not None and t_seca is not None else None
+
+    t_seca_12h = _num(entrada.get("t_seca_12h_antes"))
     if t_seca_12h is None:
-        t_seca_12h = entrada["t_seca"]
-    t_promedio = (entrada["t_seca"] + t_seca_12h) / 2
-    corr_d4 = correccion_d4(t_promedio, p_est_mmhg)
-    pnm_mmhg = p_est_mmhg + corr_d4
-    pnm_hpa = mmhg_a_hpa(pnm_mmhg)
+        t_seca_12h = t_seca
+    t_promedio = (t_seca + t_seca_12h) / 2 if t_seca is not None and t_seca_12h is not None else None
+    corr_d4 = correccion_d4(t_promedio, p_est_mmhg) if t_promedio is not None and p_est_mmhg is not None else None
+    pnm_mmhg = p_est_mmhg + corr_d4 if p_est_mmhg is not None and corr_d4 is not None else None
+    pnm_hpa = mmhg_a_hpa(pnm_mmhg) if pnm_mmhg is not None else None
 
     # Redondeado a 1 decimal: evita guardar el resultado crudo de la cuenta
     # en punto flotante (con 8-10 decimales de ruido) en la base local/Sheet.
     return {
-        "p_est_mmhg": round(p_est_mmhg, 1),
-        "p_est_hpa": round(p_est_hpa, 1),
-        "tension_vapor": round(tv, 1),
-        "punto_rocio": round(pr, 1),
-        "humedad_relativa": round(hr, 1),
-        "pnm_mmhg": round(pnm_mmhg, 1),
-        "pnm_hpa": round(pnm_hpa, 1),
+        "p_est_mmhg": round(p_est_mmhg, 1) if p_est_mmhg is not None else None,
+        "p_est_hpa": round(p_est_hpa, 1) if p_est_hpa is not None else None,
+        "tension_vapor": round(tv, 1) if tv is not None else None,
+        "punto_rocio": round(pr, 1) if pr is not None else None,
+        "humedad_relativa": round(hr, 1) if hr is not None else None,
+        "pnm_mmhg": round(pnm_mmhg, 1) if pnm_mmhg is not None else None,
+        "pnm_hpa": round(pnm_hpa, 1) if pnm_hpa is not None else None,
     }
