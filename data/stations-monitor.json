@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 75.0h",
+      "current_reason": "Sin datos nuevos hace 139.2h",
       "down_since": "2026-10-20T16:58:39.540575+00:00",
       "last_data_timestamp": "2026-10-20T11:26:59+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 25,
       "incidents": [
         {
@@ -157,20 +157,27 @@
           "start": "2026-10-20T16:58:39.540575+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 75.0h"
+          "reason": "Sin datos nuevos hace 139.2h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
     },
     "observatorio": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
-      "current_status": "up",
-      "current_reason": null,
-      "down_since": null,
-      "last_data_timestamp": "2026-10-23T14:23:50+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
-      "current_issue_number": 0,
-      "incidents": [],
+      "current_status": "down",
+      "current_reason": "Sin datos nuevos hace 6.7h",
+      "down_since": "2026-10-26T06:38:25.448103+00:00",
+      "last_data_timestamp": "2026-10-25T23:58:55+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
+      "current_issue_number": 1,
+      "incidents": [
+        {
+          "start": "2026-10-26T06:38:25.448103+00:00",
+          "end": null,
+          "duration_minutes": null,
+          "reason": "Sin datos nuevos hace 6.7h"
+        }
+      ],
       "display_name": "Observatorio (Facultad · Campbell)"
     },
     "ema_verde": {
@@ -178,8 +185,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-23T14:23:28+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_data_timestamp": "2026-10-26T06:36:38+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -197,7 +204,7 @@
       "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-10-02T19:41:02.541438+00:00",
       "last_data_timestamp": "2026-10-02T14:52:45+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -214,8 +221,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-23T14:25:54+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_data_timestamp": "2026-10-26T06:37:24+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 6,
       "incidents": [
         {
@@ -262,8 +269,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-10-23T14:26:59+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_data_timestamp": "2026-10-26T06:38:46+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 2,
       "incidents": [
         {
@@ -284,10 +291,10 @@
     "ema_blanca": {
       "monitoring_since": "2026-08-22T12:27:00.532332+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 96.9h",
+      "current_reason": "Sin datos nuevos hace 161.1h",
       "down_since": "2026-10-19T19:29:31.682055+00:00",
       "last_data_timestamp": "2026-10-19T13:32:36+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -306,7 +313,7 @@
           "start": "2026-10-19T19:29:31.682055+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 96.9h"
+          "reason": "Sin datos nuevos hace 161.1h"
         }
       ],
       "display_name": "EMA Blanca"
@@ -317,7 +324,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -344,10 +351,10 @@
     "bavio_pluvio": {
       "monitoring_since": "2026-08-26T01:14:18.709430+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 73.9h",
+      "current_reason": "Sin datos nuevos hace 138.1h",
       "down_since": "2026-10-20T16:58:39.540575+00:00",
       "last_data_timestamp": "2026-10-20T12:30:42+00:00",
-      "last_check": "2026-10-23T14:26:41.379382+00:00",
+      "last_check": "2026-10-26T06:38:25.448103+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -366,7 +373,7 @@
           "start": "2026-10-20T16:58:39.540575+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 73.9h"
+          "reason": "Sin datos nuevos hace 138.1h"
         }
       ],
       "display_name": "EP N°23 (Bavío / EMA Violeta) — Pluviómetro"
