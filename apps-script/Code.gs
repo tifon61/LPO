@@ -351,6 +351,13 @@ function marcarDescarte_(body) {
   sheet.getRange(numeroFila, colDescartada).setValue(descartada);
   sheet.getRange(numeroFila, colMotivo).setValue(descartada ? body.motivo : "");
   sheet.getRange(numeroFila, colDescartadoPor).setValue(descartada ? (body.descartadoPor || "") : "");
+  // Sin esto, el programa/la web pueden bajar el histórico (GET) milisegundos
+  // después de este POST y recibir todavía el valor viejo (Apps Script
+  // puede demorar en hacer visible la escritura a otra ejecución) — eso
+  // hacía que un descarte recién hecho "volviera" a aparecer como activo
+  // en la próxima sincronización. flush() fuerza a que quede escrito de
+  // verdad antes de responder.
+  SpreadsheetApp.flush();
 
   return {
     ok: true,
@@ -511,6 +518,9 @@ function doPost(e) {
     var sheet = getSheet_();
     sheet.appendRow(COLUMNAS.map(function (c) { return fila[c.key]; }));
     ordenarSheetPorFechaHora_(sheet);
+    // Fuerza a que la escritura quede visible de verdad antes de responder
+    // (ver el comentario en marcarDescarte_ sobre por qué hace falta esto).
+    SpreadsheetApp.flush();
 
     return jsonOut_({ ok: true, fila: fila });
   } catch (err) {
