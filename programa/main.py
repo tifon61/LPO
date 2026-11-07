@@ -207,6 +207,7 @@ class App(ttk.Window):
         self._armar_formulas(tab_formulas)
         self._armar_barra_estado()
 
+        self._refrescar_observadores()
         self._set_fecha_hora_actual()
         self._recalcular()
         self._refrescar_historial()
@@ -253,17 +254,29 @@ class App(ttk.Window):
             if clave == "hora":
                 entrada = ttk.Combobox(frame, width=16, state="readonly", values=list(calculos.HORAS_VALIDAS))
                 entrada.bind("<<ComboboxSelected>>", lambda _e: self._recalcular())
+                entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
+            elif clave == "observador":
+                celda = ttk.Frame(frame)
+                celda.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
+                entrada = ttk.Combobox(celda, width=14, state="readonly")
+                entrada.pack(side="left")
+                entrada.bind("<<ComboboxSelected>>", lambda _e: self._recalcular())
+                ttk.Button(
+                    celda, text="+", width=2, command=self._agregar_observador, bootstyle="secondary-outline",
+                ).pack(side="left", padx=(4, 0))
+                ttk.Button(
+                    celda, text="−", width=2, command=self._eliminar_observador, bootstyle="secondary-outline",
+                ).pack(side="left", padx=(2, 0))
             else:
                 entrada = ttk.Entry(frame, width=18)
                 entrada.bind("<KeyRelease>", lambda _e: self._recalcular())
-            entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
+                entrada.grid(row=fila, column=col * 2 + 1, sticky="w", padx=6, pady=5)
             self.entradas[clave] = entrada
 
         botones = ttk.Frame(frame)
         botones.grid(row=len(CAMPOS) // 2 + 1, column=0, columnspan=4, pady=(10, 2))
-        ttk.Button(botones, text="Guardar observación", command=self._guardar, bootstyle="primary").pack(
-            side="left", padx=5
-        )
+        self.boton_guardar = ttk.Button(botones, text="Guardar observación", command=self._guardar, bootstyle="primary")
+        self.boton_guardar.pack(side="left", padx=5)
         ttk.Button(botones, text="Limpiar", command=self._limpiar, bootstyle="secondary-outline").pack(
             side="left", padx=5
         )
@@ -846,6 +859,13 @@ class App(ttk.Window):
         ).pack(anchor="w")
         ttk.Label(
             guia,
+            text="El \"Observador\" se elige de una lista, no se tipea — usá el botón \"+\" para agregar "
+            "a alguien nuevo, o \"−\" para sacar a quien ya no observa (no borra lo que esa persona ya "
+            "cargó antes).",
+            wraplength=580, justify="left", bootstyle="secondary",
+        ).pack(anchor="w")
+        ttk.Label(
+            guia,
             text="La estación toma observaciones a las 09:00, 15:00 y 21:00 (hora local) — las tres horas "
             "sinópticas (12, 18 y 00 UTC).",
             wraplength=580, justify="left", bootstyle="secondary",
@@ -1024,6 +1044,40 @@ class App(ttk.Window):
                 mejor, mejor_diferencia = hora, diferencia
         return mejor
 
+    def _refrescar_observadores(self, seleccionar=None):
+        nombres = db.listar_observadores()
+        combo = self.entradas["observador"]
+        combo.configure(values=nombres)
+        if seleccionar and seleccionar in nombres:
+            combo.set(seleccionar)
+        elif combo.get() not in nombres:
+            combo.set("")
+
+    def _agregar_observador(self):
+        nombre = simpledialog.askstring("Agregar observador", "Nombre del observador:", parent=self)
+        if nombre is None:
+            return
+        nombre = nombre.strip()
+        if not nombre:
+            return
+        if db.agregar_observador(nombre):
+            self._refrescar_observadores(seleccionar=nombre)
+        else:
+            messagebox.showinfo("Agregar observador", f'"{nombre}" ya está en la lista.')
+
+    def _eliminar_observador(self):
+        actual = self.entradas["observador"].get().strip()
+        if not actual:
+            messagebox.showinfo("Quitar observador", "Elegí primero un observador de la lista para quitarlo.")
+            return
+        if not messagebox.askyesno(
+            "Quitar observador",
+            f'¿Quitar a "{actual}" de la lista? Las observaciones ya guardadas con ese nombre no se tocan.',
+        ):
+            return
+        db.eliminar_observador(actual)
+        self._refrescar_observadores()
+
     def _set_fecha_hora_actual(self):
         ahora = datetime.now()
         self.entradas["fecha"].insert(0, ahora.strftime("%Y-%m-%d"))
@@ -1077,44 +1131,66 @@ class App(ttk.Window):
         return resultado
 
     def _guardar(self):
-        datos = self._leer_formulario()
-        if not datos["fecha"] or not datos["hora"]:
-            messagebox.showerror("Faltan datos", "Completá fecha y hora.")
-            return
-        resultado = self._recalcular()
+        # Se deshabilita el botón al toque, antes de hacer nada más: la
+        # pantalla puede tardar un segundo o dos en refrescar la tabla y el
+        # gráfico (sobre todo en compus viejas), y en ese rato un segundo
+        # click no debe volver a disparar _guardar — sin esto, se llegó a
+        # cargar la misma observación dos veces.
+        self.boton_guardar.config(state="disabled")
+        try:
+            datos = self._leer_formulario()
+            if not datos["fecha"] or not datos["hora"]:
+                messagebox.showerror("Faltan datos", "Completá fecha y hora.")
+                return
+            resultado = self._recalcular()
 
-        errores = calculos.validar_observacion(datos)
-        if errores:
-            messagebox.showerror("Revisá los datos", "\n".join(errores))
-            return
-
-        if db.existe(datos["fecha"], datos["hora"]):
-            if not messagebox.askyesno(
-                "Ya existe", "Ya hay una observación con esa fecha y hora. ¿Guardar igual? (se ignorará si es duplicada)"
-            ):
+            errores = calculos.validar_observacion(datos)
+            if errores:
+                messagebox.showerror("Revisá los datos", "\n".join(errores))
                 return
 
-        # Las variables que no se pudieron calcular (porque les faltaba un
-        # dato marcado "-") se guardan también como "-", no en blanco ni
-        # como None — mismo criterio que los campos de entrada.
-        resultado_guardado = {k: ("-" if v is None else v) for k, v in resultado.items()}
-        fila = {**datos, **resultado_guardado}
-        insertada = db.insertar_observacion(fila, origen="local", sync_status="pendiente")
-        if not insertada:
-            messagebox.showwarning("Sin cambios", "Ya existía una observación con esa fecha y hora exactas.")
-            return
+            if db.existe(datos["fecha"], datos["hora"]):
+                if not messagebox.askyesno(
+                    "Ya existe", "Ya hay una observación con esa fecha y hora. ¿Guardar igual? (se ignorará si es duplicada)"
+                ):
+                    return
 
-        self._refrescar_historial()
-        self._limpiar()
-        self._set_fecha_hora_actual()
-        self.estado_label.config(text="Observación guardada localmente. Sincronizando...")
-        self._sincronizar(automatico=True)
+            # Las variables que no se pudieron calcular (porque les faltaba un
+            # dato marcado "-") se guardan también como "-", no en blanco ni
+            # como None — mismo criterio que los campos de entrada.
+            resultado_guardado = {k: ("-" if v is None else v) for k, v in resultado.items()}
+            fila = {**datos, **resultado_guardado}
+            insertada = db.insertar_observacion(fila, origen="local", sync_status="pendiente")
+            if not insertada:
+                messagebox.showwarning("Sin cambios", "Ya existía una observación con esa fecha y hora exactas.")
+                return
+
+            # Confirmación clara e inmediata (antes de los pasos más lentos
+            # de abajo) — así no queda ninguna duda de que se guardó, que es
+            # justo lo que llevaba a algunos observadores a cargar la misma
+            # observación dos veces por las dudas.
+            messagebox.showinfo(
+                "Observación cargada",
+                f"Observación cargada: {_fecha_ddmmaaaa(datos['fecha'])} {datos['hora']} — "
+                f"Observador: {datos['observador']}",
+            )
+
+            self._refrescar_historial()
+            self._limpiar()
+            self._set_fecha_hora_actual()
+            self.estado_label.config(text="Observación guardada localmente. Sincronizando...")
+            self._sincronizar(automatico=True)
+        finally:
+            self.boton_guardar.config(state="normal")
 
     def _limpiar(self):
         for clave, entrada in self.entradas.items():
             if clave == "hora":
                 continue  # combobox de solo lectura: siempre tiene que quedar una hora válida elegida
-            entrada.delete(0, tk.END)
+            if isinstance(entrada, ttk.Combobox):
+                entrada.set("")  # .delete() no limpia un combobox de solo lectura (ej. "observador")
+            else:
+                entrada.delete(0, tk.END)
         self._recalcular()
 
     def _fmt_num(self, valor, decimales):

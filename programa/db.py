@@ -83,6 +83,14 @@ def inicializar():
     with conectar() as conn:
         conn.execute(
             """
+            CREATE TABLE IF NOT EXISTS observadores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL UNIQUE
+            )
+            """
+        )
+        conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS observaciones (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 fecha TEXT NOT NULL,
@@ -108,6 +116,40 @@ def inicializar():
             if columna not in columnas_existentes:
                 conn.execute(f"ALTER TABLE observaciones ADD COLUMN {columna} {tipo}")
         _fusionar_duplicados_hora_sin_normalizar(conn)
+        conn.commit()
+
+
+def listar_observadores():
+    """Nombres guardados para el selector de "Observador", en orden
+    alfabético. Es una lista local de esta compu (no se sincroniza con la
+    Sheet) — cada estación/instalación arma la suya."""
+    with conectar() as conn:
+        rows = conn.execute("SELECT nombre FROM observadores ORDER BY nombre COLLATE NOCASE").fetchall()
+        return [row["nombre"] for row in rows]
+
+
+def agregar_observador(nombre):
+    """Agrega un nombre al selector. Devuelve False si ya existía (sin
+    distinguir mayúsculas/minúsculas), True si se agregó."""
+    nombre = nombre.strip()
+    if not nombre:
+        return False
+    with conectar() as conn:
+        existe = conn.execute(
+            "SELECT 1 FROM observadores WHERE nombre = ? COLLATE NOCASE", (nombre,)
+        ).fetchone()
+        if existe:
+            return False
+        conn.execute("INSERT INTO observadores (nombre) VALUES (?)", (nombre,))
+        conn.commit()
+        return True
+
+
+def eliminar_observador(nombre):
+    """Saca un nombre del selector. No toca las observaciones ya guardadas
+    con ese observador — esas conservan el nombre tal cual quedó cargado."""
+    with conectar() as conn:
+        conn.execute("DELETE FROM observadores WHERE nombre = ?", (nombre,))
         conn.commit()
 
 
