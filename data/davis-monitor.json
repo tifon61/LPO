@@ -3,9 +3,9 @@
   "current_status": "up",
   "current_reason": null,
   "down_since": null,
-  "last_data_timestamp": "2026-11-02T18:30:00+00:00",
-  "last_check": "2026-11-02T18:37:53.092074+00:00",
-  "current_issue_number": 9,
+  "last_data_timestamp": "2026-11-07T08:35:00+00:00",
+  "last_check": "2026-11-07T08:42:58.659987+00:00",
+  "current_issue_number": 10,
   "incidents": [
     {
       "start": "2026-08-25T15:13:16.783215+00:00",
@@ -60,6 +60,12 @@
       "end": "2026-10-27T19:06:44.628423+00:00",
       "duration_minutes": 8727.5,
       "reason": "No se pudo conectar: HTTP Error 403: Forbidden"
+    },
+    {
+      "start": "2026-11-05T09:41:01.416645+00:00",
+      "end": "2026-11-05T22:50:27.522241+00:00",
+      "duration_minutes": 789.4,
+      "reason": "Datos desactualizados: último registro hace 11.1h"
     }
   ]
 }
