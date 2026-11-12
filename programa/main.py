@@ -27,7 +27,7 @@ from rutas import dir_datos, ruta_recurso
 # Versión de este build — se compara contra VERSION_URL para avisar si hay
 # una más nueva. Subila (junto con el archivo VERSION del repo) cada vez
 # que generes un .exe/binario nuevo para repartir.
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 VERSION_URL = "https://raw.githubusercontent.com/tifon61/LPO/main/programa/VERSION"
 
 # Misma Sheet que usa la web (observaciones/historico.html) para el botón
@@ -207,7 +207,7 @@ class App(ttk.Window):
         self._armar_formulas(tab_formulas)
         self._armar_barra_estado()
 
-        self._refrescar_observadores()
+        self._refrescar_observadores(seleccionar=db.ultimo_observador())
         self._set_fecha_hora_actual()
         self._recalcular()
         self._refrescar_historial()
@@ -1045,6 +1045,8 @@ class App(ttk.Window):
         return mejor
 
     def _refrescar_observadores(self, seleccionar=None):
+        # Misma regla que la web: los que ya cargaron (también desde la web,
+        # al sincronizar) + los agregados con "+" − los quitados con "−".
         nombres = db.listar_observadores()
         combo = self.entradas["observador"]
         combo.configure(values=nombres)
@@ -1072,7 +1074,7 @@ class App(ttk.Window):
             return
         if not messagebox.askyesno(
             "Quitar observador",
-            f'¿Quitar a "{actual}" de la lista? Las observaciones ya guardadas con ese nombre no se tocan.',
+            f'¿Quitar a "{actual}" de la lista de observadores? Las observaciones ya guardadas con ese nombre no se tocan.',
         ):
             return
         db.eliminar_observador(actual)
@@ -1150,10 +1152,14 @@ class App(ttk.Window):
                 return
 
             if db.existe(datos["fecha"], datos["hora"]):
-                if not messagebox.askyesno(
-                    "Ya existe", "Ya hay una observación con esa fecha y hora. ¿Guardar igual? (se ignorará si es duplicada)"
-                ):
-                    return
+                # Mismo aviso que la web. Antes preguntaba "¿Guardar igual?",
+                # pero igual no se guardaba (fecha + hora no se repiten).
+                messagebox.showwarning(
+                    "Ya está cargada",
+                    f"Ya hay una observación cargada para el {_fecha_ddmmaaaa(datos['fecha'])} a las {datos['hora']}: "
+                    "no se carga de nuevo. Revisala en la pestaña Histórico.",
+                )
+                return
 
             # Las variables que no se pudieron calcular (porque les faltaba un
             # dato marcado "-") se guardan también como "-", no en blanco ni
@@ -1174,6 +1180,7 @@ class App(ttk.Window):
                 f"Observación cargada: {_fecha_ddmmaaaa(datos['fecha'])} {datos['hora']} — "
                 f"Observador: {datos['observador']}",
             )
+            db.recordar_observador(datos["observador"])   # queda elegido para la próxima (igual que la web)
 
             self._refrescar_historial()
             self._limpiar()
@@ -1185,8 +1192,10 @@ class App(ttk.Window):
 
     def _limpiar(self):
         for clave, entrada in self.entradas.items():
-            if clave == "hora":
-                continue  # combobox de solo lectura: siempre tiene que quedar una hora válida elegida
+            if clave in ("hora", "observador"):
+                # hora: siempre tiene que quedar una hora válida elegida;
+                # observador: el que está cargando sigue siendo el mismo.
+                continue
             if isinstance(entrada, ttk.Combobox):
                 entrada.set("")  # .delete() no limpia un combobox de solo lectura (ej. "observador")
             else:
@@ -1289,6 +1298,7 @@ class App(ttk.Window):
 
     def _al_terminar_sync(self, mensaje, error=False):
         self._refrescar_historial()
+        self._refrescar_observadores(seleccionar=self.entradas["observador"].get())   # nombres que llegaron de la web
         self.estado_label.config(text=mensaje)
         if error:
             messagebox.showerror("Sincronización", mensaje)
