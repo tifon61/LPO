@@ -16,6 +16,14 @@ VALORES_POR_DEFECTO = {
 }
 
 
+# Lista oficial de observadores (iniciales) para el selector "Observador".
+# La MISMA que en observaciones/config.js: si se suma o se va alguien,
+# cambiarla en los dos. En cada compu además se puede agregar ("+") o quitar
+# ("−"). No está en config.json a propósito: así una versión nueva del
+# programa trae la lista actualizada.
+OBSERVADORES = ["FB", "IV", "JB", "MB", "MT", "NA", "NR"]
+
+
 def cargar():
     if not os.path.exists(CONFIG_PATH):
         guardar(VALORES_POR_DEFECTO)

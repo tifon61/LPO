@@ -10,3 +10,10 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjvZaO3s2ExJrq
  * cualquiera con la URL pública escriba datos falsos en la planilla.
  */
 const APPS_SCRIPT_TOKEN = "d5c3c4ef737acc2623cc0216747bfb62";
+
+/**
+ * Lista oficial de observadores (iniciales) para el selector "Observador".
+ * La MISMA que en programa/config.py: si se suma o se va alguien, cambiarla
+ * en los dos. En cada compu además se puede agregar ("+") o quitar ("−").
+ */
+const OBSERVADORES = ["FB", "IV", "JB", "MB", "MT", "NA", "NR"];

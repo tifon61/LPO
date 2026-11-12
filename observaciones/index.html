@@ -101,7 +101,17 @@
                     </div>
                     <div>
                         <label for="observador" class="input-label">Observador</label>
-                        <input type="text" id="observador" name="observador" maxlength="60" required class="input-field">
+                        <!-- Igual que el programa: se elige de la lista (los que ya cargaron
+                             observaciones + los agregados con "+" − los quitados con "−"). -->
+                        <div class="flex gap-1">
+                            <select id="observador" name="observador" required class="input-field flex-1">
+                                <option value="">Elegí…</option>
+                            </select>
+                            <button type="button" id="obsMas" title="Agregar un observador a la lista"
+                                    class="px-3 border border-slate-300 rounded text-slate-700 hover:bg-slate-100">+</button>
+                            <button type="button" id="obsMenos" title="Quitar de la lista al observador elegido"
+                                    class="px-3 border border-slate-300 rounded text-slate-700 hover:bg-slate-100">−</button>
+                        </div>
                     </div>
                 </div>
 
@@ -321,12 +331,95 @@
             return mejor;
         }
 
-        // Fecha/hora por defecto
+        // Fecha/hora por defecto. La fecha, la LOCAL: con toISOString() (UTC),
+        // desde las 21 hs argentinas proponía el día siguiente (justo para la
+        // observación de las 21).
+        function fechaLocalHoy() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
         const ahora = new Date();
-        document.getElementById("fecha").value = ahora.toISOString().slice(0, 10);
+        document.getElementById("fecha").value = fechaLocalHoy();
         document.getElementById("hora").value = horaSinopticaMasCercana(ahora);
 
         // Sistema de Banner Flotante formal
+        // ---- Observador: lista de los que ya cargaron + el último que usó esta compu ----
+        function escaparHTML(t) {
+            return String(t || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+        }
+        // ---- Observador: la MISMA regla que el programa de escritorio ----
+        // Lista = la oficial (OBSERVADORES, en config.js) + los agregados con
+        // "+" − los quitados con "−". Los agregados/quitados y el último
+        // elegido se recuerdan en esta compu. No sale de las observaciones
+        // viejas: hay nombres cargados de otras formas (en minúscula, etc.).
+        let historico = null;          // filas del histórico (para el aviso de observación repetida)
+        const leerLista = (k) => { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch (_) { return []; } };
+        const guardarLista = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+        function ultimoObservador() { try { return localStorage.getItem("lpo-observador") || ""; } catch (_) { return ""; } }
+        function recordarObservador(nombre) {
+            try { localStorage.setItem("lpo-observador", nombre); } catch (_) {}
+        }
+        function listaObservadores() {
+            const ocultos = new Set(leerLista("lpo-observadores-ocultos").map((n) => n.toLowerCase()));
+            const vistos = new Map();
+            const oficial = typeof OBSERVADORES !== "undefined" ? OBSERVADORES : [];
+            [...oficial, ...leerLista("lpo-observadores-agregados")].forEach((n) => {
+                if (n && !ocultos.has(n.toLowerCase()) && !vistos.has(n.toLowerCase())) vistos.set(n.toLowerCase(), n);
+            });
+            return [...vistos.values()].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+        }
+        function pintarObservadores(seleccionar) {
+            const sel = document.getElementById("observador");
+            const actual = seleccionar !== undefined ? seleccionar : sel.value;
+            const nombres = listaObservadores();
+            sel.innerHTML = '<option value="">Elegí…</option>' + nombres.map((n) => `<option>${escaparHTML(n)}</option>`).join("");
+            sel.value = nombres.includes(actual) ? actual : "";
+        }
+        function agregarObservador() {
+            const nombre = (prompt("Nombre del observador:") || "").trim();
+            if (!nombre) return;
+            if (listaObservadores().some((n) => n.toLowerCase() === nombre.toLowerCase())) {
+                alert(`"${nombre}" ya está en la lista.`);
+                return;
+            }
+            guardarLista("lpo-observadores-agregados", [...leerLista("lpo-observadores-agregados"), nombre]);
+            guardarLista("lpo-observadores-ocultos", leerLista("lpo-observadores-ocultos").filter((n) => n.toLowerCase() !== nombre.toLowerCase()));
+            pintarObservadores(nombre);
+        }
+        function quitarObservador() {
+            const actual = document.getElementById("observador").value;
+            if (!actual) { alert("Elegí primero un observador de la lista para quitarlo."); return; }
+            if (!confirm(`¿Quitar a "${actual}" de la lista de observadores? Las observaciones ya guardadas con ese nombre no se tocan.`)) return;
+            guardarLista("lpo-observadores-agregados", leerLista("lpo-observadores-agregados").filter((n) => n.toLowerCase() !== actual.toLowerCase()));
+            guardarLista("lpo-observadores-ocultos", [...leerLista("lpo-observadores-ocultos"), actual]);
+            pintarObservadores("");
+        }
+        function yaCargada(fecha, hora) {
+            return (historico || []).some((f) => !f.descartada && f.fecha === fecha && f.hora === hora);
+        }
+        function fechaDDMMAAAA(iso) { const [a, m, d] = String(iso).split("-"); return `${d}/${m}/${a}`; }
+        function cargarObservadores() {
+            pintarObservadores(ultimoObservador());
+            document.getElementById("obsMas").addEventListener("click", agregarObservador);
+            document.getElementById("obsMenos").addEventListener("click", quitarObservador);
+            if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGAR_URL")) return;
+            const callbackName = "onObservadores_" + Date.now();
+            window[callbackName] = (data) => {
+                delete window[callbackName];
+                document.getElementById(callbackName + "_script")?.remove();
+                if (!data || !data.ok) return;
+                historico = data.filas;
+                pintarObservadores(document.getElementById("observador").value || ultimoObservador());
+            };
+            const script = document.createElement("script");
+            script.id = callbackName + "_script";
+            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&token=" + encodeURIComponent(APPS_SCRIPT_TOKEN);
+            script.onerror = () => {};   // sin el histórico: no se puede avisar de una repetida, el resto anda igual
+            document.body.appendChild(script);
+        }
+
+        cargarObservadores();          // (acá: después de definir todo lo que usa)
+
         function mostrarBanner(tipo, mensaje) {
             clearTimeout(bannerTimeout);
             
@@ -380,6 +473,11 @@
                 return;
             }
 
+            if (yaCargada(input.fecha, input.hora)) {
+                // Mismo aviso que el programa: fecha + hora no se repiten.
+                mostrarBanner("error", `Ya hay una observación cargada para el ${fechaDDMMAAAA(input.fecha)} a las ${input.hora}: no se carga de nuevo. Revisala en la página Histórico.`);
+                return;
+            }
             const btn = document.getElementById("btnGuardar");
             const btnOriginalHTML = btn.innerHTML;
             btn.disabled = true;
@@ -396,9 +494,13 @@
                 });
                 const data = await resp.json();
                 if (data.ok) {
-                    mostrarBanner("ok", "La observación fue registrada correctamente.");
+                    // Que quede claro QUÉ se guardó (evita cargarla dos veces "por las dudas").
+                    mostrarBanner("ok", `Observación cargada: <b>${fechaDDMMAAAA(input.fecha)} ${input.hora}</b> — Observador: <b>${escaparHTML(input.observador)}</b>`);
+                    recordarObservador(input.observador);
+                    if (historico) historico.push({ fecha: input.fecha, hora: input.hora, observador: input.observador });
                     form.reset();
-                    document.getElementById("fecha").value = new Date().toISOString().slice(0, 10);
+                    pintarObservadores(input.observador);   // el que carga sigue siendo el mismo
+                    document.getElementById("fecha").value = fechaLocalHoy();
                     document.getElementById("hora").value = horaSinopticaMasCercana(new Date());
                     actualizarPreview();
                 } else {

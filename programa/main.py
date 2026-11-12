@@ -13,7 +13,6 @@ import webbrowser
 from datetime import date, datetime
 from tkinter import filedialog, messagebox, simpledialog
 
-import requests
 import ttkbootstrap as ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -24,11 +23,10 @@ import db
 import sync
 from rutas import dir_datos, ruta_recurso
 
-# Versión de este build — se compara contra VERSION_URL para avisar si hay
-# una más nueva. Subila (junto con el archivo VERSION del repo) cada vez
-# que generes un .exe/binario nuevo para repartir.
-VERSION = "1.0.0"
-VERSION_URL = "https://raw.githubusercontent.com/tifon61/LPO/main/programa/VERSION"
+# Versión de este build: se muestra en el encabezado, para saber cuál está
+# instalada. Subila (junto con el archivo VERSION del repo) cada vez que
+# generes un .exe/binario nuevo para repartir.
+VERSION = "1.1.0"
 
 # Misma Sheet que usa la web (observaciones/historico.html) para el botón
 # "Google Sheet" de la pestaña Histórico.
@@ -121,16 +119,6 @@ def _escribir_csv(ruta, filas):
             escritor.writerow([_valor_csv(fila, clave) for clave, _encabezado in COLUMNAS_CSV])
 
 
-def _version_mayor(remota, local):
-    """¿La versión `remota` (ej. "1.2.0") es más nueva que `local`?"""
-    def partes(v):
-        return tuple(int(p) for p in v.strip().split(".") if p.isdigit())
-    try:
-        return partes(remota) > partes(local)
-    except Exception:
-        return False
-
-
 def _fecha_ddmmaaaa(fecha_iso):
     """'2026-09-20' -> '20/09/2026', para mostrar en el eje del gráfico."""
     anio, mes, dia = fecha_iso[:10].split("-")
@@ -207,12 +195,11 @@ class App(ttk.Window):
         self._armar_formulas(tab_formulas)
         self._armar_barra_estado()
 
-        self._refrescar_observadores()
+        self._refrescar_observadores(seleccionar=db.ultimo_observador())
         self._set_fecha_hora_actual()
         self._recalcular()
         self._refrescar_historial()
         self._sincronizar(automatico=True)
-        self._verificar_actualizacion()
 
     # ---------- Encabezado ----------
 
@@ -234,13 +221,7 @@ class App(ttk.Window):
             titulos, text="Estación Meteorológica — La Plata Observatorio",
             font=("Georgia", 15, "bold"),
         ).pack(anchor="w")
-        ttk.Label(titulos, text="FCAG · UNLP", bootstyle="secondary").pack(anchor="w")
-
-        # Aviso de versión nueva disponible — arranca sin empaquetar (oculto);
-        # _verificar_actualizacion lo muestra solo si encuentra una más nueva.
-        self.aviso_actualizacion = ttk.Label(
-            frame, text="", bootstyle="warning", wraplength=260, justify="right", cursor="hand2",
-        )
+        ttk.Label(titulos, text=f"FCAG · UNLP · versión {VERSION}", bootstyle="secondary").pack(anchor="w")
 
     # ---------- Pestaña: Cargar ----------
 
@@ -1045,6 +1026,8 @@ class App(ttk.Window):
         return mejor
 
     def _refrescar_observadores(self, seleccionar=None):
+        # Misma regla que la web: los que ya cargaron (también desde la web,
+        # al sincronizar) + los agregados con "+" − los quitados con "−".
         nombres = db.listar_observadores()
         combo = self.entradas["observador"]
         combo.configure(values=nombres)
@@ -1072,7 +1055,7 @@ class App(ttk.Window):
             return
         if not messagebox.askyesno(
             "Quitar observador",
-            f'¿Quitar a "{actual}" de la lista? Las observaciones ya guardadas con ese nombre no se tocan.',
+            f'¿Quitar a "{actual}" de la lista de observadores? Las observaciones ya guardadas con ese nombre no se tocan.',
         ):
             return
         db.eliminar_observador(actual)
@@ -1150,10 +1133,14 @@ class App(ttk.Window):
                 return
 
             if db.existe(datos["fecha"], datos["hora"]):
-                if not messagebox.askyesno(
-                    "Ya existe", "Ya hay una observación con esa fecha y hora. ¿Guardar igual? (se ignorará si es duplicada)"
-                ):
-                    return
+                # Mismo aviso que la web. Antes preguntaba "¿Guardar igual?",
+                # pero igual no se guardaba (fecha + hora no se repiten).
+                messagebox.showwarning(
+                    "Ya está cargada",
+                    f"Ya hay una observación cargada para el {_fecha_ddmmaaaa(datos['fecha'])} a las {datos['hora']}: "
+                    "no se carga de nuevo. Revisala en la pestaña Histórico.",
+                )
+                return
 
             # Las variables que no se pudieron calcular (porque les faltaba un
             # dato marcado "-") se guardan también como "-", no en blanco ni
@@ -1174,6 +1161,7 @@ class App(ttk.Window):
                 f"Observación cargada: {_fecha_ddmmaaaa(datos['fecha'])} {datos['hora']} — "
                 f"Observador: {datos['observador']}",
             )
+            db.recordar_observador(datos["observador"])   # queda elegido para la próxima (igual que la web)
 
             self._refrescar_historial()
             self._limpiar()
@@ -1185,8 +1173,10 @@ class App(ttk.Window):
 
     def _limpiar(self):
         for clave, entrada in self.entradas.items():
-            if clave == "hora":
-                continue  # combobox de solo lectura: siempre tiene que quedar una hora válida elegida
+            if clave in ("hora", "observador"):
+                # hora: siempre tiene que quedar una hora válida elegida;
+                # observador: el que está cargando sigue siendo el mismo.
+                continue
             if isinstance(entrada, ttk.Combobox):
                 entrada.set("")  # .delete() no limpia un combobox de solo lectura (ej. "observador")
             else:
@@ -1289,35 +1279,10 @@ class App(ttk.Window):
 
     def _al_terminar_sync(self, mensaje, error=False):
         self._refrescar_historial()
+        self._refrescar_observadores(seleccionar=self.entradas["observador"].get())   # nombres que llegaron de la web
         self.estado_label.config(text=mensaje)
         if error:
             messagebox.showerror("Sincronización", mensaje)
-
-    def _verificar_actualizacion(self):
-        """Avisa si hay una versión más nueva en GitHub, sin interrumpir el
-        uso normal: si falla (sin internet, repo no disponible, lo que sea),
-        no hace nada — el programa sigue andando igual."""
-        def tarea():
-            try:
-                resp = requests.get(VERSION_URL, timeout=4)
-                resp.raise_for_status()
-                remota = resp.text.strip()
-                if _version_mayor(remota, VERSION):
-                    self.after(0, lambda: self._mostrar_aviso_actualizacion(remota))
-            except Exception:
-                pass
-
-        threading.Thread(target=tarea, daemon=True).start()
-
-    def _mostrar_aviso_actualizacion(self, version_nueva):
-        self.aviso_actualizacion.config(
-            text=f"⚠ Hay una versión nueva disponible (v{version_nueva}). Click para más info.",
-        )
-        self.aviso_actualizacion.pack(side="right", padx=(10, 0))
-        self.aviso_actualizacion.bind(
-            "<Button-1>",
-            lambda _e: webbrowser.open("https://github.com/tifon61/LPO/blob/main/programa/README.md"),
-        )
 
 
 if __name__ == "__main__":
