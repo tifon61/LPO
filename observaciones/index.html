@@ -347,10 +347,11 @@
             return String(t || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
         }
         // ---- Observador: la MISMA regla que el programa de escritorio ----
-        // Lista = los que ya cargaron alguna observación (no descartada, del
-        // histórico) + los agregados con "+" − los quitados con "−". Los
-        // agregados/quitados y el último elegido se recuerdan en esta compu.
-        let historico = null;          // filas del histórico (para la lista y el aviso de repetida)
+        // Lista = la oficial (OBSERVADORES, en config.js) + los agregados con
+        // "+" − los quitados con "−". Los agregados/quitados y el último
+        // elegido se recuerdan en esta compu. No sale de las observaciones
+        // viejas: hay nombres cargados de otras formas (en minúscula, etc.).
+        let historico = null;          // filas del histórico (para el aviso de observación repetida)
         const leerLista = (k) => { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch (_) { return []; } };
         const guardarLista = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
         function ultimoObservador() { try { return localStorage.getItem("lpo-observador") || ""; } catch (_) { return ""; } }
@@ -360,8 +361,8 @@
         function listaObservadores() {
             const ocultos = new Set(leerLista("lpo-observadores-ocultos").map((n) => n.toLowerCase()));
             const vistos = new Map();
-            const desdeHistorico = (historico || []).filter((f) => !f.descartada).map((f) => String(f.observador || "").trim());
-            [...leerLista("lpo-observadores-agregados"), ...desdeHistorico].forEach((n) => {
+            const oficial = typeof OBSERVADORES !== "undefined" ? OBSERVADORES : [];
+            [...oficial, ...leerLista("lpo-observadores-agregados")].forEach((n) => {
                 if (n && !ocultos.has(n.toLowerCase()) && !vistos.has(n.toLowerCase())) vistos.set(n.toLowerCase(), n);
             });
             return [...vistos.values()].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
@@ -412,7 +413,7 @@
             const script = document.createElement("script");
             script.id = callbackName + "_script";
             script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&token=" + encodeURIComponent(APPS_SCRIPT_TOKEN);
-            script.onerror = () => {};   // sin el histórico: quedan los agregados con "+"
+            script.onerror = () => {};   // sin el histórico: no se puede avisar de una repetida, el resto anda igual
             document.body.appendChild(script);
         }
 

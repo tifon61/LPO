@@ -23,11 +23,11 @@ cargar el dato.
 
 ## Observador
 
-En la página y en el programa funciona igual: se **elige de la lista**. La
-lista tiene a todos los que ya cargaron alguna observación. Si sos nuevo,
-agregate con el botón **+**; con **−** se saca de la lista a alguien que ya
-no observa (sus observaciones no se tocan). Queda elegido el último que
-cargó en esa computadora.
+En la página y en el programa funciona igual: se **elige de la lista**, que
+tiene las iniciales del equipo (FB, IV, JB, MB, MT, NA, NR). Si sos nuevo,
+agregate con el botón **+** (y pedí que te sumen a la lista oficial); con
+**−** se saca de la lista a alguien que ya no observa (sus observaciones no
+se tocan). Queda elegido el último que cargó en esa computadora.
 
 Al guardar aparece un cartel con la fecha, la hora y el observador de lo que
 se guardó. Si ya hay una observación para esa fecha y hora, avisa y no la

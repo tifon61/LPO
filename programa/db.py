@@ -124,23 +124,17 @@ def inicializar():
 
 
 def listar_observadores():
-    """Nombres para el selector de "Observador", en orden alfabético: los
-    que ya cargaron alguna observación (no descartada; también las bajadas
-    de la Sheet), más los agregados con "+", menos los quitados con "−".
+    """Nombres para el selector de "Observador", en orden alfabético: la
+    lista oficial (config.OBSERVADORES), más los agregados con "+" en esta
+    compu, menos los quitados con "−". No se toman de las observaciones
+    viejas (hay nombres cargados de otras formas, en minúscula, etc.).
     Es la MISMA regla que el formulario web (observaciones/index.html)."""
+    import config
     with conectar() as conn:
-        rows = conn.execute(
-            """
-            SELECT nombre FROM observadores
-            UNION
-            SELECT TRIM(observador) FROM observaciones
-             WHERE descartada = 0 AND TRIM(COALESCE(observador, '')) <> ''
-            """
-        ).fetchall()
+        agregados = [r["nombre"] for r in conn.execute("SELECT nombre FROM observadores")]
         ocultos = {r["nombre"].lower() for r in conn.execute("SELECT nombre FROM observadores_ocultos")}
     vistos = {}
-    for row in rows:
-        nombre = row["nombre"]
+    for nombre in [*config.OBSERVADORES, *agregados]:
         if nombre.lower() not in ocultos:
             vistos.setdefault(nombre.lower(), nombre)
     return sorted(vistos.values(), key=str.lower)
@@ -153,7 +147,7 @@ def agregar_observador(nombre):
     if not nombre:
         return False
     if nombre.lower() in {n.lower() for n in listar_observadores()}:
-        return False          # ya está en la lista (agregado o con observaciones)
+        return False          # ya está en la lista (oficial o agregado)
     with conectar() as conn:
         conn.execute("INSERT OR IGNORE INTO observadores (nombre) VALUES (?)", (nombre,))
         conn.execute("DELETE FROM observadores_ocultos WHERE nombre = ?", (nombre,))   # si lo habían quitado, vuelve

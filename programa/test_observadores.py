@@ -7,35 +7,41 @@ la misma regla que el formulario web.
 import os
 import tempfile
 
+import config
 import db
+
+OFICIAL = sorted(config.OBSERVADORES, key=str.lower)
 
 
 def main():
     with tempfile.TemporaryDirectory() as d:
         db.DB_PATH = os.path.join(d, "prueba.db")
         db.inicializar()
+        # Observaciones viejas con el nombre escrito de otra forma: NO entran en la lista.
         base = {"t_seca": 20, "t_humeda": 17, "cargado_el": "2026-11-12T12:00:00"}
-        # Observaciones (como si vinieran de la Sheet): MB, FB, y una descartada de "Viejo".
-        db.insertar_observacion({**base, "fecha": "2026-11-12", "hora": "09:00", "observador": "MB"}, origen="sheet", sync_status="sincronizado")
-        db.insertar_observacion({**base, "fecha": "2026-11-11", "hora": "15:00", "observador": "FB "}, origen="sheet", sync_status="sincronizado")
-        db.insertar_observacion({**base, "fecha": "2026-11-01", "hora": "21:00", "observador": "Viejo", "descartada": True},
+        db.insertar_observacion({**base, "fecha": "2026-11-12", "hora": "09:00", "observador": "mauricio"},
                                 origen="sheet", sync_status="sincronizado")
-        assert db.listar_observadores() == ["FB", "MB"], db.listar_observadores()
+        assert db.listar_observadores() == OFICIAL, db.listar_observadores()
 
-        assert db.agregar_observador("IV") is True
-        assert db.agregar_observador("mb") is False                  # ya está (por sus observaciones)
-        assert db.listar_observadores() == ["FB", "IV", "MB"]
+        assert db.agregar_observador("ZZ") is True                   # alguien nuevo, en esta compu
+        assert db.agregar_observador("mb") is False                  # ya está (lista oficial)
+        assert db.listar_observadores() == sorted(OFICIAL + ["ZZ"], key=str.lower)
 
-        db.eliminar_observador("MB")                                  # quitado: no vuelve aunque tenga observaciones
-        assert db.listar_observadores() == ["FB", "IV"]
-        assert db.agregar_observador("MB") is True                   # se puede volver a agregar
-        assert db.listar_observadores() == ["FB", "IV", "MB"]
+        db.eliminar_observador("MB")                                  # quitado de la oficial, en esta compu
+        assert "MB" not in db.listar_observadores()
+        assert db.agregar_observador("MB") is True                   # se puede volver a poner
+        assert "MB" in db.listar_observadores()
+
+        # En la compu de la oficina ya habían cargado las iniciales a mano:
+        # no se repiten.
+        for n in config.OBSERVADORES:
+            db.agregar_observador(n)
+        assert db.listar_observadores() == sorted(OFICIAL + ["ZZ"], key=str.lower)
 
         assert db.ultimo_observador() == ""
         db.recordar_observador("IV")
-        assert db.ultimo_observador() == "IV"
         db.inicializar()                                              # abrir de nuevo no rompe nada
-        assert db.listar_observadores() == ["FB", "IV", "MB"] and db.ultimo_observador() == "IV"
+        assert db.ultimo_observador() == "IV"
     print("OK: lista de observadores")
 
 
