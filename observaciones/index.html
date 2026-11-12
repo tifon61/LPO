@@ -100,7 +100,11 @@
                     </div>
                     <div>
                         <label for="observador" class="input-label">Observador</label>
-                        <input type="text" id="observador" name="observador" maxlength="60" required class="input-field">
+                        <!-- Como en el programa: se elige de la lista (los que ya cargaron
+                             observaciones) o se escribe un nombre nuevo. Se recuerda el último. -->
+                        <input type="text" id="observador" name="observador" maxlength="60" required class="input-field"
+                               list="observadores" autocomplete="off" placeholder="Elegí o escribí tu nombre">
+                        <datalist id="observadores"></datalist>
                     </div>
                 </div>
 
@@ -320,12 +324,52 @@
             return mejor;
         }
 
-        // Fecha/hora por defecto
+        // Fecha/hora por defecto. La fecha, la LOCAL: con toISOString() (UTC),
+        // desde las 21 hs argentinas proponía el día siguiente (justo para la
+        // observación de las 21).
+        function fechaLocalHoy() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
         const ahora = new Date();
-        document.getElementById("fecha").value = ahora.toISOString().slice(0, 10);
+        document.getElementById("fecha").value = fechaLocalHoy();
         document.getElementById("hora").value = horaSinopticaMasCercana(ahora);
+        cargarObservadores();
 
         // Sistema de Banner Flotante formal
+        // ---- Observador: lista de los que ya cargaron + el último que usó esta compu ----
+        function escaparHTML(t) {
+            return String(t || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+        }
+        function recordarObservador(nombre) {
+            try { localStorage.setItem("lpo-observador", nombre); } catch (_) {}
+        }
+        function cargarObservadores() {
+            try {
+                const ultimo = localStorage.getItem("lpo-observador");
+                if (ultimo && !document.getElementById("observador").value) document.getElementById("observador").value = ultimo;
+            } catch (_) {}
+            if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGAR_URL")) return;
+            // Los nombres salen del histórico (mismo pedido que la página Histórico):
+            // los que cargaron en los últimos meses, primero los más recientes.
+            const callbackName = "onObservadores_" + Date.now();
+            window[callbackName] = (data) => {
+                delete window[callbackName];
+                document.getElementById(callbackName + "_script")?.remove();
+                if (!data || !data.ok) return;
+                const vistos = new Map();
+                data.filas.filter((f) => f.observador && !f.descartada)
+                    .forEach((f) => { const n = String(f.observador).trim(); if (n) vistos.set(n.toLowerCase(), { n, f: f.fecha }); });
+                const nombres = [...vistos.values()].sort((x, y) => String(y.f).localeCompare(String(x.f))).map((x) => x.n);
+                document.getElementById("observadores").innerHTML = nombres.map((n) => `<option value="${escaparHTML(n)}">`).join("");
+            };
+            const script = document.createElement("script");
+            script.id = callbackName + "_script";
+            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&token=" + encodeURIComponent(APPS_SCRIPT_TOKEN);
+            script.onerror = () => {};   // sin lista: igual se puede escribir el nombre
+            document.body.appendChild(script);
+        }
+
         function mostrarBanner(tipo, mensaje) {
             clearTimeout(bannerTimeout);
             
@@ -395,9 +439,13 @@
                 });
                 const data = await resp.json();
                 if (data.ok) {
-                    mostrarBanner("ok", "La observación fue registrada correctamente.");
+                    // Que quede claro QUÉ se guardó (evita cargarla dos veces "por las dudas").
+                    const [a, m, d] = String(input.fecha).split("-");
+                    mostrarBanner("ok", `Observación guardada: <b>${d}/${m}/${a} a las ${input.hora}</b>, observador <b>${escaparHTML(input.observador)}</b>.`);
+                    recordarObservador(input.observador);
                     form.reset();
-                    document.getElementById("fecha").value = new Date().toISOString().slice(0, 10);
+                    document.getElementById("observador").value = input.observador;
+                    document.getElementById("fecha").value = fechaLocalHoy();
                     document.getElementById("hora").value = horaSinopticaMasCercana(new Date());
                     actualizarPreview();
                 } else {
