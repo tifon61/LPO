@@ -21,6 +21,18 @@ hacer nada. Si querés forzarlo, está el botón "Sincronizar ahora".
 Usá esta opción cuando sepas que no vas a tener internet en el momento de
 cargar el dato.
 
+## Observador
+
+En la página y en el programa funciona igual: se **elige de la lista**, que
+tiene las iniciales del equipo (FB, IV, JB, MB, MT, NA, NR). Si sos nuevo,
+agregate con el botón **+** (y pedí que te sumen a la lista oficial); con
+**−** se saca de la lista a alguien que ya no observa (sus observaciones no
+se tocan). Queda elegido el último que cargó en esa computadora.
+
+Al guardar aparece un cartel con la fecha, la hora y el observador de lo que
+se guardó. Si ya hay una observación para esa fecha y hora, avisa y no la
+carga de nuevo: revisala en el Histórico.
+
 ## Horario de las observaciones
 
 La estación solo toma observaciones a las **09:00, 15:00 y 21:00** (hora

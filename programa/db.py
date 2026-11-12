@@ -89,6 +89,10 @@ def inicializar():
             )
             """
         )
+        # Los que alguien sacó con "−" (para que no vuelvan a aparecer aunque
+        # tengan observaciones viejas) y el último observador elegido.
+        conn.execute("CREATE TABLE IF NOT EXISTS observadores_ocultos (nombre TEXT NOT NULL UNIQUE COLLATE NOCASE)")
+        conn.execute("CREATE TABLE IF NOT EXISTS preferencias (clave TEXT PRIMARY KEY, valor TEXT)")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS observaciones (
@@ -120,12 +124,20 @@ def inicializar():
 
 
 def listar_observadores():
-    """Nombres guardados para el selector de "Observador", en orden
-    alfabético. Es una lista local de esta compu (no se sincroniza con la
-    Sheet) — cada estación/instalación arma la suya."""
+    """Nombres para el selector de "Observador", en orden alfabético: la
+    lista oficial (config.OBSERVADORES), más los agregados con "+" en esta
+    compu, menos los quitados con "−". No se toman de las observaciones
+    viejas (hay nombres cargados de otras formas, en minúscula, etc.).
+    Es la MISMA regla que el formulario web (observaciones/index.html)."""
+    import config
     with conectar() as conn:
-        rows = conn.execute("SELECT nombre FROM observadores ORDER BY nombre COLLATE NOCASE").fetchall()
-        return [row["nombre"] for row in rows]
+        agregados = [r["nombre"] for r in conn.execute("SELECT nombre FROM observadores")]
+        ocultos = {r["nombre"].lower() for r in conn.execute("SELECT nombre FROM observadores_ocultos")}
+    vistos = {}
+    for nombre in [*config.OBSERVADORES, *agregados]:
+        if nombre.lower() not in ocultos:
+            vistos.setdefault(nombre.lower(), nombre)
+    return sorted(vistos.values(), key=str.lower)
 
 
 def agregar_observador(nombre):
@@ -134,13 +146,11 @@ def agregar_observador(nombre):
     nombre = nombre.strip()
     if not nombre:
         return False
+    if nombre.lower() in {n.lower() for n in listar_observadores()}:
+        return False          # ya está en la lista (oficial o agregado)
     with conectar() as conn:
-        existe = conn.execute(
-            "SELECT 1 FROM observadores WHERE nombre = ? COLLATE NOCASE", (nombre,)
-        ).fetchone()
-        if existe:
-            return False
-        conn.execute("INSERT INTO observadores (nombre) VALUES (?)", (nombre,))
+        conn.execute("INSERT OR IGNORE INTO observadores (nombre) VALUES (?)", (nombre,))
+        conn.execute("DELETE FROM observadores_ocultos WHERE nombre = ?", (nombre,))   # si lo habían quitado, vuelve
         conn.commit()
         return True
 
@@ -149,7 +159,21 @@ def eliminar_observador(nombre):
     """Saca un nombre del selector. No toca las observaciones ya guardadas
     con ese observador — esas conservan el nombre tal cual quedó cargado."""
     with conectar() as conn:
-        conn.execute("DELETE FROM observadores WHERE nombre = ?", (nombre,))
+        conn.execute("DELETE FROM observadores WHERE nombre = ? COLLATE NOCASE", (nombre,))
+        conn.execute("INSERT OR IGNORE INTO observadores_ocultos (nombre) VALUES (?)", (nombre,))
+        conn.commit()
+
+
+def ultimo_observador():
+    """El último observador elegido al guardar (se deja elegido de nuevo)."""
+    with conectar() as conn:
+        row = conn.execute("SELECT valor FROM preferencias WHERE clave = 'ultimo_observador'").fetchone()
+        return row["valor"] if row else ""
+
+
+def recordar_observador(nombre):
+    with conectar() as conn:
+        conn.execute("INSERT OR REPLACE INTO preferencias (clave, valor) VALUES ('ultimo_observador', ?)", (nombre,))
         conn.commit()
 
 

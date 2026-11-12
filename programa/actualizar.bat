@@ -29,6 +29,10 @@ rem Windows de 32 bits esa carpeta no existe y queda directo en "Program
 rem Files" — se prueban las dos ubicaciones antes de rendirse.
 set ISCC="C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if not exist %ISCC% set ISCC="C:\Program Files\Inno Setup 6\ISCC.exe"
+rem Instalado "solo para este usuario" (sin permisos de administrador) queda aca:
+if not exist %ISCC% set ISCC="%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"
+rem Y si esta en otro lado pero en el PATH del sistema, se lo busca con "where".
+if not exist %ISCC% for /f "delims=" %%i in ('where ISCC.exe 2^>nul') do set ISCC="%%i"
 if not exist %ISCC% (
     echo.
     echo No encontre Inno Setup instalado en ninguna ubicacion conocida.
