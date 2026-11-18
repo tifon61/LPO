@@ -49,6 +49,25 @@ Python 3.10 (32-bit) y estas versiones específicas:
 py -3.10 -m pip install openpyxl xlrd Pillow numpy==1.21.6 matplotlib==3.5.3 kiwisolver==1.4.4 ttkbootstrap==2.2.3
 ```
 
+## Empaquetarlo como .exe con instalador (Windows)
+
+Mismo criterio que `programa/` (ver `programa/README.md` para la
+explicación completa): hay que compilarlo en Windows, con Python 3.10 y
+PyInstaller ya instalados (ver la sección de 32 bits arriba — ya deja
+`pyinstaller` instalado también).
+
+```
+actualizar.bat
+```
+
+Doble clic después de bajar el código actualizado del repositorio (mismo
+lugar de siempre: `historico\`). Regenera `dist\HistoricoLPO.exe` y
+compila el instalador, y al final te dice dónde quedó
+`Instalador_HistoricoLPO.exe` — correlo para instalar o actualizar. Queda
+como una aplicación de Windows aparte, con su propio ícono (el logo en
+azul) y su propio acceso directo — no reemplaza ni se mezcla con
+"Observaciones LPO" (el programa de carga diaria).
+
 ## Uso
 
 1. **Importar todo** — la primera vez (o si sumaste años viejos que
