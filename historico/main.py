@@ -66,8 +66,13 @@ def _fmt_valor(valor, decimales=1):
 
 
 def _combo_variable(padre, ancho=26):
-    """Combobox con las variables disponibles, para reusar en cada pestaña."""
-    combo = ttk.Combobox(padre, state="readonly", width=ancho, values=[e for _c, e in VARIABLES_GRAFICO])
+    """Combobox con las variables disponibles, para reusar en cada pestaña.
+    height=len(...) para que se vean las 12 opciones de una sola vez, sin
+    tener que scrollear el desplegable (por defecto ttk corta en 10)."""
+    combo = ttk.Combobox(
+        padre, state="readonly", width=ancho, values=[e for _c, e in VARIABLES_GRAFICO],
+        height=len(VARIABLES_GRAFICO),
+    )
     combo.current(0)
     return combo
 
