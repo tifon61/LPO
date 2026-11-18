@@ -81,6 +81,31 @@ def _variable_elegida(combo):
     return VARIABLES_GRAFICO[combo.current()]
 
 
+class MarcoDesplazable(ttk.Frame):
+    """Un frame con scroll vertical, para meter adentro contenido más
+    largo que la ventana (usado en la pestaña "Cómo funciona")."""
+
+    def __init__(self, contenedor, color_fondo, *args, **kwargs):
+        super().__init__(contenedor, *args, **kwargs)
+        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0, background=color_fondo)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.interior = ttk.Frame(canvas)
+
+        self.interior.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas.create_window((0, 0), window=self.interior, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        def _rueda(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind_all("<MouseWheel>", _rueda)
+
+
 class App(ttk.Window):
     def __init__(self):
         super().__init__(themename="flatly")
@@ -92,6 +117,7 @@ class App(ttk.Window):
             pass  # en Linux/Mac iconbitmap no siempre acepta .ico; no es crítico
         self._imagenes = []  # mantiene referencias vivas para que Tkinter no las libere
         self._datos_periodo_actual = []
+        self.color_fondo = self.style.colors.bg
 
         self._armar_encabezado()
         self._armar_importar()
@@ -104,17 +130,20 @@ class App(ttk.Window):
         tab_clima_mensual = ttk.Frame(notebook, padding=10)
         tab_clima_estacional = ttk.Frame(notebook, padding=10)
         tab_informe = ttk.Frame(notebook, padding=10)
+        tab_como_funciona = ttk.Frame(notebook)
         notebook.add(tab_visor, text="Ver / graficar")
         notebook.add(tab_extremos, text="Extremos")
         notebook.add(tab_clima_mensual, text="Climatología mensual")
         notebook.add(tab_clima_estacional, text="Climatología estacional")
         notebook.add(tab_informe, text="Informe de una estación")
+        notebook.add(tab_como_funciona, text="Cómo funciona")
 
         self._armar_visor(tab_visor)
         self._armar_extremos(tab_extremos)
         self._armar_climatologia_mensual(tab_clima_mensual)
         self._armar_climatologia_estacional(tab_clima_estacional)
         self._armar_informe_estacional(tab_informe)
+        self._armar_como_funciona(tab_como_funciona)
 
         self._actualizar_rango_disponible()
 
@@ -712,6 +741,106 @@ class App(ttk.Window):
                 text=f"{nombre_estacion} {anio_periodo} comparado contra el promedio histórico de "
                 f"todos los {plural_estacion} cargados. \"Diferencia\" positiva = por encima de lo normal."
             )
+
+    # ---------- Cómo funciona ----------
+
+    def _armar_como_funciona(self, contenedor):
+        scroll = MarcoDesplazable(contenedor, color_fondo=self.color_fondo)
+        scroll.pack(fill="both", expand=True, padx=8, pady=8)
+        raiz = scroll.interior
+
+        def seccion(titulo, texto, bootstyle="secondary"):
+            marco = ttk.Labelframe(raiz, text=f" {titulo} ", padding=10, bootstyle=bootstyle)
+            marco.pack(fill="x", padx=12, pady=7)
+            ttk.Label(marco, text=texto, wraplength=620, justify="left").pack(anchor="w")
+            return marco
+
+        seccion(
+            "Qué es este programa", bootstyle="info",
+            texto=(
+                "Junta en una sola base de datos local todos los Excel anuales de observaciones "
+                "(uno por año, décadas de datos) para poder consultarlos y analizarlos rápido. "
+                "Es independiente del programa de carga diaria: no se conecta a internet, no lee "
+                "ni escribe la Google Sheet, y nada de lo que hagas acá (ni importar, ni exportar) "
+                "puede afectar la carga de observaciones de todos los días. Todo queda guardado en "
+                "este mismo equipo, en el archivo historico.db."
+            ),
+        )
+
+        seccion(
+            "Importar desde Excel",
+            texto=(
+                "\"Importar todo\" lee todos los archivos .xlsx/.xls de una carpeta elegida — se usa "
+                "la primera vez, o cuando sumás años viejos que todavía no estaban cargados. "
+                "\"Actualizar año actual\" relee solo el archivo de este año (lo encuentra por el año "
+                "en el nombre del archivo), mucho más rápido para actualizar seguido sin tener que "
+                "releer 50 años cada vez.\n\n"
+                "Cada observación se identifica por su fecha + hora: si una fila ya existía, importarla "
+                "de nuevo la actualiza en vez de duplicarla — así que reimportar un Excel corregido, o "
+                "apretar los botones varias veces de más, nunca rompe nada."
+            ),
+        )
+
+        seccion(
+            "Ver / graficar",
+            texto=(
+                "Elegís una variable y un período (fechas dd/mm/aaaa) y se dibuja esa serie en el "
+                "gráfico, además de listarse en la tabla de abajo. Si el período es muy largo, la "
+                "tabla solo muestra las primeras 2000 filas para no trabar la ventana — pero el "
+                "gráfico y el botón \"Exportar período a CSV\" sí usan el período completo."
+            ),
+        )
+
+        seccion(
+            "Extremos",
+            texto=(
+                "Para una variable y un período, busca el valor más alto y el más bajo registrado, con "
+                "la fecha y hora exactas en que ocurrió — y además el resto del ranking de los 10 "
+                "valores más extremos en cada sentido, por si el primer puesto fue un error de carga "
+                "puntual y conviene mirar el contexto."
+            ),
+        )
+
+        seccion(
+            "Climatología mensual y estacional",
+            texto=(
+                "Muestran lo \"normal\" para cada mes (Enero a Diciembre) o para cada estación del año "
+                "(Verano/Otoño/Invierno/Primavera), calculado sobre todos los años cargados.\n\n"
+                "Para la mayoría de las variables (temperatura, presión, humedad, etc.) el \"promedio\" "
+                "es el promedio de esa variable en todas las observaciones de ese mes/estación, a lo "
+                "largo de todos los años. Para la lluvia es distinto: se muestra el total acumulado "
+                "típico del período (ej. cuánto llueve en un Enero promedio), no el promedio de cada "
+                "lectura suelta, que no tendría mucho sentido.\n\n"
+                "También se indica en qué año ese mes/estación tuvo el valor más alto y el más bajo — "
+                "por ejemplo, \"el Enero más caluroso\" o \"el Invierno más lluvioso\".\n\n"
+                "La climatología estacional agrupa de a 3 meses, con el Verano incluyendo diciembre del "
+                "año anterior: \"Verano 1991\" quiere decir diciembre de 1990 más enero y febrero de 1991 "
+                "— es la forma habitual de contar el verano en el hemisferio sur, donde cruza el cambio "
+                "de año calendario."
+            ),
+        )
+
+        seccion(
+            "Informe de una estación",
+            texto=(
+                "Compara una estación del año puntual (por ejemplo \"Invierno 2025\") contra el "
+                "promedio histórico de esa misma estación, variable por variable, para ver de un "
+                "vistazo si vino más cálido, más frío, más húmedo o más lluvioso que lo normal. La "
+                "columna \"Diferencia\" positiva significa por encima del promedio histórico; negativa, "
+                "por debajo. Para el año de Verano aplica la misma convención que en la climatología "
+                "estacional (diciembre cuenta para el año siguiente)."
+            ),
+        )
+
+        seccion(
+            "Dónde quedan los datos",
+            texto=(
+                "Todo se guarda localmente, en esta misma computadora (historico.db) — no se sube a "
+                "ningún lado ni se comparte con otras computadoras automáticamente. Si instalás este "
+                "programa en otra máquina, hay que volver a importar los Excel ahí (o copiar el "
+                "archivo historico.db a mano)."
+            ),
+        )
 
 
 if __name__ == "__main__":
