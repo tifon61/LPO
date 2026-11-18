@@ -23,3 +23,9 @@ def dir_datos():
         carpeta = os.path.join(os.path.expanduser("~"), ".historico-lpo")
     os.makedirs(carpeta, exist_ok=True)
     return carpeta
+
+
+def ruta_recurso(*partes):
+    """Carpeta donde están los recursos de solo lectura empaquetados (img/, ícono)."""
+    base = getattr(sys, "_MEIPASS", DIR_SCRIPT)
+    return os.path.join(base, *partes)

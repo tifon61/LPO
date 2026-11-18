@@ -74,11 +74,29 @@ py -3.10 -m pip install openpyxl xlrd Pillow numpy==1.21.6 matplotlib==3.5.3 kiw
 5. **Exportar período a CSV** — exporta exactamente lo que se graficó la
    última vez, con BOM UTF-8 y la directiva `sep=,` para que Excel en
    configuración regional argentina no mezcle todo en una sola columna.
+6. **Extremos** — para una variable y un período, el valor más alto y más
+   bajo registrado con su fecha y hora exactas, más el ranking de los 10
+   más extremos en cada sentido.
+7. **Climatología mensual** — para cada mes del año (independiente del
+   año calendario), el promedio histórico a lo largo de todos los años
+   cargados, con gráfico, más el año en que ese mes tuvo el valor más alto
+   y el más bajo. Para la lluvia, en vez de promedio muestra el total
+   acumulado típico de ese mes (tiene más sentido que promediar lecturas
+   sueltas).
+8. **Climatología estacional** — lo mismo que la mensual pero agrupado de
+   a 3 meses (Verano/Otoño/Invierno/Primavera, hemisferio sur). El verano
+   incluye diciembre del año anterior (ej. "Verano 1991" = dic 1990 + ene
+   y feb 1991).
+9. **Informe de una estación** — compara una estación del año puntual
+   (ej. "Invierno 2025") contra el promedio histórico de esa misma
+   estación, variable por variable, para ver rápido si vino más cálido/
+   frío/lluvioso que lo normal.
 
 ## Estructura
 
-- `main.py` — interfaz (ttkbootstrap/Tkinter): importar, graficar, tabla, exportar CSV.
+- `main.py` — interfaz (ttkbootstrap/Tkinter): importar, graficar, tabla, exportar CSV, extremos, climatología e informes.
 - `importador.py` — lectura de los Excel anuales (.xlsx y .xls) y conversión a filas listas para la base.
-- `db.py` — almacenamiento local en SQLite.
+- `db.py` — almacenamiento local en SQLite, incluidas las consultas de extremos y climatología.
 - `config.py` — recuerda la carpeta de los Excel (para "Actualizar año actual").
-- `rutas.py` — resuelve dónde guardar la base, tanto corriendo `python main.py` como empaquetado en un `.exe`.
+- `rutas.py` — resuelve dónde guardar la base y dónde están los recursos (ícono, logo), tanto corriendo `python main.py` como empaquetado en un `.exe`.
+- `img/logo-historico.png`, `icono.ico` — el logo de la estación, recoloreado en azul (el del programa de carga diaria es dorado), para distinguir de un vistazo qué ventana es cada una cuando están las dos abiertas.
