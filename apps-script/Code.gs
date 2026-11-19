@@ -279,7 +279,9 @@ function asegurarFormatoTexto_(sheet) {
 }
 
 // Busca la fila (1-indexada, incluyendo el encabezado) cuya fecha+hora
-// coincida. Devuelve -1 si no la encuentra.
+// coincida — sin importar si está descartada o no (hace falta encontrarla
+// igual para poder, por ejemplo, reactivarla). Devuelve -1 si no la
+// encuentra.
 function buscarFilaPorClave_(sheet, fecha, hora) {
   var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; }) + 1;
   var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; }) + 1;
@@ -292,6 +294,28 @@ function buscarFilaPorClave_(sheet, fecha, hora) {
     }
   }
   return -1;
+}
+
+// Igual que buscarFilaPorClave_, pero solo cuenta una fila ACTIVA (no
+// descartada). La usa doPost para decidir si una carga nueva es un
+// reintento duplicado de verdad: si la única fila que ya existe para esa
+// fecha+hora está descartada (alguien la marcó como un dato a corregir),
+// no cuenta como "ya existe" — así una carga corregida después de
+// descartar la vieja sí se puede guardar, en vez de quedar bloqueada para
+// siempre como si fuera un reintento.
+function existeFilaActivaConClave_(sheet, fecha, hora) {
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; }) + 1;
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; }) + 1;
+  var colDescartada = COLUMNAS.findIndex(function (c) { return c.key === "descartada"; }) + 1;
+  var valores = sheet.getDataRange().getValues();
+  for (var i = 1; i < valores.length; i++) {
+    var filaFecha = formatearFecha_(valores[i][colFecha - 1]);
+    var filaHora = formatearHora_(valores[i][colHora - 1]);
+    if (filaFecha === fecha && filaHora === hora && !valores[i][colDescartada - 1]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // Reordena las filas de datos (todo menos el encabezado) por fecha+hora
@@ -640,11 +664,14 @@ function doPost(e) {
     lock.waitLock(30000);
     try {
       var sheet = getSheet_();
-      var filaExistente = buscarFilaPorClave_(sheet, fila.fecha, fila.hora);
-      if (filaExistente !== -1) {
-        // Ya existe (la escribió un intento anterior que el cliente dio
-        // por fallido) — no se duplica, se responde éxito igual para que
-        // el cliente la marque como sincronizada y deje de reintentar.
+      if (existeFilaActivaConClave_(sheet, fila.fecha, fila.hora)) {
+        // Ya existe una fila ACTIVA con esa fecha+hora (la escribió un
+        // intento anterior que el cliente dio por fallido) — no se
+        // duplica, se responde éxito igual para que el cliente la marque
+        // como sincronizada y deje de reintentar. Si la única fila que
+        // había para esa fecha+hora está descartada, esto no bloquea: se
+        // entiende como una carga corregida después de un descarte, no
+        // como un reintento.
         return jsonOut_({ ok: true, fila: fila, yaExistia: true });
       }
       sheet.appendRow(COLUMNAS.map(function (c) { return fila[c.key]; }));
