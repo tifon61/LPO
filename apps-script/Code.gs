@@ -621,6 +621,18 @@ function doGet(e) {
       return jsonpOut_({ ok: false, error: "Token inválido." }, callback);
     }
 
+    // Forma alternativa de correr la migración de duplicados cuando el
+    // desplegable de funciones del editor de Apps Script no las lista
+    // (le pasó a JB en noviembre de 2026) — con esto alcanza con abrir la
+    // URL del Web App agregando "&accion=limpiar_duplicados" en el
+    // navegador, una sola vez. TODO: sacar este bloque una vez confirmado
+    // que ya no hace falta (la migración ya es no-op si no quedan
+    // duplicados, así que no hay apuro ni riesgo en dejarlo mientras
+    // tanto).
+    if (e.parameter.accion === "limpiar_duplicados") {
+      return jsonpOut_(marcarDuplicadosComoDescartados_(), callback);
+    }
+
     var sheet = getSheet_();
     var values = sheet.getDataRange().getValues();
     var filas = [];
