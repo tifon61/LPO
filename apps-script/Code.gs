@@ -423,6 +423,68 @@ function repararEncabezadosYFilasViejas() {
   return { ok: true, filasCorregidas: filasCorregidas };
 }
 
+// Corrige las observaciones que quedaron duplicadas por el bug de doPost
+// arreglado en este mismo cambio (un reintento de sincronización después
+// de una respuesta perdida creaba una segunda fila idéntica para la misma
+// fecha+hora, porque antes no se chequeaba si ya existía).
+//
+// Para cada fecha+hora con más de una fila activa (no descartada), deja
+// como activa la que se cargó primero ("Cargado el" más temprano) y
+// descarta el resto con el mecanismo normal de descarte (no las borra:
+// quedan con el rastro del dato crudo, igual que cualquier otro
+// descarte). Si de un grupo ya había una descartada y una activa —algunos
+// observadores ya lo venían corrigiendo a mano—, no toca nada: ya está
+// resuelto.
+//
+// Se ejecuta a mano UNA SOLA VEZ desde el editor de Apps Script, después
+// de pegar este Code.gs actualizado. Es seguro correrla de nuevo por las
+// dudas (no hace nada si ya no quedan duplicados activos). Hacé una copia
+// de la Sheet antes, igual que con repararEncabezadosYFilasViejas.
+function marcarDuplicadosComoDescartados_() {
+  var sheet = getSheet_();
+  var valores = sheet.getDataRange().getValues();
+
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; });
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; });
+  var colCargadoEl = COLUMNAS.findIndex(function (c) { return c.key === "cargadoEl"; });
+  var colDescartada = COLUMNAS.findIndex(function (c) { return c.key === "descartada"; });
+  var colMotivo = COLUMNAS.findIndex(function (c) { return c.key === "motivoDescarte"; });
+  var colDescartadoPor = COLUMNAS.findIndex(function (c) { return c.key === "descartadoPor"; });
+
+  // Agrupa las filas (número de fila real, 1-indexado) por fecha+hora.
+  var grupos = {};
+  for (var i = 1; i < valores.length; i++) {
+    var fila = valores[i];
+    var clave = formatearFecha_(fila[colFecha]) + " " + formatearHora_(fila[colHora]);
+    if (!grupos[clave]) grupos[clave] = [];
+    grupos[clave].push({ numeroFila: i + 1, cargadoEl: fila[colCargadoEl], descartada: !!fila[colDescartada] });
+  }
+
+  var corregidas = 0;
+  Object.keys(grupos).forEach(function (clave) {
+    var filas = grupos[clave];
+    var activas = filas.filter(function (f) { return !f.descartada; });
+    if (activas.length <= 1) return; // nada que corregir en este grupo
+
+    activas.sort(function (a, b) { return String(a.cargadoEl) < String(b.cargadoEl) ? -1 : 1; });
+    var sobreviviente = activas[0]; // la cargada primero queda como la válida
+
+    activas.slice(1).forEach(function (duplicada) {
+      sheet.getRange(duplicada.numeroFila, colDescartada + 1).setValue(true);
+      sheet.getRange(duplicada.numeroFila, colMotivo + 1).setValue(
+        "Observación duplicada (reintento de sincronización) — detectada y corregida automáticamente"
+      );
+      sheet.getRange(duplicada.numeroFila, colDescartadoPor + 1).setValue("Sistema");
+      corregidas++;
+      Logger.log("Descartada fila " + duplicada.numeroFila + " (" + clave + "), queda activa la fila " + sobreviviente.numeroFila);
+    });
+  });
+
+  SpreadsheetApp.flush();
+  Logger.log("Listo. Filas duplicadas descartadas: " + corregidas);
+  return { ok: true, corregidas: corregidas };
+}
+
 function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
@@ -515,12 +577,35 @@ function doPost(e) {
       descartadoPor: "",
     };
 
-    var sheet = getSheet_();
-    sheet.appendRow(COLUMNAS.map(function (c) { return fila[c.key]; }));
-    ordenarSheetPorFechaHora_(sheet);
-    // Fuerza a que la escritura quede visible de verdad antes de responder
-    // (ver el comentario en marcarDescarte_ sobre por qué hace falta esto).
-    SpreadsheetApp.flush();
+    // Lock + chequeo de duplicado: sin esto, si el cliente no llega a
+    // recibir la respuesta a tiempo (se cae la conexión, tarda más que su
+    // propio timeout) cree que falló y reintenta — pero la ejecución de
+    // Apps Script sigue corriendo igual y puede terminar de escribir la
+    // fila. El reintento entonces agregaba una segunda fila idéntica para
+    // la misma fecha+hora, porque antes esto escribía sin fijarse si ya
+    // existía. El lock además evita que dos pedidos que lleguen casi al
+    // mismo tiempo se crucen y los dos pasen el chequeo antes de que
+    // cualquiera de los dos escriba.
+    var lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+      var sheet = getSheet_();
+      var filaExistente = buscarFilaPorClave_(sheet, fila.fecha, fila.hora);
+      if (filaExistente !== -1) {
+        // Ya existe (la escribió un intento anterior que el cliente dio
+        // por fallido) — no se duplica, se responde éxito igual para que
+        // el cliente la marque como sincronizada y deje de reintentar.
+        return jsonOut_({ ok: true, fila: fila, yaExistia: true });
+      }
+      sheet.appendRow(COLUMNAS.map(function (c) { return fila[c.key]; }));
+      ordenarSheetPorFechaHora_(sheet);
+      // Fuerza a que la escritura quede visible de verdad antes de
+      // responder (ver el comentario en marcarDescarte_ sobre por qué
+      // hace falta esto).
+      SpreadsheetApp.flush();
+    } finally {
+      lock.releaseLock();
+    }
 
     return jsonOut_({ ok: true, fila: fila });
   } catch (err) {
