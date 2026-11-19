@@ -485,6 +485,56 @@ function marcarDuplicadosComoDescartados_() {
   return { ok: true, corregidas: corregidas };
 }
 
+// Excepción al criterio normal del sistema (que nunca borra, solo
+// descarta): a pedido puntual, borra DE VERDAD las filas que son
+// duplicado mecánico de otra fila con la misma fecha+hora — tanto las
+// que marcó marcarDuplicadosComoDescartados_() (descartadoPor="Sistema")
+// como las que un observador ya había descartado a mano antes por el
+// mismo motivo. Para no borrar por error una observación descartada por
+// otra razón (instrumento roto, dato dudoso, etc. sin duplicado), solo
+// toca una fila descartada si todavía queda OTRA fila con su misma
+// fecha+hora en la planilla (es decir, si de verdad fue parte de un
+// grupo duplicado).
+//
+// Se ejecuta a mano UNA SOLA VEZ (o vía la URL con
+// "&accion=limpiar_duplicados_borrar", igual que la anterior). Hacé una
+// copia de la Sheet antes.
+function borrarFilasDuplicadasDescartadas_() {
+  var sheet = getSheet_();
+  var valores = sheet.getDataRange().getValues();
+
+  var colFecha = COLUMNAS.findIndex(function (c) { return c.key === "fecha"; });
+  var colHora = COLUMNAS.findIndex(function (c) { return c.key === "hora"; });
+  var colDescartada = COLUMNAS.findIndex(function (c) { return c.key === "descartada"; });
+
+  var grupos = {};
+  for (var i = 1; i < valores.length; i++) {
+    var fila = valores[i];
+    var clave = formatearFecha_(fila[colFecha]) + " " + formatearHora_(fila[colHora]);
+    if (!grupos[clave]) grupos[clave] = [];
+    grupos[clave].push({ numeroFila: i + 1, descartada: !!fila[colDescartada] });
+  }
+
+  var aBorrar = [];
+  Object.keys(grupos).forEach(function (clave) {
+    var filas = grupos[clave];
+    if (filas.length <= 1) return; // sola, no es parte de ningún duplicado: no se toca
+    filas.forEach(function (f) {
+      if (f.descartada) aBorrar.push(f.numeroFila);
+    });
+  });
+
+  // De abajo hacia arriba: borrar una fila corre el número de todas las
+  // de abajo, así que hay que ir de la última a la primera para que los
+  // números ya calculados sigan siendo válidos.
+  aBorrar.sort(function (a, b) { return b - a; });
+  aBorrar.forEach(function (numeroFila) { sheet.deleteRow(numeroFila); });
+
+  SpreadsheetApp.flush();
+  Logger.log("Filas duplicadas borradas: " + aBorrar.length);
+  return { ok: true, borradas: aBorrar.length };
+}
+
 function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
@@ -631,6 +681,9 @@ function doGet(e) {
     // tanto).
     if (e.parameter.accion === "limpiar_duplicados") {
       return jsonpOut_(marcarDuplicadosComoDescartados_(), callback);
+    }
+    if (e.parameter.accion === "borrar_duplicados_descartados") {
+      return jsonpOut_(borrarFilasDuplicadasDescartadas_(), callback);
     }
 
     var sheet = getSheet_();
