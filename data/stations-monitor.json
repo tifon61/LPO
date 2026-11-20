@@ -3,10 +3,10 @@
     "san_vicente": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 5.0h",
+      "current_reason": "Sin datos nuevos hace 10.4h",
       "down_since": "2026-11-18T05:55:46.169575+00:00",
       "last_data_timestamp": "2026-11-19T15:29:51+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 28,
       "incidents": [
         {
@@ -175,7 +175,7 @@
           "start": "2026-11-18T05:55:46.169575+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 5.0h"
+          "reason": "Sin datos nuevos hace 10.4h"
         }
       ],
       "display_name": "San Vicente (La Plata)"
@@ -185,8 +185,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-11-19T20:28:43+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_data_timestamp": "2026-11-20T01:48:43+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
@@ -203,8 +203,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-11-19T20:29:10+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_data_timestamp": "2026-11-20T01:49:58+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -231,17 +231,17 @@
     "daza": {
       "monitoring_since": "2026-08-22T12:09:31.885612+00:00",
       "current_status": "down",
-      "current_reason": "No se pudo conectar: <urlopen error _ssl.c:1063: The handshake operation timed out>",
+      "current_reason": "No se pudo conectar: HTTP 204",
       "down_since": "2026-10-02T19:41:02.541438+00:00",
       "last_data_timestamp": "2026-10-02T14:52:45+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 1,
       "incidents": [
         {
           "start": "2026-10-02T19:41:02.541438+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "No se pudo conectar: <urlopen error _ssl.c:1063: The handshake operation timed out>"
+          "reason": "No se pudo conectar: HTTP 204"
         }
       ],
       "display_name": "Daza (Facultad · Wunderground)"
@@ -251,8 +251,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-11-19T20:28:58+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_data_timestamp": "2026-11-20T01:50:27+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 7,
       "incidents": [
         {
@@ -305,8 +305,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-11-19T20:29:29+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_data_timestamp": "2026-11-20T01:51:16+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 4,
       "incidents": [
         {
@@ -341,8 +341,8 @@
       "current_status": "up",
       "current_reason": null,
       "down_since": null,
-      "last_data_timestamp": "2026-11-19T20:26:16+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_data_timestamp": "2026-11-20T01:49:01+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 9,
       "incidents": [
         {
@@ -408,7 +408,7 @@
       "current_reason": "Sin lecturas de Temp/Humedad",
       "down_since": "2026-09-13T11:50:48.343468+00:00",
       "last_data_timestamp": "2026-09-13T07:15:18+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -435,10 +435,10 @@
     "bavio_pluvio": {
       "monitoring_since": "2026-08-26T01:14:18.709430+00:00",
       "current_status": "down",
-      "current_reason": "Sin datos nuevos hace 728.0h",
+      "current_reason": "Sin datos nuevos hace 733.3h",
       "down_since": "2026-10-20T16:58:39.540575+00:00",
       "last_data_timestamp": "2026-10-20T12:30:42+00:00",
-      "last_check": "2026-11-19T20:29:18.640360+00:00",
+      "last_check": "2026-11-20T01:50:58.617220+00:00",
       "current_issue_number": 3,
       "incidents": [
         {
@@ -457,7 +457,7 @@
           "start": "2026-10-20T16:58:39.540575+00:00",
           "end": null,
           "duration_minutes": null,
-          "reason": "Sin datos nuevos hace 728.0h"
+          "reason": "Sin datos nuevos hace 733.3h"
         }
       ],
       "display_name": "EP N°23 (Bavío / EMA Violeta) — Pluviómetro"
