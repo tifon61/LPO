@@ -372,7 +372,15 @@ class App(ttk.Window):
             self.tabla.delete(item)
         tope = 2000  # no trabar la interfaz si se pide un período de años enteros
         for fila in datos[:tope]:
-            self.tabla.insert("", tk.END, values=[fila.get(clave) for clave, _e in db.COLUMNAS])
+            valores = []
+            for clave, _e in db.COLUMNAS:
+                valor = fila.get(clave)
+                if clave == "fecha":
+                    valor = _fecha_ddmmaaaa(valor)
+                elif clave != "hora":
+                    valor = _fmt_valor(valor)
+                valores.append(valor)
+            self.tabla.insert("", tk.END, values=valores)
         if len(datos) > tope:
             self.label_aviso_tabla.config(
                 text=f"La tabla muestra solo las primeras {tope} filas de {len(datos)} — "
